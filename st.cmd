@@ -21,10 +21,8 @@ case $base in
    py-fstiming)
       if [[ $hutch = XCS ]]; then
          script=femtoneh_mfx_longdelay.py
-      elif [[ $hutch = MFX ]]; then
-         script=femtoneh_mfx_v2.py
       else
-         script=femtoneh_mfx.py
+         script=femtoneh_mfx_v2.py
       fi
       export MPLCONFIGDIR=/reg/d/iocData/fstiming
       ;;
