@@ -110,7 +110,7 @@ class time_tool():
              if ( self.matlab_pv['amp'][0].value > self.matlab_pv['amp'][1].value ) and ( self.matlab_pv['amp'][0].value < self.matlab_pv['amp'][2].value ):
                  #print 'TT edge fit good'
                  # 3. pix must be different from last pix, and stage must not be moving
-                 if ( self.matlab_pv['pix'][0].value <> self.old_values['pix'] ) and ( self.matlab_pv['Stage'][0].value == self.old_values['Stage'] ):
+                 if ( self.matlab_pv['fs'][0].value <> self.old_values['fs'] ) and ( self.matlab_pv['Stage'][0].value == self.old_values['Stage'] ):
                      #print 'Data is fresh. New pix value:'
                      #print self.matlab_pv['pix'][0].value
                      # at this point, know that data is good and need to move it over to the drift correction algo

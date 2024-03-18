@@ -224,7 +224,7 @@ class PVS():   # creates pvs
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'CXI:REC:EVR:04:TRIG3:TDES' # was'LAS:R52B:EVR:31:TRIG0:TDES' but it broke  before that it  was 'LAS:SR63:EVR:09:CTRL.DG0D'
+        laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES' # was'LAS:R52B:EVR:31:TRIG0:TDES' but it broke  before that it  was 'LAS:SR63:EVR:09:CTRL.DG0D'
         # laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG1:TDES' # was'LAS:R52B:EVR:31:TRIG0:TDES' but it broke  before that it  was 'LAS:SR63:EVR:09:CTRL.DG0D'
         trig_in_ticks[nm] = 0  # eEdu Granados <edu.granados@gmail.com>xperiment side triggers operate in ticks units
         reverse_counter[nm] = 1
@@ -239,7 +239,7 @@ class PVS():   # creates pvs
         drift_correction_value[nm]= 'LAS:FS5:VIT:matlab:04'# PV the current reading in ns.
         drift_correction_offset[nm]= 'LAS:FS5:VIT:matlab:05' # PV in final nanoseconds
         drift_correction_gain[nm]= 'LAS:FS5:VIT:matlab:06'  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir[nm]= 1  # Direction of timetool stage
+        drift_correction_dir[nm]= -1  # Direction of timetool stage
         drift_correction_smoothing[nm]='LAS:FS5:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS5:VIT:matlab:09'
         use_drift_correction[nm] = True  

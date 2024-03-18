@@ -15,13 +15,14 @@ import time as time
 import datetime
 
 # from matplotlib import pyplot as plt
-
+HB_PV = 'LAS:UNDH:FLOAT:90'
 HXR_FB_PV = 'LAS:UNDH:FLOAT:05'
 HXR_PCAV_PV0 = 'SIOC:UNDH:PT01:0:TIME0'
 HXR_PCAV_PV1 = 'SIOC:UNDH:PT01:0:TIME1'
 HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'
 HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'
 HXR_CAST2PCAV_Gain = 1.1283 # the slope from plotting cast phase shifter to value read from PCAV
+HXR_CAST2PCAV_Gain = 2 #03/1/2024 cal
 HXR_PCAV_AVG_PV = 'LAS:UNDH:FLOAT:06'
 SXR_FB_PV = 'LAS:UNDS:FLOAT:05'
 SXR_PCAV_PV0 = 'SIOC:UNDS:PT01:0:TIME0'
@@ -32,7 +33,7 @@ SXR_CAST2PCAV_Gain = 1.1283 # the slow from plotting cast phase shifter to value
 SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'
 # -1727400.6755412123
 
-pause_time = 2    # Let's give some time for the system to react
+pause_time = 5    # Let's give some time for the system to react
 Cntl_gain = 0.1   # Feed back loop gain
 #We are doing an exponential fb loop, where the output = output[-1] + (-gain * error)
 pcavsp_ary   = np.zeros(2,)
@@ -52,10 +53,14 @@ PCAV_temp_ary = np.zeros(2,)
 
 cntr = 0
 time_err_avg_prev = 0
+epics.caput(HB_PV, cntr)
+#epics.caput(NaN_alert_PV, 0)
+time_err_avg_prev = 0
 
 print('Controller running')
 
 while True:
+    cntr = epics.caget(HB_PV)
     print(cntr)
     for h in range(0,pcav_avg_n):
         PCAV_temp_ary[0,] = epics.caget(HXR_PCAV_PV0)
@@ -77,7 +82,8 @@ while True:
         time_err_diff = time_err_avg_prev - time_err_avg  
     print('average error')
     print(time_err_avg)
-    cntl_temp = np.true_divide(time_err_avg, HXR_CAST2PCAV_Gain)
+    #cntl_temp = np.true_divide(time_err_avg, HXR_CAST2PCAV_Gain)
+    cntl_temp = np.multiply(time_err_avg, HXR_CAST2PCAV_Gain)
     cntl_delta = np.multiply(Cntl_gain, cntl_temp)
     print('previous error')
     print(time_err_avg_prev)
@@ -94,6 +100,7 @@ while True:
     epics.caput(HXR_CAST_PS_PV_W, Cntl_output)
     time_err_avg_prev = time_err_avg
     cntr = cntr + 1
+    epics.caput(HB_PV, cntr)
     now = datetime.datetime.now()
     print(now.strftime('%Y-%m-%d-%H-%M-%S'))
     print('=============================================')        
