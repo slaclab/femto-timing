@@ -108,43 +108,6 @@ class PVS():   # creates pvs
         version_pv_name = dict()
         matlab = dict()  # holds all matlab use pvs
         timeout = 1.0  # default timeout for connecting to pvs
-        
-        nm = 'XPP'
-        namelist.add(nm)
-        base = 'LAS:FS3:'  # base name for this sysetm
-        dev_base[nm] = base+'VIT:'
-        matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1
-        matlab_pv_digits[nm] = 2
-        counter_base[nm] = base+'CNT:TI:'   # time interval counter
-        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
-        phase_motor[nm] = base+'MMS:PH' 
-        error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
-        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'LAS:R54:EVR:27:TRIG0:TDES' # was DG2D???  was -39983
-        trig_in_ticks[nm] = 0  # Now using new time invariant trjggers
-        reverse_counter[nm] = 1  # start / stop reversed for this laser
-        use_secondary_calibration[nm] = 1
-        secondary_calibration_enable[nm] = 'LAS:FS3:VIT:matlab:01'  #enables secondary calibration.
-        secondary_calibration[nm] = 'XPP:USER:LAS:T0_MONITOR'
-        secondary_calibration_s[nm] = 'LAS:FS3:VIT:matlab:02'
-        secondary_calibration_c[nm] = 'LAS:FS3:VIT:matlab:03'
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # Use new Epics pvs for XPP.
-        # modified for timetool drift draft
-        drift_correction_signal[nm] = 'LAS:FS3:VIT:matlab:29' # what PV to read
-        drift_correction_multiplier[nm] = -1/(2.856 * 360); 
-        drift_correction_value[nm]= 'LAS:FS3:VIT:matlab:04'# PV the current reading in ns.
-        drift_correction_offset[nm]= 'LAS:FS3:VIT:matlab:05' # PV in final nanoseconds
-        drift_correction_gain[nm]= 'LAS:FS3:VIT:matlab:06'  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir[nm]= 1  # Direction of timetool stage
-        drift_correction_smoothing[nm]='LAS:FS3:VIT:matlab:07'
-        drift_correction_accum[nm]='LAS:FS3:VIT:matlab:09'
-        use_drift_correction[nm] = True  
-        use_dither[nm] = True # used to allow fast dither of timing (for special functions)
-        dither_level[nm] = 'LAS:FS3:VIT:matlab:08'    
-        matlab[nm] = matlab_use
 
         nm = 'XCS'
         namelist.add(nm)
@@ -225,7 +188,6 @@ class PVS():   # creates pvs
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES' # was'LAS:R52B:EVR:31:TRIG0:TDES' but it broke  before that it  was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        # laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG1:TDES' # was'LAS:R52B:EVR:31:TRIG0:TDES' but it broke  before that it  was 'LAS:SR63:EVR:09:CTRL.DG0D'
         trig_in_ticks[nm] = 0  # eEdu Granados <edu.granados@gmail.com>xperiment side triggers operate in ticks units
         reverse_counter[nm] = 1
         use_secondary_calibration[nm] = 0
