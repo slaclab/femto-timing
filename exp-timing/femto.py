@@ -12,7 +12,7 @@ class PVS():   # creates pvs
     def __init__(self, nx='NULL'):
         self.version = 'Watchdog 141126a' # version string
         self.name = nx
-        print self.name
+        print(self.name)
         namelist = set()
         self.pvlist = dict()  # will hold pvs with names
         matlab_list = dict() # list of matlab style pvs, tuples of matlab number offset and pv description
@@ -24,7 +24,7 @@ class PVS():   # creates pvs
             matlab_use[n] = True  # initize to always use matlab, override to use epics pvs.
         counter_base = dict()  # holds counter name
         freq_counter = dict() # frequencycounter name
-        dev_base = dict() # used to generate other device names (mostl future)
+        dev_base = dict() # used to generate other device names (mostly future)
         phase_motor = dict()
         laser_trigger = dict()
         trig_in_ticks = dict() # 1 if trigger units are ticks (1/119MHz), 0 if in nanoseconds( kludge for multi systems)
@@ -69,7 +69,7 @@ class PVS():   # creates pvs
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:XCS:01:TRIG0:TDES' # was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # eEdu Granados <edu.granados@gmail.com>xperiment side triggers operate in ticks units
+        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
         reverse_counter[nm] = 1
         use_secondary_calibration[nm] = 0
         matlab_use = dict()
@@ -102,7 +102,7 @@ class PVS():   # creates pvs
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:MFX:01:TRIG0:TDES' # was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # eEdu Granados <edu.granados@gmail.com>xperiment side triggers operate in ticks units
+        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
         reverse_counter[nm] = 1
         use_secondary_calibration[nm] = 0
         matlab_use = dict()
@@ -135,7 +135,7 @@ class PVS():   # creates pvs
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES' # was'LAS:R52B:EVR:31:TRIG0:TDES' but it broke  before that it  was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # eEdu Granados <edu.granados@gmail.com>xperiment side triggers operate in ticks units
+        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
         reverse_counter[nm] = 1
         use_secondary_calibration[nm] = 0
         matlab_use = dict()
@@ -167,7 +167,7 @@ class PVS():   # creates pvs
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES' #220502 was 'MEC:LAS:EVR:01:TRIG1:TDES' # was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # eEdu Granados <edu.granados@gmail.com>xperiment side triggers operate in ticks units
+        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
         reverse_counter[nm] = 1
         use_secondary_calibration[nm] = 0
         matlab_use = dict()
@@ -299,10 +299,10 @@ class PVS():   # creates pvs
         
         
         while not (self.name in namelist):
-            print self.name + '  not found, please enter one of the following '
+            print(self.name + '  not found, please enter one of the following ')
             for x in namelist:
-                print x
-            self.name = raw_input('enter system name:')                           
+                print(x)
+            self.name = input('enter system name:')                           
 
         matlab_use = matlab[self.name]
         self.use_secondary_calibration = use_secondary_calibration[self.name]
@@ -424,7 +424,7 @@ class PVS():   # creates pvs
                 v.get(ctrl=True, timeout=1.0) # get data
             except: # for now just fake it
                 print('could not open '+v.name)
-                print k
+                print(k)
                 self.OK = 0 # some error with setting up PVs, can't run, will exit  
         self.error_pv = Pv(error_pv_name[self.name]) # open pv
         self.error_pv.connect(timeout)
@@ -442,7 +442,7 @@ class PVS():   # creates pvs
             self.pvlist[name].get(ctrl=True, timeout=10.0)
             return self.pvlist[name].value                      
         except:
-            print 'PV READ ERROR: ', name
+            print('PV READ ERROR: ', name)
             return 0
                 
                 
@@ -453,13 +453,13 @@ class PVS():   # creates pvs
         try:
             self.pvlist[name].put(x, timeout = 10.0) # long timeout           
         except:
-            print 'UNABLE TO WRITE PV: ', name, '= ', x
+            print('UNABLE TO WRITE PV: ', name, '= ', x)
                 
     def __del__ (self):
         for v in self.pvlist.values():
             v.disconnect()  
         self.error_pv.disconnect()    
-        print 'closed all PV connections'
+        print('closed all PV connections')
 
 class locker():  # sets up parameters of a particular locking system
     def __init__(self, P, W):  # Uses PV list
@@ -537,37 +537,37 @@ class locker():  # sets up parameters of a particular locking system
         M.move(0)  # move to zero to start 
         M.wait_for_stop()
         for x in tctrl:  #loop over input array 
-            print 'calib start'
+            print('calib start')
             self.W.check() # check watchdog
-            print 'post watchdog'
+            print('post watchdog')
             if self.W.error:
                 return    
             if not self.P.get('calibrate'):
                 return   # canceled calibration
-            print 'move motor'
+            print('move motor')
             M.move(x)  # move motor
-            print 'wait for stop'
+            print('wait for stop')
             M.wait_for_stop()
-            print 'sleep'
+            print('sleep')
             time.sleep(2)  #Don't know why this is needed
             t_tmp = 0 # to check if we ever get a good reading
-            print 'get read'
+            print('get read')
             for n in range(0, 25): # try to see if we can get a good reading
                  t_tmp = self.C.get_time()  # read time
                  if t_tmp != 0: # have a new reading
                      break # break out of loop
             tout = np.append(tout, t_tmp) # read timing and put in array
-            print 'end of loop'
-            print 'temp. time:\t', t_tmp
-            print 'good reading:\t', self.C.good
+            print('end of loop')
+            print('temp. time:\t', t_tmp)
+            print('good reading:\t', self.C.good)
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
-                print 'bad counter data'
+                print('bad counter data')
                 self.P.E.write_error('timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
 
-        print 'min v is: ', minv
+        print('min v is: ', minv)
         period = 1/self.laser_f # just defining things needed in sawtooth -  UGLY
         delay = minv - t_trig # more code cleanup neded in teh future.
         err = np.array([]) # will hold array of errors
@@ -576,16 +576,16 @@ class locker():  # sets up parameters of a particular locking system
             S = sawtooth(tctrl, t_trig, delay, x, period) # sawtooth sim
             err = np.append(err, sum(counter_good*S.r * (S.t - tout)**2))  # total error
         idx = np.argmin(err) # index of minimum of error
-        print 'offset:\t', offset[idx]
-        print 'delay:\t', delay
-        print 'trig_time:\t', t_trig
+        print('offset:\t', offset[idx])
+        print('delay:\t', delay)
+        print('trig_time:\t', t_trig)
         S = sawtooth(tctrl, t_trig, delay, offset[idx], period)
         self.P.put('calib_error', np.sqrt(err[idx]/ self.calib_points))
         self.d['delay'] = delay
         self.d['offset'] = offset[idx]
         self.P.put('delay', delay)
         self.P.put('offset', offset[idx])
-        #print 'PLOTTING CALIBRATION'
+        #print('PLOTTING CALIBRATION')
         #plot(tctrl, tout, 'bx', tctrl, S.r * S.t, 'r-') # plot to compare
         #plot(tctrl, tout, 'bx', tctrl, S.t, 'r-') # plot to compare
         #plot(tctrl, S.r *(tout - S.t), 'gx')
@@ -594,7 +594,7 @@ class locker():  # sets up parameters of a particular locking system
         self.P.put('busy', 0)        
         
     def second_calibrate(self):
-        print 'starting second calibration - new test'
+        print('starting second calibration - new test')
         M = phase_motor(self.P)  # create phase motor object
         ptime = 30 # seconds between cycles
         tneg = 0.5 # nanoseconds range below current  -2 ok
@@ -610,11 +610,11 @@ class locker():  # sets up parameters of a particular locking system
             time.sleep(ptime)# long wait for now
             tr = 1e9 * self.P.get('secondary_calibration')
             tread = np.append(tread, tr)
-            print 'step:\t', n
-            print 'RNG:\t', t
-            print 'calib:\t', tr
+            print('step:\t', n)
+            print('RNG:\t', t)
+            print('calib:\t', tr)
         M.move(t0) # put motor back    
-        print 'done motor move'
+        print('done motor move')
         
         
         
@@ -622,11 +622,11 @@ class locker():  # sets up parameters of a particular locking system
         ca = 0.01;
         param0 = sa,ca
         tdiff = tread - tset - (np.mean(tread-tset))
-        print 'start leastsq'
+        print('start leastsq')
         fout = leastsq(fitres, param0, args=(tset, tdiff))    
-        print 'end leastsq, param ='
+        print('end leastsq, param =')
         param = fout[0];
-        print param
+        print(param)
         sa,ca = param
         ttest = np.array([])
         for nx in range(0,200):
@@ -634,10 +634,10 @@ class locker():  # sets up parameters of a particular locking system
         #fitout = ffun(ttest, sa, ca)
         self.P.put('secondary_calibration_s', sa)
         self.P.put('secondary_calibration_c', ca)
-        #print 'PLOTTING SECONDARY CALIBRATION'
+        #print('PLOTTING SECONDARY CALIBRATION')
         #plot(tset, tdiff, 'bx', ttest, fitout, 'r-') # plot to compare
         #show()
-        #print 'Done plotting'
+        #print('Done plotting')
         
         
         
@@ -673,7 +673,7 @@ class locker():  # sets up parameters of a particular locking system
             do = self.P.get('drift_correction_offset') 
             dg = self.P.get('drift_correction_gain')
             dd = self.P.drift_correction_dir
-            print 'drift_correction_gain:\t' , dg
+            print('drift_correction_gain:\t' , dg)
             
             ds = self.P.get('drift_correction_smoothing')
             self.drift_last = self.P.get('drift_correction_value')
@@ -697,7 +697,7 @@ class locker():  # sets up parameters of a particular locking system
                 self.drift_initialized = True # will average next time (ugly)    
 
             pc = pc - (dd * dg * self.drift_last); # fix phase control. 
-            print 'phase control:\t', pc
+            print('phase control:\t', pc)
 
         if self.P.use_secondary_calibration: # make small corrections based on another calibration
             sa = self.P.get('secondary_calibration_s')
@@ -731,7 +731,7 @@ class locker():  # sets up parameters of a particular locking system
             self.d['delay'] = self.P.get('delay')
             self.d['offset'] = self.P.get('offset')
         except:
-            print 'problem reading delay and offset pvs'
+            print('problem reading delay and offset pvs')
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
@@ -745,8 +745,8 @@ class locker():  # sets up parameters of a particular locking system
             self.buckets = 0
             self.P.E.write_error( 'not an integer number of buckets')
         if self.buckets != 0:
-            print 'bucket jump - buckets:\t', self.buckets
-            print 'bucket jump - error:\t', self.bucket_error
+            print('bucket jump - buckets:\t', self.buckets)
+            print('bucket jump - error:\t', self.bucket_error)
         self.P.E.write_error( 'Laser OK')      # laser is OK
             
     def fix_jump(self):  # tries to fix the jumps 
@@ -757,7 +757,7 @@ class locker():  # sets up parameters of a particular locking system
             self.P.E.write_error( 'non-integer bucket error, cant fix')
             return
         self.P.E.write_error( 'Fixing Jump')
-        print'fixing jump'
+        print('fixing jump')
         M = phase_motor(self.P) #phase control motor
         M.wait_for_stop()  # just ot be sure
         old_pc = M.get_position()
@@ -773,7 +773,7 @@ class locker():  # sets up parameters of a particular locking system
         self.P.E.write_error( 'Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-        print 'jump fix done'
+        print('jump fix done')
        
             
 # t0 is an array of inputs that represent the phase shift time
@@ -795,8 +795,7 @@ class sawtooth():  # generates a sawtooth waveform and a vector of OK / notok po
 class ring():  # very simple ring buffer 
     def __init__(self, sz=12):  # sz is size of ring
         self.sz = sz  # hold size of ring
-        self.a = np.array(range(sz))
-        self.a = self.a * 0.0  # create an array of zeros
+        self.a = np.zeroes(sz)
         self.ptr = -1 # points to last data, start negative
         self.full = False # set to true when the ring is full
         
@@ -864,7 +863,7 @@ class phase_motor():
             try:
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
             except:
-                print 'could not get dmov'
+                print('could not get dmov')
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
@@ -980,13 +979,13 @@ def femto(name='NULL'):
     # C = time_interval_counter(P)  # time interval counter device
     D = degrees_s(P) # manages conversion of degrees to ns and back
     # C.get_time()
-    while W.error ==0:   # MAIN PROGRAM LOOP
+    while W.error == 0:   # MAIN PROGRAM LOOP
         time.sleep(0.1)
-        try:   # the never give up, never surrunder loop. 
+        try:   # the never give up, never surrender loop. 
             W.check()
             P.put('busy', 0)
             L.locker_status()  # check if the locking sysetm is OK
-            if not L.laser_ok:  # if the laser isn't working, for now just do nothign, eventually suggest fixes
+            if not L.laser_ok:  # if the laser isn't working, for now just do nothing, eventually suggest fixes
                 P.E.write_error( L.message)
                 P.put('ok', 0)
                 time.sleep(0.5)  # to keep the loop from spinning too fast
@@ -1022,9 +1021,9 @@ def femto(name='NULL'):
             D.run()  # deals with degreees S band conversion    
             #P.E.write_error('Laser OK')
         except:   # catch any otehrwise uncaught error.
-            print sys.exc_info()[0] # print error I hope
+            print(sys.exc_info()[0]) # print error
             del P  #does this work?
-            print 'UNKNOWN ERROR, trying again'   
+            print('UNKNOWN ERROR, trying again')
             P = PVS(name)
             W = watchdog.watchdog(P.pvlist['watchdog'])
             L = locker(P, W) #set up locking system parameters
