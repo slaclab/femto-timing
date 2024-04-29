@@ -54,7 +54,7 @@
 
 import time
 import math
-from pylab import *
+import numpy as np
 import watchdog
 from psp.Pv import Pv
 import sys
@@ -583,9 +583,9 @@ class locker():  # sets up parameters of a particular locking system
         T = trigger(self.P)  # trigger class
         ns = 10000 # number of different times to try for fit - INEFFICIENT - should do Newton's method but too lazy
         self.P.put('busy', 1) # set busy flag
-        tctrl = linspace(0, self.calib_range, self.calib_points) # control values to use
-        tout = array([]) # array to hold measured time data
-        counter_good = array([]) # array to hold array of errors
+        tctrl = np.linspace(0, self.calib_range, self.calib_points) # control values to use
+        tout = np.array([]) # array to hold measured time data
+        counter_good = np.array([]) # array to hold array of errors
         t_trig = T.get_ns() # trigger time in nanoseconds
         M.move(0)  # move to zero to start 
         M.wait_for_stop()
@@ -609,31 +609,31 @@ class locker():  # sets up parameters of a particular locking system
                  t_tmp = self.C.get_time()  # read time
                  if t_tmp != 0: # have a new reading
                      break # break out of loop
-            tout = append(tout, t_tmp) # read timing and put in array
+            tout = np.append(tout, t_tmp) # read timing and put in array
             print 'end of loop'
             print 'temp. time:\t', t_tmp
             print 'good reading:\t', self.C.good
-            counter_good = append(counter_good, self.C.good) # will use to filter data
+            counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
                 print 'bad counter data'
                 self.P.E.write_error('timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
-        minv = min(tout[nonzero(counter_good)])+ self.delay_offset
+        minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
 
         print 'min v is: ', minv
         period = 1/self.laser_f # just defining things needed in sawtooth -  UGLY
         delay = minv - t_trig # more code cleanup neded in teh future.
-        err = array([]) # will hold array of errors
-        offset = linspace(0, period, ns)  # array of offsets to try
+        err = np.array([]) # will hold array of errors
+        offset = np.linspace(0, period, ns)  # array of offsets to try
         for x in offset:  # here we blindly try different offsets to see what works
             S = sawtooth(tctrl, t_trig, delay, x, period) # sawtooth sim
-            err = append(err, sum(counter_good*S.r * (S.t - tout)**2))  # total error
-        idx = argmin(err) # index of minimum of error
+            err = np.append(err, sum(counter_good*S.r * (S.t - tout)**2))  # total error
+        idx = np.argmin(err) # index of minimum of error
         print 'offset:\t', offset[idx]
         print 'delay:\t', delay
         print 'trig_time:\t', t_trig
         S = sawtooth(tctrl, t_trig, delay, offset[idx], period)
-        self.P.put('calib_error', sqrt(err[idx]/ self.calib_points))
+        self.P.put('calib_error', np.sqrt(err[idx]/ self.calib_points))
         self.d['delay'] = delay
         self.d['offset'] = offset[idx]
         self.P.put('delay', delay)
@@ -654,15 +654,15 @@ class locker():  # sets up parameters of a particular locking system
         tpos = -0.5 # nanoseconds range above current 12 ok
         cycles = 30
         t0 = M.get_position() # current motor position
-        tset = array([]) # holds target times
-        tread = array([]) # holds readback times
+        tset = np.array([]) # holds target times
+        tread = np.array([]) # holds readback times
         for n in range(0,cycles-1):  # loop
             t = t0 + tneg + random.random()*(tpos - tneg) # random number in range
-            tset = append(tset, t)  # collect list of times
+            tset = np.append(tset, t)  # collect list of times
             M.move(t) # move to new position
             time.sleep(ptime)# long wait for now
             tr = 1e9 * self.P.get('secondary_calibration')
-            tread = append(tread, tr)
+            tread = np.append(tread, tr)
             print 'step:\t', n
             print 'RNG:\t', t
             print 'calib:\t', tr
@@ -674,16 +674,16 @@ class locker():  # sets up parameters of a particular locking system
         sa = 0.01;
         ca = 0.01;
         param0 = sa,ca
-        tdiff = tread - tset - (mean(tread-tset))
+        tdiff = tread - tset - (np.mean(tread-tset))
         print 'start leastsq'
         fout = leastsq(fitres, param0, args=(tset, tdiff))    
         print 'end leastsq, param ='
         param = fout[0];
         print param
         sa,ca = param
-        ttest = array([])
+        ttest = np.array([])
         for nx in range(0,200):
-            ttest = append(ttest, t0 + tneg + (nx/200.0)*(tpos-tneg))
+            ttest = np.append(ttest, t0 + tneg + (nx/200.0)*(tpos-tneg))
         #fitout = ffun(ttest, sa, ca)
         self.P.put('secondary_calibration_s', sa)
         self.P.put('secondary_calibration_c', ca)
@@ -714,9 +714,9 @@ class locker():  # sets up parameters of a particular locking system
         T = trigger(self.P) # set up trigger
         M = phase_motor(self.P)
         laser_t = t - self.d['offset']  # Just copy workign matlab, don't think!
-        nlaser = floor(laser_t * self.laser_f)
+        nlaser = np.floor(laser_t * self.laser_f)
         pc = t - (self.d['offset'] + nlaser / self.laser_f)
-        pc = mod(pc, 1/self.laser_f)
+        pc = np.mod(pc, 1/self.laser_f)
         ntrig = round((t - self.d['delay'] - (1/self.trigger_f)) * self.trigger_f) # paren was after laser_f
         #ntrig = round((t - self.d['delay'] - (0.5/self.laser_f)) * self.trigger_f) # paren was after laser_f
         trig = ntrig / self.trigger_f
@@ -755,7 +755,7 @@ class locker():  # sets up parameters of a particular locking system
         if self.P.use_secondary_calibration: # make small corrections based on another calibration
             sa = self.P.get('secondary_calibration_s')
             ca = self.P.get('secondary_calibration_c')
-            pc = pc - sa * sin(pc * 3.808*2*pi) - ca * cos(pc * 3.808*2*pi) # fix phase
+            pc = pc - sa * np.sin(pc * 3.808*2*np.pi) - ca * np.cos(pc * 3.808*2*np.pi) # fix phase
 
         if self.P.use_dither:
             dx = self.P.get('dither_level') 
@@ -815,7 +815,7 @@ class locker():  # sets up parameters of a particular locking system
         M.wait_for_stop()  # just ot be sure
         old_pc = M.get_position()
         new_pc = old_pc  - self.exact_error # new time for phase control
-        new_pc_fix = mod(new_pc, 1/self.laser_f)  # equal within one cycle. 
+        new_pc_fix = np.mod(new_pc, 1/self.laser_f)  # equal within one cycle. 
         M.move(new_pc_fix) # moves phase motor to new position
         #self.P.put('fix_bucket', 0)  # turn off bucket fix TESTING
         M.wait_for_stop()
@@ -838,23 +838,23 @@ class sawtooth():  # generates a sawtooth waveform and a vector of OK / notok po
             trig_out = t_trig + delay
             laser_t0 = t0 + offset
             tx = trig_out - laser_t0
-            nlaser = ceil(tx / period)
+            nlaser = np.ceil(tx / period)
             self.t = t0 + offset + nlaser * period
             tr = self.t - trig_out
-            self.r = (0.5 + copysign(.5, tr - 0.2 * period)) * (0.5 + copysign(.5, .8 * period - tr)) # no sign function
+            self.r = (0.5 + np.copysign(.5, tr - 0.2 * period)) * (0.5 + np.copysign(.5, .8 * period - tr)) # no sign function
 
 
 
 class ring():  # very simple ring buffer 
     def __init__(self, sz=12):  # sz is size of ring
         self.sz = sz  # hold size of ring
-        self.a = array(range(sz))
+        self.a = np.array(range(sz))
         self.a = self.a * 0.0  # create an array of zeros
         self.ptr = -1 # points to last data, start negative
         self.full = False # set to true when the ring is full
         
     def add_element(self, x):  # adds element to ring
-        self.ptr = mod(self.ptr+1,self.sz)        
+        self.ptr = np.mod(self.ptr+1,self.sz)        
         self.a[self.ptr] = x # set this element
         if self.ptr == 7:
             self.full = True
@@ -1009,8 +1009,8 @@ def fitres(param, tin, tout):  # tin isinput time, tout is measured, param is pa
     return err
         
 def ffun( x, a, b):
-    w0 = 3.808*2*pi
-    out = a*sin(x * w0) + b * cos(x*w0)
+    w0 = 3.808*2*np.pi
+    out = a*np.sin(x * w0) + b * np.cos(x*w0)
     return out        
 
 
@@ -1034,7 +1034,7 @@ def femto(name='NULL'):
     D = degrees_s(P) # manages conversion of degrees to ns and back
     # C.get_time()
     while W.error ==0:   # MAIN PROGRAM LOOP
-        pause(0.1)
+        time.sleep(0.1)
         try:   # the never give up, never surrunder loop. 
             W.check()
             P.put('busy', 0)
