@@ -451,7 +451,7 @@ class PVS():   # creates pvs
             self.pvlist['drift_correction_offset'] = Pv(drift_correction_offset[self.name])
             self.pvlist['drift_correction_gain'] =  Pv(drift_correction_gain[self.name])
             self.pvlist['drift_correction_smoothing'] =  Pv(drift_correction_smoothing[self.name])
-	    self.pvlist['drift_correction_accum'] = Pv(drift_correction_accum[self.name])
+            self.pvlist['drift_correction_accum'] = Pv(drift_correction_accum[self.name])
         if self.use_dither:
             self.pvlist['dither_level'] = Pv(dither_level[self.name])
        # set up all the matlab PVs
@@ -697,9 +697,9 @@ class locker():  # sets up parameters of a particular locking system
         
     def set_time(self): # sets laser to desired time in ns measured by time interval
         t = self.P.get('time')
-	if math.isnan(t):
-	    self.P.E.write_error('desired time is NaN')
-	    return
+        if math.isnan(t):
+            self.P.E.write_error('desired time is NaN')
+            return
         if t < self.min_time or t > self.max_time:
             self.P.E.write_error('need to move TIC trigger')
             return
@@ -729,15 +729,15 @@ class locker():  # sets up parameters of a particular locking system
             print 'drift_correction_gain:\t' , dg
             
             ds = self.P.get('drift_correction_smoothing')
-	    self.drift_last = self.P.get('drift_correction_value')
-	    accum = self.P.get('drift_correction_accum')
+            self.drift_last = self.P.get('drift_correction_value')
+            accum = self.P.get('drift_correction_accum')
             # modified to not use drift_correction_offset or drift_correction_multiplier:
-            de  = (dc-do)  # (hopefully) fresh pix value from TT script
+            de = (dc-do)  # (hopefully) fresh pix value from TT script
             if ( self.drift_initialized ):
-		if ( dc <> self.dc_last ):           
-		    if ( accum == 1 ): # if drift correction accumulation is enabled
+                if ( dc != self.dc_last ):           
+                    if ( accum == 1 ): # if drift correction accumulation is enabled
                         #TODO: Pull these limits from the associated matlab PV
-                    	self.drift_last = self.drift_last + (de- self.drift_last) / ds; # smoothing
+                        self.drift_last = self.drift_last + (de- self.drift_last) / ds; # smoothing
                         self.drift_last = max(-.001, self.drift_last) # floor at 1 ps
                         self.drift_last = min(.001, self.drift_last)#
                         self.P.put('drift_correction_value', self.drift_last)
