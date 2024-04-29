@@ -1,57 +1,4 @@
 
-#femto.py  program to control laser femtosecond timing
-#updated 9/27/13 14?30
-
-# updated 10/01/13 - jemay : corrected capitalization error in error reporting try case;
-# updated 10/01/13 - jemay : inverted phase sign for feedback to match what ops expects
-# updated 10/03/13 - jemay : moved up-to-date code into place to fix stomped on version on production servers
-# updated 10/15/13  frisch - add facet PVS  (reversion from earlier vesion)
-# updated 10/17/13  frisch  - add loop delay to laser not-ok line to prevent loop spinning
-# updated 10/28/13 frisch - added BCS tip logic (untested)
-# updated 10/30/13 release version ,bcs reset doesn't work
-# updated 11/1/13  test release
-# updated 11/5/13   always use same algorithm for phase control
-# updated 11/12/13 frisch - fix bcs lockup bug. release for LCLS
-# updated 11/13/13b frisch - test version to allow conversion from matlab, write errors 
-# updated 11/11/13 frisch
-# updated 11/19/13 frisch
-# updated 12/2/13 frisch
-# updated 12/4/13 frisch, massive updates
-# upadated 12/17/13 frisch to use XPP Pvs.
-# updated 1/7/14 Now dev version with new time interval counter code
-# updated 1/8/14 modes for XP
-# updated 1/10/14 more dev
-# updated 1/13/14  ready to move back to anaconda
-# updated 1/14/14 use ns pvs for XPP
-# updated 2/14/14  test with different offset in triger time - mystery
-# 2/14/14 revert to previous
-# 2/19;14 Update PVs for MEC
-# 2/23/14 Update counter timeout for slow systems like MEC.
-# 2/25/14 change offset for triggers to fix jump area
-# 3/10/14 add secondary calibration routine - compare with scope / lbnl
-# 3/13/14  changes for facet
-# 3/14/14  Chagnes for mec
-# 4/1/14 Disable plotting for seconddary calibartion
-# 4/7/14 Put 201fs allowance on phase in the script. (avoid floating point roundoff).
-#4/8/14 attempt to fix 56 bug
-#4/14/14  allow negative times TEST
-#4/17/14 increase allowed delay further.
-#5/2/14 change to facet multiknob
-#5/7/14 Add LBNL drift correction to XPP
-#6/4/14 Added CXI
-#6/17/14 add dither for  XPP
-#7/9/14 Begin adding ASTA block
-#7/28/14 add limits on time
-#7/30/14 increase jump limit from .04 to .05 for mec
-#9/12/14 fix bug for injector laseres
-#10/1/14 Add CXI, AMO SXR, update watchdog in calibrate loop
-#10/7/14 modify logic to show large time interval counter range.
-#10/9/14 fix bad CXI PV
-#10/13/14 Change CXI timign pv
-#11/26/14 fix AMO trigger PV to strange convention.
-#2015-10-29 AMO trigger PV changed again
-#2015-12-08 Removed hard limits on TT drift addition
-
 import time
 import math
 import numpy as np
@@ -90,7 +37,7 @@ class PVS():   # creates pvs
         secondary_calibration = dict() # the pv to use for secondary calibration
         secondary_calibration_s = dict() # sine term for calibration
         secondary_calibration_c = dict() # cosine term for calibration
-        use_drift_correction = dict() # used to set up the drifty correction based on LBNL
+        use_drift_correction = dict() # used to set up the drift correction based on LBNL
         drift_correction_signal = dict() # what PV to read
         drift_correction_multiplier = dict() # multiples the signal to get value
         drift_correction_value = dict() # PV the current reading in ns.
@@ -455,7 +402,7 @@ class PVS():   # creates pvs
         if self.use_dither:
             self.pvlist['dither_level'] = Pv(dither_level[self.name])
        # set up all the matlab PVs
-        for k, v in matlab_list.iteritems():  # loop over items
+        for k, v in matlab_list.items():  # loop over items
             if not matlab_use[matlab_list[k][0]]: #not overriding on this one, keep older pv.
                 continue
             pvname = matlab_pv_base[self.name]+str(matlab_list[k][0]+matlab_pv_offset[self.name]).zfill(matlab_pv_digits[self.name])
@@ -469,9 +416,9 @@ class PVS():   # creates pvs
             pv.connect(timeout)
             pv.put(value = 4, timeout = 1.0) # set precision field
             pv.disconnect() # done with precision field
-            self.pvlist[k]=Pv(pvname) # add pv  to list - this is where matlab woudl overwrite ioc pvs. 
+            self.pvlist[k]=Pv(pvname) # add pv  to list - this is where matlab would overwrite ioc pvs. 
         self.OK = 1   
-        for k, v in self.pvlist.iteritems():  # now loop over all pvs to initialize
+        for k, v in self.pvlist.items():  # now loop over all pvs to initialize
             try:
                 v.connect(timeout) # connect to pv
                 v.get(ctrl=True, timeout=1.0) # get data
@@ -509,7 +456,7 @@ class PVS():   # creates pvs
             print 'UNABLE TO WRITE PV: ', name, '= ', x
                 
     def __del__ (self):
-        for v in self.pvlist.itervalues():
+        for v in self.pvlist.values():
             v.disconnect()  
         self.error_pv.disconnect()    
         print 'closed all PV connections'
@@ -605,7 +552,7 @@ class locker():  # sets up parameters of a particular locking system
             time.sleep(2)  #Don't know why this is needed
             t_tmp = 0 # to check if we ever get a good reading
             print 'get read'
-            for n in range (0, 25): # try to see if we can get a good reading
+            for n in range(0, 25): # try to see if we can get a good reading
                  t_tmp = self.C.get_time()  # read time
                  if t_tmp != 0: # have a new reading
                      break # break out of loop
@@ -913,7 +860,7 @@ class phase_motor():
         self.wait_for_stop()  # wait until it stops moving
 
     def wait_for_stop(self):
-        for n in range (0, self.max_tries):
+        for n in range(0, self.max_tries):
             try:
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
             except:
