@@ -585,11 +585,6 @@ class locker():  # sets up parameters of a particular locking system
         self.d['offset'] = offset[idx]
         self.P.put('delay', delay)
         self.P.put('offset', offset[idx])
-        #print('PLOTTING CALIBRATION')
-        #plot(tctrl, tout, 'bx', tctrl, S.r * S.t, 'r-') # plot to compare
-        #plot(tctrl, tout, 'bx', tctrl, S.t, 'r-') # plot to compare
-        #plot(tctrl, S.r *(tout - S.t), 'gx')
-        #show()
         M.wait_for_stop() # wait for motor to stop moving before exit
         self.P.put('busy', 0)        
         
@@ -631,13 +626,8 @@ class locker():  # sets up parameters of a particular locking system
         ttest = np.array([])
         for nx in range(0,200):
             ttest = np.append(ttest, t0 + tneg + (nx/200.0)*(tpos-tneg))
-        #fitout = ffun(ttest, sa, ca)
         self.P.put('secondary_calibration_s', sa)
         self.P.put('secondary_calibration_c', ca)
-        #print('PLOTTING SECONDARY CALIBRATION')
-        #plot(tset, tdiff, 'bx', ttest, fitout, 'r-') # plot to compare
-        #show()
-        #print('Done plotting')
         
         
         
@@ -665,7 +655,6 @@ class locker():  # sets up parameters of a particular locking system
         pc = t - (self.d['offset'] + nlaser / self.laser_f)
         pc = np.mod(pc, 1/self.laser_f)
         ntrig = round((t - self.d['delay'] - (1/self.trigger_f)) * self.trigger_f) # paren was after laser_f
-        #ntrig = round((t - self.d['delay'] - (0.5/self.laser_f)) * self.trigger_f) # paren was after laser_f
         trig = ntrig / self.trigger_f
 
         if self.P.use_drift_correction:
@@ -673,7 +662,6 @@ class locker():  # sets up parameters of a particular locking system
             do = self.P.get('drift_correction_offset') 
             dg = self.P.get('drift_correction_gain')
             dd = self.P.drift_correction_dir
-            #print('drift_correction_gain:\t' , dg)
             
             ds = self.P.get('drift_correction_smoothing')
             self.drift_last = self.P.get('drift_correction_value')
@@ -744,9 +732,6 @@ class locker():  # sets up parameters of a particular locking system
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
             self.P.E.write_error( 'not an integer number of buckets')
-        #if self.buckets != 0:
-            #print('bucket jump - buckets:\t', self.buckets)
-            #print('bucket jump - error:\t', self.bucket_error)
         self.P.E.write_error( 'Laser OK')      # laser is OK
             
     def fix_jump(self):  # tries to fix the jumps 
@@ -757,7 +742,6 @@ class locker():  # sets up parameters of a particular locking system
             self.P.E.write_error( 'non-integer bucket error, cant fix')
             return
         self.P.E.write_error( 'Fixing Jump')
-        #print('fixing jump')
         M = phase_motor(self.P) #phase control motor
         M.wait_for_stop()  # just to be sure
         old_pc = M.get_position()
@@ -773,7 +757,6 @@ class locker():  # sets up parameters of a particular locking system
         self.P.E.write_error( 'Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-        #print('jump fix done')
        
             
 # t0 is an array of inputs that represent the phase shift time
@@ -842,8 +825,6 @@ class time_interval_counter():  # reads interval counter data, gets raw or avera
         self.good = 1
         if self.rt.full:
             self.range = self.scale * (max(self.rt.get_array()) - min(self.rt.get_array()))  # range of measurements
-#        else:
-#            self.range = 0  # don't have a full buffer yet
         return time * self.scale
 
    
@@ -872,7 +853,6 @@ class phase_motor():
             time.sleep(self.loop_delay)        
 
     def move(self, pos): # move motor to new position (no wait).
-        #self.P.pvlist['phase_motor'].put(value=pos / self.scale, timeout = 10.0)  # allow long timeout for motor move
         self.P.put('phase_motor', pos/self.scale) # motor move if needed   
         self.position = pos  # requested position in ns
         self.wait_for_stop() # check
@@ -899,7 +879,6 @@ class trigger():  # deals with annoying problmes of triggers in ns or ticks
         
     def set_ns(self,t):
         self.time = t/self.scale
-        #self.P.pvlist['laser_trigger'].put(self.time)
         self.P.put('laser_trigger', self.time)
    
   
@@ -976,9 +955,7 @@ def femto(name='NULL'):
     P.E.write_error( L.message)
     T = trigger(P)
     T.get_ns()
-    # C = time_interval_counter(P)  # time interval counter device
     D = degrees_s(P) # manages conversion of degrees to ns and back
-    # C.get_time()
     while W.error == 0:   # MAIN PROGRAM LOOP
         time.sleep(0.1)
         try:   # the never give up, never surrender loop. 
@@ -1019,7 +996,6 @@ def femto(name='NULL'):
             if P.get('enable'): # is enable time control active?
                 L.set_time() # set time read earlier    
             D.run()  # deals with degreees S band conversion    
-            #P.E.write_error('Laser OK')
         except:   # catch any otehrwise uncaught error.
             print(sys.exc_info()[0]) # print error
             del P  #does this work?
