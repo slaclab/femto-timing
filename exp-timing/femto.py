@@ -5,56 +5,56 @@ import numpy as np
 import watchdog
 from psp.Pv import Pv
 import sys
-import random  # random number generator for secondary calibration
-from scipy.optimize import leastsq # for secondary calibration
+import random  # Used for random number generation during secondary calibration.
+from scipy.optimize import leastsq #Used in secondary calibration.
 
-class PVS():   # creates pvs
+class PVS():   # This class sets up all of the PVs used by the script. 
     def __init__(self, nx='NULL'):
-        self.version = 'Watchdog 141126a' # version string
-        self.name = nx
-        print(self.name)
-        namelist = set()
-        self.pvlist = dict()  # will hold pvs with names
-        matlab_list = dict() # list of matlab style pvs, tuples of matlab number offset and pv description
-        matlab_pv_base = dict() # header matlab pvs like SIOC:SYS0:ML00:OA....
-        matlab_pv_offset = dict() # start number for pvs
-        matlab_pv_digits = dict()  # number of digits for each pv
-        matlab_use = dict() # set to true if this matlab pv shoudl be used even if a ioc pv exists defined below.
+        self.version = 'Watchdog 141126a' #Version string
+        self.name = nx # Sets the hutch name.
+        print(self.name) # Prints the hutch name in log file.
+        namelist = set() # Sets up the namelist that will check the hutch name passed in by the IOC against the list of hutches femto.py is configured to run. 
+        self.pvlist = dict()  # Creates a list of all the PVs used by the script, excluding the notepad or "Matlab" PVs.  
+        matlab_list = dict() # List of the notepad or "Matlab" PVs, tuples of matlab number offset and pv description.
+        matlab_pv_base = dict() # Header Matlab PVs like SIOC:SYS0:ML00:OA. 
+        matlab_pv_offset = dict() # Start number for notepad PVs. A value of 1 is used of most hutches.
+        matlab_pv_digits = dict() # Number of digits for each notepad PV.
+        matlab_use = dict() # This value could be set to true to use a notepad PV instead of an IOC PV. This feature is not used in any of the lockers, though, so it is obsolete. 
         for n in range(0,20):
-            matlab_use[n] = True  # initize to always use matlab, override to use epics pvs.
-        counter_base = dict()  # holds counter name
-        freq_counter = dict() # frequencycounter name
-        dev_base = dict() # used to generate other device names (mostly future)
-        phase_motor = dict()
-        laser_trigger = dict()
-        trig_in_ticks = dict() # 1 if trigger units are ticks (1/119MHz), 0 if in nanoseconds( kludge for multi systems)
-        reverse_counter = dict()  # 1 if the laser starts the counter, trigger stops.        
-        error_pv_name = dict()    
-        use_secondary_calibration = dict() # use a scope or other device
+            matlab_use[n] = True  # Initize to always use notepad PV by default, override to use IOC PVs.
+        counter_base = dict()  # Holds counter names.
+        freq_counter = dict() # Holds frequency counter names.
+        dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV name (i.e. 'VIT' in most of the LCLS-I laser lockers). 
+        phase_motor = dict() # Holds phase motor names. 
+        laser_trigger = dict() # Holds the name of the EVR trigger used for time control in each of the lockers. 
+        trig_in_ticks = dict() # 1 if trigger units are ticks (1/119MHz), 0 if in nanoseconds. Currently, all lockers are set to 0.
+        reverse_counter = dict() # 1 if the laser starts the counter, trigger stops.        
+        error_pv_name = dict() # Holds the femto.py script error status for each locker.    
+        use_secondary_calibration = dict() # Currently set to false for all of the laser lockers.
         for n in range(0,20):
             use_secondary_calibration[n] = False  # Turn off except where needed.
-        secondary_calibration_enable = dict() # set to 1 to enable secondary calibration
-        secondary_calibration = dict() # the pv to use for secondary calibration
-        secondary_calibration_s = dict() # sine term for calibration
-        secondary_calibration_c = dict() # cosine term for calibration
-        use_drift_correction = dict() # used to set up the drift correction based on LBNL
-        drift_correction_signal = dict() # what PV to read
-        drift_correction_multiplier = dict() # multiples the signal to get value
-        drift_correction_value = dict() # PV the current reading in ns.
-        drift_correction_offset = dict() # PV in final nanoseconds
-        drift_correction_gain = dict()  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir = dict()  # Direction of timetool stage
-        drift_correction_smoothing = dict()  # number of pulse to exponential average
-        drift_correction_accum = dict() # enables/disables drift correction accumulation (I term)
+        secondary_calibration_enable = dict() # Allows secondary calibration to be enable via a PV. 
+        secondary_calibration = dict() # The PV to use for secondary calibration
+        secondary_calibration_s = dict() # Sine term for calibration
+        secondary_calibration_c = dict() # Cosine term for calibration
+        use_drift_correction = dict() # Allows drift correction feature to be turned on/off individually for each locker. 
+        drift_correction_signal = dict() # Drift correction value that is pulled from the time_tool.py script. 
+        drift_correction_multiplier = dict() # Multiplier for the drift correction value. 
+        drift_correction_value = dict() # Drift correction value in ns that is sent to a notepad PV.
+        drift_correction_offset = dict() # Offset factor for the drift correction value. 
+        drift_correction_gain = dict()  # Gain factor for drift correction value. 
+        drift_correction_dir = dict()  # Direction of correction, configurable based on the set-up of the timetool stage in a particular hutch. 
+        drift_correction_smoothing = dict()  # Smoothing factor that reduces the drift correction step size. 
+        drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term).
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed.
-        use_dither = dict() # used to allow fast dither of timing (for special functions)
-        dither_level = dict()  # amount of dither in picoseconds
+        use_dither = dict() # Used to allow fast dither of timing.
+        dither_level = dict()  # Amount of dither in picoseconds
         for n in range(0,20):
             use_dither[n] = False  # Turn off except where needed.
         version_pv_name = dict()
-        matlab = dict()  # holds all matlab use pvs
-        timeout = 1.0  # default timeout for connecting to pvs
+        matlab = dict()  # Holds all matlab_use PVs.
+        timeout = 1.0  # Default timeout for connecting to PVs. 
 
         nm = 'XCS'
         namelist.add(nm)
