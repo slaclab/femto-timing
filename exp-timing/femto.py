@@ -673,7 +673,7 @@ class locker():  # sets up parameters of a particular locking system
             do = self.P.get('drift_correction_offset') 
             dg = self.P.get('drift_correction_gain')
             dd = self.P.drift_correction_dir
-            print('drift_correction_gain:\t' , dg)
+            #print('drift_correction_gain:\t' , dg)
             
             ds = self.P.get('drift_correction_smoothing')
             self.drift_last = self.P.get('drift_correction_value')
@@ -697,7 +697,7 @@ class locker():  # sets up parameters of a particular locking system
                 self.drift_initialized = True # will average next time (ugly)    
 
             pc = pc - (dd * dg * self.drift_last); # fix phase control. 
-            print('phase control:\t', pc)
+            #print('phase control:\t', pc)
 
         if self.P.use_secondary_calibration: # make small corrections based on another calibration
             sa = self.P.get('secondary_calibration_s')
@@ -744,9 +744,9 @@ class locker():  # sets up parameters of a particular locking system
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
             self.P.E.write_error( 'not an integer number of buckets')
-        if self.buckets != 0:
-            print('bucket jump - buckets:\t', self.buckets)
-            print('bucket jump - error:\t', self.bucket_error)
+        #if self.buckets != 0:
+            #print('bucket jump - buckets:\t', self.buckets)
+            #print('bucket jump - error:\t', self.bucket_error)
         self.P.E.write_error( 'Laser OK')      # laser is OK
             
     def fix_jump(self):  # tries to fix the jumps 
@@ -757,9 +757,9 @@ class locker():  # sets up parameters of a particular locking system
             self.P.E.write_error( 'non-integer bucket error, cant fix')
             return
         self.P.E.write_error( 'Fixing Jump')
-        print('fixing jump')
+        #print('fixing jump')
         M = phase_motor(self.P) #phase control motor
-        M.wait_for_stop()  # just ot be sure
+        M.wait_for_stop()  # just to be sure
         old_pc = M.get_position()
         new_pc = old_pc  - self.exact_error # new time for phase control
         new_pc_fix = np.mod(new_pc, 1/self.laser_f)  # equal within one cycle. 
@@ -773,7 +773,7 @@ class locker():  # sets up parameters of a particular locking system
         self.P.E.write_error( 'Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-        print('jump fix done')
+        #print('jump fix done')
        
             
 # t0 is an array of inputs that represent the phase shift time
