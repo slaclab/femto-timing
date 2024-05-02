@@ -24,7 +24,7 @@ class PVS():   # This class sets up all of the PVs used by the script.
             matlab_use[n] = True  # Initize to always use notepad PV by default, override to use IOC PVs.
         counter_base = dict()  # Holds counter names.
         freq_counter = dict() # Holds frequency counter names.
-        dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV name (i.e. 'VIT' in most of the LCLS-I laser lockers). 
+        dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV sub-name (i.e. 'VIT' in most of the LCLS-I laser lockers). 
         phase_motor = dict() # Holds phase motor names. 
         laser_trigger = dict() # Holds the name of the EVR trigger used for time control in each of the lockers. 
         trig_in_ticks = dict() # 1 if trigger units are ticks (1/119MHz), 0 if in nanoseconds. Currently, all lockers are set to 0.
@@ -39,17 +39,16 @@ class PVS():   # This class sets up all of the PVs used by the script.
         secondary_calibration_c = dict() # Cosine term for calibration
         use_drift_correction = dict() # Allows drift correction feature to be turned on/off individually for each locker. 
         drift_correction_signal = dict() # Drift correction value that is pulled from the time_tool.py script. 
-        drift_correction_multiplier = dict() # Multiplier for the drift correction value. 
         drift_correction_value = dict() # Drift correction value in ns that is sent to a notepad PV.
-        drift_correction_offset = dict() # Offset factor for the drift correction value. 
-        drift_correction_gain = dict()  # Gain factor for drift correction value. 
-        drift_correction_dir = dict()  # Direction of correction, configurable based on the set-up of the timetool stage in a particular hutch. 
+        drift_correction_offset = dict() # Allows a fixed offset to be applied to the 'fs' value from the timetool script.
+        drift_correction_gain = dict() # 0 is disable.
+        drift_correction_dir = dict()  # Direction of correction is configurable based on the set-up of the timetool stage in a particular hutch. 
         drift_correction_smoothing = dict()  # Smoothing factor that reduces the drift correction step size. 
         drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term).
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed.
         use_dither = dict() # Used to allow fast dither of timing.
-        dither_level = dict()  # Amount of dither in picoseconds
+        dither_level = dict()  # Amount of dither in picoseconds.
         for n in range(0,20):
             use_dither[n] = False  # Turn off except where needed.
         version_pv_name = dict()
@@ -58,124 +57,121 @@ class PVS():   # This class sets up all of the PVs used by the script.
 
         nm = 'XCS'
         namelist.add(nm)
-        base = 'LAS:FS4:'  # base name for this sysetm
-        dev_base[nm] = base+'VIT:'
+        base = 'LAS:FS4:'  # Base PV name for this laser locker.
+        dev_base[nm] = base+'VIT:' 
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1
+        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
         matlab_pv_digits[nm] = 2
-        counter_base[nm] = base+'CNT:TI:'   # time interval counter
+        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'EVR:LAS:XCS:01:TRIG0:TDES' # was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
-        reverse_counter[nm] = 1
-        use_secondary_calibration[nm] = 0
+        laser_trigger[nm] = 'EVR:LAS:XCS:01:TRIG0:TDES' # Name of on time EVR trigger channel.
+        trig_in_ticks[nm] = 0  # The laser_trigger PV is the delay value in ns. 0 sets trigger value to ns.
+        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
-            matlab_use[n] = False  # Use new PVs
-        # modified for timetool drift draft
-        drift_correction_signal[nm] = 'LAS:FS4:VIT:matlab:29' # what PV to read
-        drift_correction_multiplier[nm] = -1/(2.856 * 360); 
-        drift_correction_value[nm]= 'LAS:FS4:VIT:matlab:04'# PV the current reading in ns.
-        drift_correction_offset[nm]= 'LAS:FS4:VIT:matlab:05' # PV in final nanoseconds
-        drift_correction_gain[nm]= 'LAS:FS4:VIT:matlab:06'  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir[nm]= 1  # Direction of timetool stage
-        drift_correction_smoothing[nm]='LAS:FS4:VIT:matlab:07'
-        drift_correction_accum[nm]='LAS:FS4:VIT:matlab:09'
+            matlab_use[n] = False  # Use IOC PVs.
+        # Notepad PVs for drift correction feature.
+        drift_correction_signal[nm] = 'LAS:FS4:VIT:matlab:29' # Drift correction value that is pulled from the time_tool.py script.
+        drift_correction_value[nm] = 'LAS:FS4:VIT:matlab:04' # PV of the current drift correction value in ns.
+        drift_correction_offset[nm] = 'LAS:FS4:VIT:matlab:05' # Allows a fixed offset to be applied to the 'fs' value from the timetool script.
+        drift_correction_gain[nm] = 'LAS:FS4:VIT:matlab:06'  # 0 is disable.
+        drift_correction_dir[nm] = 1  # Direction of correction is configurable based on the set-up of the timetool stage in a particular hutch.
+        drift_correction_smoothing[nm] ='LAS:FS4:VIT:matlab:07' # Smoothing factor that reduces the drift correction step size.
+        drift_correction_accum[nm] ='LAS:FS4:VIT:matlab:09' # Enables/disables drift correction accumulation (integration term).
         use_drift_correction[nm] = True  
-        use_dither[nm] = True # used to allow fast dither of timing (for special functions)
-        dither_level[nm] = 'LAS:FS4:VIT:matlab:08'    
+        use_dither[nm] = True # Used to allow fast dither of timing.
+        dither_level[nm] = 'LAS:FS4:VIT:matlab:08' # Amount of dither in picoseconds.
         matlab[nm] = matlab_use
 
         nm = 'MFX'
         namelist.add(nm)
-        base = 'LAS:FS45:'  # base name for this sysetm
+        base = 'LAS:FS45:'  # Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:'
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1
+        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
         matlab_pv_digits[nm] = 2
-        counter_base[nm] = base+'CNT:TI:'   # time interval counter
+        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'EVR:LAS:MFX:01:TRIG0:TDES' # was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
-        reverse_counter[nm] = 1
-        use_secondary_calibration[nm] = 0
+        laser_trigger[nm] = 'EVR:LAS:MFX:01:TRIG0:TDES' # Name of on time EVR trigger channel.
+        trig_in_ticks[nm] = 0  # The laser_trigger PV is the delay value in ns. 0 sets trigger value to ns.
+        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
-            matlab_use[n] = False  # Use new PVs
-        # modified for timetool drift draft
-        drift_correction_signal[nm] = 'LAS:FS45:VIT:matlab:29' # what PV to read
-        drift_correction_multiplier[nm] = -1/(2.856 * 360); 
-        drift_correction_value[nm]= 'LAS:FS45:VIT:matlab:04'# PV the current reading in ns.
-        drift_correction_offset[nm]= 'LAS:FS45:VIT:matlab:05' # PV in final nanoseconds
-        drift_correction_gain[nm]= 'LAS:FS45:VIT:matlab:06'  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir[nm]= -1  # Direction of timetool stage
-        drift_correction_smoothing[nm]='LAS:FS45:VIT:matlab:07'
-        drift_correction_accum[nm]='LAS:FS45:VIT:matlab:09'
+            matlab_use[n] = False  # Use IOC PVs.
+        # Notepad PVs for drift correction feature.
+        drift_correction_signal[nm] = 'LAS:FS45:VIT:matlab:29' # Drift correction value that is pulled from the time_tool.py script.
+        drift_correction_value[nm]= 'LAS:FS45:VIT:matlab:04' # PV of the current drift correction value in ns.
+        drift_correction_offset[nm]= 'LAS:FS45:VIT:matlab:05' # Allows a fixed offset to be applied to the 'fs' value from the timetool script.
+        drift_correction_gain[nm]= 'LAS:FS45:VIT:matlab:06'  # 0 is disable.
+        drift_correction_dir[nm]= -1  # Direction of correction is configurable based on the set-up of the timetool stage in a particular hutch.
+        drift_correction_smoothing[nm]='LAS:FS45:VIT:matlab:07' # Smoothing factor that reduces the drift correction step size.
+        drift_correction_accum[nm]='LAS:FS45:VIT:matlab:09' # Enables/disables drift correction accumulation (integration term).
         use_drift_correction[nm] = True  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
-        dither_level[nm] = 'LAS:FS45:VIT:matlab:08'    
+        use_dither[nm] = False # Used to allow fast dither of timing.
+        dither_level[nm] = 'LAS:FS45:VIT:matlab:08' # Amount of dither in picoseconds. 
         matlab[nm] = matlab_use
 
         nm = 'CXI'
         namelist.add(nm)
-        base = 'LAS:FS5:'  # base name for this sysetm
-        dev_base[nm] = base+'VIT:'
+        base = 'LAS:FS5:'  # Base PV name for this laser locker.
+        dev_base[nm] = base+'VIT:' 
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1
+        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
         matlab_pv_digits[nm] = 2
-        counter_base[nm] = base+'CNT:TI:'   # time interval counter
+        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES' # was'LAS:R52B:EVR:31:TRIG0:TDES' but it broke  before that it  was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
-        reverse_counter[nm] = 1
-        use_secondary_calibration[nm] = 0
+        laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES' # Name of on time EVR trigger channel.
+        trig_in_ticks[nm] = 0  # The laser_trigger PV is the delay value in ns. 0 sets trigger value to ns.
+        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
-            matlab_use[n] = False  # Use new PVs
+            matlab_use[n] = False  # Use IOC PVs.
         matlab[nm] = matlab_use    
-        # modified for timetool drift draft
-        drift_correction_signal[nm] = 'LAS:FS5:VIT:matlab:29' # what PV to read
-        drift_correction_multiplier[nm] = -1/(2.856 * 360); 
-        drift_correction_value[nm]= 'LAS:FS5:VIT:matlab:04'# PV the current reading in ns.
-        drift_correction_offset[nm]= 'LAS:FS5:VIT:matlab:05' # PV in final nanoseconds
-        drift_correction_gain[nm]= 'LAS:FS5:VIT:matlab:06'  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir[nm]= -1  # Direction of timetool stage
-        drift_correction_smoothing[nm]='LAS:FS5:VIT:matlab:07'
-        drift_correction_accum[nm]='LAS:FS5:VIT:matlab:09'
+        # Notepad PVs for drift correction feature.
+        drift_correction_signal[nm] = 'LAS:FS5:VIT:matlab:29' # Drift correction value that is pulled from the time_tool.py script.
+        drift_correction_value[nm]= 'LAS:FS5:VIT:matlab:04' # PV of the current drift correction value in ns.
+        drift_correction_offset[nm]= 'LAS:FS5:VIT:matlab:05' # Allows a fixed offset to be applied to the 'fs' value from the timetool script.
+        drift_correction_gain[nm]= 'LAS:FS5:VIT:matlab:06'  # 0 is disable.
+        drift_correction_dir[nm]= -1  # Direction of correction is configurable based on the set-up of the timetool stage in a particular hutch.
+        drift_correction_smoothing[nm]='LAS:FS5:VIT:matlab:07' # Smoothing factor that reduces the drift correction step size.
+        drift_correction_accum[nm]='LAS:FS5:VIT:matlab:09' # Enables/disables drift correction accumulation (integration term).
         use_drift_correction[nm] = True  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
+        use_dither[nm] = False # Used to allow fast dither of timing.
 
         nm = 'MEC'
         namelist.add(nm)
-        base = 'LAS:FS6:'  # base name for this sysetm
-        dev_base[nm] = base+'VIT:'
+        base = 'LAS:FS6:'  #Base PV name for this laser locker.
+        dev_base[nm] = base+'VIT:' 
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1
+        matlab_pv_offset[nm] = 1 #Notepad PV numbering starts at 1.
         matlab_pv_digits[nm] = 2
-        counter_base[nm] = base+'CNT:TI:'   # time interval counter
+        counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES' #220502 was 'MEC:LAS:EVR:01:TRIG1:TDES' # was 'LAS:SR63:EVR:09:CTRL.DG0D'
-        trig_in_ticks[nm] = 0  # experiment side triggers operate in ticks units
-        reverse_counter[nm] = 1
-        use_secondary_calibration[nm] = 0
+        laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES' # Name of on time EVR trigger channel.
+        trig_in_ticks[nm] = 0  # The laser_trigger PV is the delay value in ns. 0 sets trigger value to ns.
+        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
-            matlab_use[n] = False  # Use new PVs  
+            matlab_use[n] = False  # Use IOC PVs. 
         matlab[nm] = matlab_use 
         use_drift_correction[nm] = False  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)          
+        use_dither[nm] = False # Used to allow fast dither of timing.          
 
         nm = 'VITARA1'
         namelist.add(nm)
@@ -225,76 +221,74 @@ class PVS():   # This class sets up all of the PVs used by the script.
 
         nm = 'FS11'
         namelist.add(nm)
-        base = 'LAS:FS11:'  # base name for this sysetm
+        base = 'LAS:FS11:'  # Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:'
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1
+        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
         matlab_pv_digits[nm] = 2
-        counter_base[nm] = base+'CNT:TI:'   # time interval counter
+        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'EVR:LAS:LHN:01:TRIG3:TDES' # was DG2D???  was -39983
-        trig_in_ticks[nm] = 0  # Now using new time invariant trjggers
-        reverse_counter[nm] = 1  # start / stop reversed for this laser
-        use_secondary_calibration[nm] = 0
+        laser_trigger[nm] = 'EVR:LAS:LHN:01:TRIG3:TDES' # Name of on time EVR trigger channel.
+        trig_in_ticks[nm] = 0  # The laser_trigger PV is the delay value in ns. 0 sets trigger value to ns.
+        reverse_counter[nm] = 1  # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         secondary_calibration_enable[nm] = 'LAS:FS11:VIT:matlab:01'  #enables secondary calibration.
         secondary_calibration[nm] = 'XPP:USER:LAS:T0_MONITOR'
         secondary_calibration_s[nm] = 'LAS:FS11:VIT:matlab:02'
         secondary_calibration_c[nm] = 'LAS:FS11:VIT:matlab:03'
         matlab_use = dict()
         for n in range(0,20):
-            matlab_use[n] = False  # Use new Epics pvs for XPP.
-        # modified for timetool drift draft
-        drift_correction_signal[nm] = 'LAS:FS11:VIT:matlab:29' # what PV to read
-        drift_correction_multiplier[nm] = -1/(2.856 * 360); 
-        drift_correction_value[nm]= 'LAS:FS11:VIT:matlab:04'# PV the current reading in ns.
-        drift_correction_offset[nm]= 'LAS:FS11:VIT:matlab:05' # PV in final nanoseconds
-        drift_correction_gain[nm]= 'LAS:FS11:VIT:matlab:06'  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir[nm]= 1  # Direction of timetool stage
-        drift_correction_smoothing[nm]='LAS:FS11:VIT:matlab:07'
-        drift_correction_accum[nm]='LAS:FS11:VIT:matlab:09'
+            matlab_use[n] = False  # Use IOC PVs.
+        # Notepad PVs for drift correction feature.
+        drift_correction_signal[nm] = 'LAS:FS11:VIT:matlab:29' # Drift correction value that is pulled from the time_tool.py script.
+        drift_correction_value[nm]= 'LAS:FS11:VIT:matlab:04' # PV of the current drift correction value in ns.
+        drift_correction_offset[nm]= 'LAS:FS11:VIT:matlab:05' # Allows a fixed offset to be applied to the 'fs' value from the timetool script.
+        drift_correction_gain[nm]= 'LAS:FS11:VIT:matlab:06'  # 0 is disable.
+        drift_correction_dir[nm]= 1  # Direction of correction is configurable based on the set-up of the timetool stage in a particular hutch.
+        drift_correction_smoothing[nm]='LAS:FS11:VIT:matlab:07' # Smoothing factor that reduces the drift correction step size.
+        drift_correction_accum[nm]='LAS:FS11:VIT:matlab:09' # Enables/disables drift correction accumulation (integration term).
         use_drift_correction[nm] = True  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
-        dither_level[nm] = 'LAS:FS11:VIT:matlab:08'    
+        use_dither[nm] = False # Used to allow fast dither of timing.
+        dither_level[nm] = 'LAS:FS11:VIT:matlab:08' # Amount of dither in picoseconds.
         matlab[nm] = matlab_use
 
         nm = 'FS14'
         namelist.add(nm)
-        base = 'LAS:FS14:'  # base name for this sysetm
+        base = 'LAS:FS14:'  #Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:'
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1
+        matlab_pv_offset[nm] = 1 #Notepad PV numbering starts at 1.
         matlab_pv_digits[nm] = 2
-        counter_base[nm] = base+'CNT:TI:'   # time interval counter
+        counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'EVR:LAS:LHN:04:TRIG1:TDES' # was DG2D???  was -39983
-        trig_in_ticks[nm] = 0  # Now using new time invariant trjggers
-        reverse_counter[nm] = 1  # start / stop reversed for this laser
-        use_secondary_calibration[nm] = 0
+        laser_trigger[nm] = 'EVR:LAS:LHN:04:TRIG1:TDES' # Name of on time EVR trigger channel.
+        trig_in_ticks[nm] = 0  # The laser_trigger PV is the delay value in ns. 0 sets trigger value to ns.
+        reverse_counter[nm] = 1  # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         secondary_calibration_enable[nm] = 'LAS:FS14:VIT:matlab:01'  #enables secondary calibration.
         secondary_calibration[nm] = 'XPP:USER:LAS:T0_MONITOR'
         secondary_calibration_s[nm] = 'LAS:FS14:VIT:matlab:02'
         secondary_calibration_c[nm] = 'LAS:FS14:VIT:matlab:03'
         matlab_use = dict()
         for n in range(0,20):
-            matlab_use[n] = False  # Use new Epics pvs for XPP.
-        # modified for timetool drift draft
-        drift_correction_signal[nm] = 'LAS:FS14:VIT:matlab:29' # what PV to read
-        drift_correction_multiplier[nm] = -1/(2.856 * 360); 
-        drift_correction_value[nm]= 'LAS:FS14:VIT:matlab:04'# PV the current reading in ns.
-        drift_correction_offset[nm]= 'LAS:FS14:VIT:matlab:05' # PV in final nanoseconds
-        drift_correction_gain[nm]= 'LAS:FS14:VIT:matlab:06'  # PV nanoseconds / pv value, 0 is disable
-        drift_correction_dir[nm]= 1  # Direction of timetool stage
-        drift_correction_smoothing[nm]='LAS:FS14:VIT:matlab:07'
-        drift_correction_accum[nm]='LAS:FS14:VIT:matlab:09'
+            matlab_use[n] = False  # Use IOC PVs.
+        # Notepad PVs for drift correction feature.
+        drift_correction_signal[nm] = 'LAS:FS14:VIT:matlab:29' # Drift correction value that is pulled from the time_tool.py script.
+        drift_correction_value[nm]= 'LAS:FS14:VIT:matlab:04' # PV of the current drift correction value in ns.
+        drift_correction_offset[nm]= 'LAS:FS14:VIT:matlab:05' # Allows a fixed offset to be applied to the 'fs' value from the timetool script.
+        drift_correction_gain[nm]= 'LAS:FS14:VIT:matlab:06'  # 0 is disable.
+        drift_correction_dir[nm]= 1  # Direction of correction is configurable based on the set-up of the timetool stage in a particular hutch.
+        drift_correction_smoothing[nm]='LAS:FS14:VIT:matlab:07' # Smoothing factor that reduces the drift correction step size.
+        drift_correction_accum[nm]='LAS:FS14:VIT:matlab:09' # Enables/disables drift correction accumulation (integration term).
         use_drift_correction[nm] = True  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
-        dither_level[nm] = 'LAS:FS14:VIT:matlab:08'    
+        use_dither[nm] = False # Used to allow fast dither of timing.
+        dither_level[nm] = 'LAS:FS14:VIT:matlab:08' # Amount of dither in picoseconds.
         matlab[nm] = matlab_use
         
         
@@ -308,7 +302,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         self.use_secondary_calibration = use_secondary_calibration[self.name]
         self.use_drift_correction = use_drift_correction[self.name]
         if self.use_drift_correction:
-            self.drift_correction_multiplier = drift_correction_multiplier[self.name]
             self.drift_correction_dir = drift_correction_dir[self.name]
         self.use_dither = use_dither[self.name] # used to allow fast dither of timing (for special functions)
         if self.use_dither:
