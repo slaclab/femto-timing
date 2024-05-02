@@ -298,17 +298,17 @@ class PVS():   # This class sets up all of the PVs used by the script.
                 print(x)
             self.name = input('enter system name:')                           
 
-        matlab_use = matlab[self.name]
-        self.use_secondary_calibration = use_secondary_calibration[self.name]
-        self.use_drift_correction = use_drift_correction[self.name]
+        matlab_use = matlab[self.name] # Turns first 20 Notepad PVs on/off based on which laser locker is selected.
+        self.use_secondary_calibration = use_secondary_calibration[self.name] # Turns secondary calibration on/off based on which laser locker is selected.
+        self.use_drift_correction = use_drift_correction[self.name] # Turns drift correction on/off based on which laser locker is selected.
         if self.use_drift_correction:
-            self.drift_correction_dir = drift_correction_dir[self.name]
-        self.use_dither = use_dither[self.name] # used to allow fast dither of timing (for special functions)
+            self.drift_correction_dir = drift_correction_dir[self.name] # Sets drift correction direction based on which laser locker is selected.
+        self.use_dither = use_dither[self.name] # Used to allow fast dither of timing.
         if self.use_dither:
             self.dither_level = dither_level[self.name]      
         self.trig_in_ticks = trig_in_ticks[self.name]
         self.reverse_counter = reverse_counter[self.name]                     
-        #matlab list holds tuples of the matlab variable index offset and description field                       
+        # Matlab list holds tuples of the matlab variable index offset and description fields.
         matlab_list['watchdog'] = 0,'femto watchdog' + self.version # matlab variable and text string
         matlab_list['oscillator_f'] = 1,'femto oscillator target F' # frequency to enter in oscillator field
         matlab_list['time'] = 2,'femto target time ns' # when control is enabled, laser will move to this time on counter
