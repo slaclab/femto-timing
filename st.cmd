@@ -20,9 +20,9 @@ echo "$hutch"
 case $base in
    py-fstiming)
       if [[ $hutch = XCS ]]; then
-         script=femtoneh_mfx_longdelay.py
+         script=femto_longdelay.py
       else
-         script=femtoneh_mfx_v2.py
+         script=femto.py
       fi
       export MPLCONFIGDIR=/reg/d/iocData/fstiming
       ;;
