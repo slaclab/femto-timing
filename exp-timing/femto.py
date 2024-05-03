@@ -771,7 +771,7 @@ class sawtooth():  # generates a sawtooth waveform and a vector of OK / notok po
 class ring():  # very simple ring buffer 
     def __init__(self, sz=12):  # sz is size of ring
         self.sz = sz  # hold size of ring
-        self.a = np.zeroes(sz)
+        self.a = np.zeros(sz)
         self.ptr = -1 # points to last data, start negative
         self.full = False # set to true when the ring is full
         
