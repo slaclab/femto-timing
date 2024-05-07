@@ -16,9 +16,7 @@ class PVS():   # This class sets up all of the PVs used by the script.
         namelist = set() # Sets up the namelist that will check the hutch name passed in by the IOC against the list of hutches femto.py is configured to run. 
         self.pvlist = dict()  # Creates a list of all the PVs used by the script, excluding the notepad or "Matlab" PVs.  
         matlab_list = dict() # List of the notepad or "Matlab" PVs, tuples of matlab number offset and pv description.
-        matlab_pv_base = dict() # Header Matlab PVs like SIOC:SYS0:ML00:OA. 
-        matlab_pv_offset = dict() # Start number for notepad PVs. A value of 1 is used of most hutches.
-        matlab_pv_digits = dict() # Number of digits for each notepad PV.
+        matlab_pv_base = dict() # Header Matlab PVs like SIOC:SYS0:ML00:OA.
         matlab_use = dict() # This value could be set to true to use a notepad PV instead of an IOC PV. This feature is not used in any of the lockers, though, so it is obsolete. 
         for n in range(0,20):
             matlab_use[n] = True  # Initize to always use notepad PV by default, override to use IOC PVs.
@@ -60,8 +58,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         base = 'LAS:FS4:'  # Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:' 
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
-        matlab_pv_digits[nm] = 2
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -92,8 +88,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         base = 'LAS:FS45:'  # Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:'
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
-        matlab_pv_digits[nm] = 2
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -124,8 +118,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         base = 'LAS:FS5:'  # Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:' 
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
-        matlab_pv_digits[nm] = 2
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -155,8 +147,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         base = 'LAS:FS6:'  #Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:' 
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1 #Notepad PV numbering starts at 1.
-        matlab_pv_digits[nm] = 2
         counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -173,59 +163,11 @@ class PVS():   # This class sets up all of the PVs used by the script.
         use_drift_correction[nm] = False  
         use_dither[nm] = False # Used to allow fast dither of timing.          
 
-        nm = 'VITARA1'
-        namelist.add(nm)
-        dev_base[nm] = 'OSC:LR20:20:'
-        version_pv_name[nm] =  dev_base[nm] +'FS_WATCHDOG.DESC'  # holds version string
-        matlab_pv_base[nm] = 'SIOC:SYS0:ML01:AO'
-        matlab_pv_offset[nm] = 480
-        matlab_pv_digits[nm] = 3
-        counter_base[nm] = dev_base[nm]
-        freq_counter[nm] = dev_base[nm] + 'FREQ_CUR'
-        phase_motor[nm] = dev_base[nm] + 'M1_MOTR_IQ'
-        laser_trigger[nm] = 'TRIG:LR20:LS02:TDES'
-        error_pv_name[nm] = dev_base[nm] + 'FS_STATUS'
-        version_pv_name[nm] = dev_base[nm] + 'FS_WATCHDOG.DESC'
-        trig_in_ticks[nm] = 0
-        reverse_counter[nm] = 1
-        use_secondary_calibration[nm] = 0
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # epicspvs .
-        matlab[nm] = matlab_use
-        use_drift_correction[nm] = False  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
-        
-        nm = 'VITARA2'
-        namelist.add(nm)
-        dev_base[nm] = 'OSC:LR20:10:'
-        version_pv_name[nm] = dev_base[nm] + 'FS_WATCHDOG.DESC'  # holds version string
-        matlab_pv_base[nm] = 'SIOC:SYS0:ML01:AO'
-        matlab_pv_offset[nm] = 480
-        matlab_pv_digits[nm] = 3
-        counter_base[nm] = dev_base[nm]
-        freq_counter[nm] = dev_base[nm] + 'FREQ_CUR'
-        phase_motor[nm] = dev_base[nm] + 'M1_MOTR_IQ'
-        laser_trigger[nm] = 'TRIG:LR20:LS03:TDES'
-        error_pv_name[nm] = dev_base[nm] + 'FS_STATUS'
-        version_pv_name[nm] = dev_base[nm] + 'FS_WATCHDOG.DESC'
-        trig_in_ticks[nm] = 0
-        reverse_counter[nm] = 1
-        use_secondary_calibration[nm] = 0
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # epicspvs .
-        matlab[nm] = matlab_use
-        use_drift_correction[nm] = False  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
-
         nm = 'FS11'
         namelist.add(nm)
         base = 'LAS:FS11:'  # Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:'
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1 # Notepad PV numbering starts at 1.
-        matlab_pv_digits[nm] = 2
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -260,8 +202,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         base = 'LAS:FS14:'  #Base PV name for this laser locker.
         dev_base[nm] = base+'VIT:'
         matlab_pv_base[nm] = dev_base[nm]+'matlab:'
-        matlab_pv_offset[nm] = 1 #Notepad PV numbering starts at 1.
-        matlab_pv_digits[nm] = 2
         counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -398,7 +338,7 @@ class PVS():   # This class sets up all of the PVs used by the script.
         for k, v in matlab_list.items():  # loop over items
             if not matlab_use[matlab_list[k][0]]: #not overriding on this one, keep older pv.
                 continue
-            pvname = matlab_pv_base[self.name]+str(matlab_list[k][0]+matlab_pv_offset[self.name]).zfill(matlab_pv_digits[self.name])
+            pvname = matlab_pv_base[self.name]+str(matlab_list[k][0]+1).zfill(2) # Notepad PVs start at 1 and have 2 digits
             pv_description_field_name = pvname + '.DESC' # name of description field
             pv = Pv(pv_description_field_name)
             pv.connect(timeout)
