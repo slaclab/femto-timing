@@ -15,11 +15,6 @@ class PVS():   # Creates PVs
         print(self.name)
         namelist = set() # Checks if scripts is configured to run specified locker name
         self.pvlist = dict()  # List of all PVs
-        matlab_list = dict() # List of the notepad or "Matlab" PVs, tuples of matlab number offset and PV description
-        matlab_pv_base = dict() # Header Matlab PVs like SIOC:SYS0:ML00:OA
-        matlab_use = dict() # Set to true to use a notepad PV instead of an IOC PV
-        for n in range(0,20):
-            matlab_use[n] = True  # Use Notepad PV by default
         counter_base = dict()  # Time interval counter names
         freq_counter = dict() # Frequency counter names
         dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV sub-name (i.e. 'VIT' in most of the LCLS-I laser lockers)
@@ -48,14 +43,12 @@ class PVS():   # Creates PVs
         for n in range(0,20):
             use_dither[n] = False  # Turn off except where needed
         version_pv_name = dict()
-        matlab = dict()  # Holds all matlab_use PVs
         timeout = 1.0  # Default timeout for connecting to PVs
 
         nm = 'XCS'
         namelist.add(nm)
         base = 'LAS:FS4:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:' 
-        matlab_pv_base[nm] = dev_base[nm]+'matlab:'
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -63,9 +56,6 @@ class PVS():   # Creates PVs
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:XCS:01:TRIG0:TDES'
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # Use IOC PVs
         # Notepad PVs for drift correction feature
         drift_correction_signal[nm] = 'LAS:FS4:VIT:matlab:29'
         drift_correction_value[nm] = 'LAS:FS4:VIT:matlab:04' 
@@ -77,13 +67,11 @@ class PVS():   # Creates PVs
         use_drift_correction[nm] = True
         use_dither[nm] = True
         dither_level[nm] = 'LAS:FS4:VIT:matlab:08'
-        matlab[nm] = matlab_use
 
         nm = 'MFX'
         namelist.add(nm)
         base = 'LAS:FS45:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:'
-        matlab_pv_base[nm] = dev_base[nm]+'matlab:'
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -91,9 +79,6 @@ class PVS():   # Creates PVs
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:MFX:01:TRIG0:TDES' 
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # Use IOC PVs.
         # Notepad PVs for drift correction feature.
         drift_correction_signal[nm] = 'LAS:FS45:VIT:matlab:29'
         drift_correction_value[nm]= 'LAS:FS45:VIT:matlab:04'
@@ -105,24 +90,18 @@ class PVS():   # Creates PVs
         use_drift_correction[nm] = True  
         use_dither[nm] = False
         dither_level[nm] = 'LAS:FS45:VIT:matlab:08'
-        matlab[nm] = matlab_use
 
         nm = 'CXI'
         namelist.add(nm)
         base = 'LAS:FS5:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:' 
-        matlab_pv_base[nm] = dev_base[nm]+'matlab:'
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES'
-        use_secondary_calibration[nm] = 0 # Secondary calibration turned off
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # Use IOC PVs
-        matlab[nm] = matlab_use    
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off 
         # Notepad PVs for drift correction feature
         drift_correction_signal[nm] = 'LAS:FS5:VIT:matlab:29'
         drift_correction_value[nm]= 'LAS:FS5:VIT:matlab:04'
@@ -138,7 +117,6 @@ class PVS():   # Creates PVs
         namelist.add(nm)
         base = 'LAS:FS6:'  #Base PV name for this laser locker
         dev_base[nm] = base+'VIT:' 
-        matlab_pv_base[nm] = dev_base[nm]+'matlab:'
         counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -146,10 +124,6 @@ class PVS():   # Creates PVs
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES' 
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # Use IOC PVs
-        matlab[nm] = matlab_use 
         use_drift_correction[nm] = False  
         use_dither[nm] = False # Used to allow fast dither of timing       
 
@@ -157,7 +131,6 @@ class PVS():   # Creates PVs
         namelist.add(nm)
         base = 'LAS:FS11:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:'
-        matlab_pv_base[nm] = dev_base[nm]+'matlab:'
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -169,9 +142,6 @@ class PVS():   # Creates PVs
         secondary_calibration[nm] = 'XPP:USER:LAS:T0_MONITOR'
         secondary_calibration_s[nm] = 'LAS:FS11:VIT:matlab:02'
         secondary_calibration_c[nm] = 'LAS:FS11:VIT:matlab:03'
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # Use IOC PVs
         # Notepad PVs for drift correction feature
         drift_correction_signal[nm] = 'LAS:FS11:VIT:matlab:29'
         drift_correction_value[nm]= 'LAS:FS11:VIT:matlab:04'
@@ -183,13 +153,11 @@ class PVS():   # Creates PVs
         use_drift_correction[nm] = True  
         use_dither[nm] = False 
         dither_level[nm] = 'LAS:FS11:VIT:matlab:08'
-        matlab[nm] = matlab_use
 
         nm = 'FS14'
         namelist.add(nm)
         base = 'LAS:FS14:'  #Base PV name for this laser locker
         dev_base[nm] = base+'VIT:'
-        matlab_pv_base[nm] = dev_base[nm]+'matlab:'
         counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
@@ -201,9 +169,6 @@ class PVS():   # Creates PVs
         secondary_calibration[nm] = 'XPP:USER:LAS:T0_MONITOR'
         secondary_calibration_s[nm] = 'LAS:FS14:VIT:matlab:02'
         secondary_calibration_c[nm] = 'LAS:FS14:VIT:matlab:03'
-        matlab_use = dict()
-        for n in range(0,20):
-            matlab_use[n] = False  # Use IOC PVs
         # Notepad PVs for drift correction feature
         drift_correction_signal[nm] = 'LAS:FS14:VIT:matlab:29' 
         drift_correction_value[nm]= 'LAS:FS14:VIT:matlab:04'
@@ -215,7 +180,6 @@ class PVS():   # Creates PVs
         use_drift_correction[nm] = True  
         use_dither[nm] = False
         dither_level[nm] = 'LAS:FS14:VIT:matlab:08'
-        matlab[nm] = matlab_use
         
         
         while not (self.name in namelist):
@@ -224,7 +188,6 @@ class PVS():   # Creates PVs
                 print(x)
             self.name = input('enter system name:')                           
 
-        matlab_use = matlab[self.name] # Turns first 20 Notepad PVs on/off based on which laser locker is selected.
         self.use_secondary_calibration = use_secondary_calibration[self.name] # Turns secondary calibration on/off based on which laser locker is selected.
         self.use_drift_correction = use_drift_correction[self.name] # Turns drift correction on/off based on which laser locker is selected.
         if self.use_drift_correction:
@@ -232,26 +195,6 @@ class PVS():   # Creates PVs
         self.use_dither = use_dither[self.name] # Used to allow fast dither of timing.
         if self.use_dither:
             self.dither_level = dither_level[self.name]                  
-        # Matlab list holds tuples of the matlab variable index offset and description fields.
-        matlab_list['watchdog'] = 0,'femto watchdog' + self.version # matlab variable and text string
-        matlab_list['oscillator_f'] = 1,'femto oscillator target F' # frequency to enter in oscillator field
-        matlab_list['time'] = 2,'femto target time ns' # when control is enabled, laser will move to this time on counter
-        matlab_list['calibrate'] = 3,'femto enter 1 to calibrate' # used to run calibration routine
-        matlab_list['enable'] = 4,'femto enable time control' # automated time control
-        matlab_list['busy'] = 5,'femto control busy'
-        matlab_list['error'] = 6,'timing error vs freq counter'
-        matlab_list['ok'] = 7,'femto Laser OK'
-        matlab_list['fix_bucket'] = 8, 'fix bucket jump' # used to fix a bucket error
-        matlab_list['delay'] = 9, 'trigger delay - do not change'
-        matlab_list['offset'] = 10, 'timing  offset do not change'
-        matlab_list['enable_trig'] = 11, 'enable trigger control'
-        matlab_list['bucket_error'] = 12, ' buckets of 3808MHz error'        
-        matlab_list['unfixed_error'] = 13, 'error from integer buckets ns'
-        matlab_list['bucket_counter'] = 14, 'bucket corrects since reset'
-        matlab_list['deg_Sband'] = 15, 'Degrees S band control'
-        matlab_list['deg_offset'] = 16, 'Degrees offset'
-        matlab_list['ns_offset'] =  17, 'ns, offset degS control'       
-        matlab_list['calib_error'] = 19, 'last calibration error ns'
         
         # List of other PVs used.
         self.pvlist['watchdog'] =  Pv(dev_base[self.name]+'FS_WATCHDOG')
@@ -309,23 +252,7 @@ class PVS():   # Creates PVs
             self.pvlist['drift_correction_smoothing'] =  Pv(drift_correction_smoothing[self.name])
             self.pvlist['drift_correction_accum'] = Pv(drift_correction_accum[self.name])
         if self.use_dither:
-            self.pvlist['dither_level'] = Pv(dither_level[self.name])
-       # set up all the matlab PVs
-        for k, v in matlab_list.items():  # loop over items
-            if not matlab_use[matlab_list[k][0]]: #not overriding on this one, keep older pv.
-                continue
-            pvname = matlab_pv_base[self.name]+str(matlab_list[k][0]+1).zfill(2) # Notepad PVs start at 1 and have 2 digits
-            pv_description_field_name = pvname + '.DESC' # name of description field
-            pv = Pv(pv_description_field_name)
-            pv.connect(timeout)
-            pv.put(value= self.name+' '+v[1], timeout=1.0) # put in the description field
-            pv.disconnect() # done with this pv
-            pv_prec_name = pvname + '.PREC' # precision field
-            pv = Pv(pv_prec_name)
-            pv.connect(timeout)
-            pv.put(value = 4, timeout = 1.0) # set precision field
-            pv.disconnect() # done with precision field
-            self.pvlist[k]=Pv(pvname) # add pv  to list - this is where matlab would overwrite ioc pvs. 
+            self.pvlist['dither_level'] = Pv(dither_level[self.name]) 
         self.OK = 1   
         for k, v in self.pvlist.items():  # now loop over all pvs to initialize
             try:
