@@ -24,8 +24,7 @@ class PVS():   # This class sets up all of the PVs used by the script.
         freq_counter = dict() # Holds frequency counter names.
         dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV sub-name (i.e. 'VIT' in most of the LCLS-I laser lockers). 
         phase_motor = dict() # Holds phase motor names. 
-        laser_trigger = dict() # Holds the name of the EVR trigger used for time control in each of the lockers.
-        reverse_counter = dict() # 1 if the laser starts the counter, trigger stops.        
+        laser_trigger = dict() # Holds the name of the EVR trigger used for time control in each of the lockers.       
         error_pv_name = dict() # Holds the femto.py script error status for each locker.    
         use_secondary_calibration = dict() # Currently set to false for all of the laser lockers.
         for n in range(0,20):
@@ -63,7 +62,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:XCS:01:TRIG0:TDES' # Name of on time EVR trigger channel.
-        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
@@ -92,7 +90,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:MFX:01:TRIG0:TDES' # Name of on time EVR trigger channel.
-        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
@@ -121,7 +118,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES' # Name of on time EVR trigger channel.
-        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
@@ -149,7 +145,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES' # Name of on time EVR trigger channel.
-        reverse_counter[nm] = 1 # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         matlab_use = dict()
         for n in range(0,20):
@@ -169,7 +164,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:LHN:01:TRIG3:TDES' # Name of on time EVR trigger channel.
-        reverse_counter[nm] = 1  # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         secondary_calibration_enable[nm] = 'LAS:FS11:VIT:matlab:01'  #enables secondary calibration.
         secondary_calibration[nm] = 'XPP:USER:LAS:T0_MONITOR'
@@ -202,7 +196,6 @@ class PVS():   # This class sets up all of the PVs used by the script.
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
         laser_trigger[nm] = 'EVR:LAS:LHN:04:TRIG1:TDES' # Name of on time EVR trigger channel.
-        reverse_counter[nm] = 1  # A value of 1 sets the laser as the counter start and an EVR trigger the counter stop.
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off. 
         secondary_calibration_enable[nm] = 'LAS:FS14:VIT:matlab:01'  #enables secondary calibration.
         secondary_calibration[nm] = 'XPP:USER:LAS:T0_MONITOR'
@@ -238,8 +231,7 @@ class PVS():   # This class sets up all of the PVs used by the script.
             self.drift_correction_dir = drift_correction_dir[self.name] # Sets drift correction direction based on which laser locker is selected.
         self.use_dither = use_dither[self.name] # Used to allow fast dither of timing.
         if self.use_dither:
-            self.dither_level = dither_level[self.name]
-        self.reverse_counter = reverse_counter[self.name]                     
+            self.dither_level = dither_level[self.name]                  
         # Matlab list holds tuples of the matlab variable index offset and description fields.
         matlab_list['watchdog'] = 0,'femto watchdog' + self.version # matlab variable and text string
         matlab_list['oscillator_f'] = 1,'femto oscillator target F' # frequency to enter in oscillator field
@@ -282,17 +274,9 @@ class PVS():   # This class sets up all of the PVs used by the script.
         self.pvlist['deg_offset'] =  Pv(dev_base[self.name]+'POC')
         self.pvlist['ns_offset'] =  Pv(dev_base[self.name]+'FS_NS_OFFSET')
         self.pvlist['calib_error'] =  Pv(dev_base[self.name]+'FS_CALIB_ERROR')
-        
-        if self.reverse_counter:
-            self.pvlist['counter'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean')  #time interval counter result, create Pv
-            self.pvlist['counter_low'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.LOW')        
-            self.pvlist['counter_high'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.HIGH') 
-        
-        else:
-            self.pvlist['counter'] = Pv(counter_base[self.name]+'GetMeasMean')  #time interval counter result, create Pv
-            self.pvlist['counter_low'] = Pv(counter_base[self.name]+'GetMeasMean.LOW')        
-            self.pvlist['counter_high'] = Pv(counter_base[self.name]+'GetMeasMean.HIGH') 
-        
+        self.pvlist['counter'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean')  #time interval counter result, create Pv
+        self.pvlist['counter_low'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.LOW')        
+        self.pvlist['counter_high'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.HIGH')        
         self.pvlist['counter_jitter'] = Pv(counter_base[self.name]+'GetMeasJitter')
         self.pvlist['counter_jitter_high'] = Pv(counter_base[self.name]+'GetMeasJitter.HIGH')        
         self.pvlist['freq_counter'] = Pv(freq_counter[self.name])  # frequency counter readback        
