@@ -181,7 +181,6 @@ class PVS():   # Creates PVs
         use_dither[nm] = False
         dither_level[nm] = 'LAS:FS14:VIT:matlab:08'
         
-        
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following ')
             for x in namelist:
@@ -268,10 +267,7 @@ class PVS():   # Creates PVs
         self.version_pv.connect(timeout)
         self.version_pv.put(self.version, timeout = 10.0)
         self.E = error_output(self.error_pv)
-        self.E.write_error('OK')
-       
-        
-        
+        self.E.write_error('OK')       
         
     def get(self, name):
         try:
@@ -279,8 +275,7 @@ class PVS():   # Creates PVs
             return self.pvlist[name].value                      
         except:
             print('PV READ ERROR: ', name)
-            return 0
-                
+            return 0   
                 
     def get_last(self, name): # gets last value read, no pv read / write
         return self.pvlist[name].value                
@@ -296,6 +291,7 @@ class PVS():   # Creates PVs
             v.disconnect()  
         self.error_pv.disconnect()    
         print('closed all PV connections')
+
 
 class locker():  # sets up parameters of a particular locking system
     def __init__(self, P, W):  # Uses PV list
@@ -333,7 +329,6 @@ class locker():  # sets up parameters of a particular locking system
             self.message = 'RF power out of range'
             self.laser_ok = 0
             self.rf_ok = 0
-
         dpwr = self.P.get('diode_pwr') # check diode level
         dpwrhihi = self.P.get('diode_pwr_hihi')
         dpwrlolo = self.P.get('diode_pwr_lolo')
@@ -341,7 +336,6 @@ class locker():  # sets up parameters of a particular locking system
             self.message = 'diode power out of range'
             self.laser_ok = 0
             self.rf_diode_ok = 0
-        
         if abs(self.P.get('freq_sp') - self.P.get('oscillator_f')) > self.max_frequency_error:  # oscillator set point wrong
             self.laser_ok = 0
             self.frequency_ok = 0
@@ -482,7 +476,6 @@ class locker():  # sets up parameters of a particular locking system
             do = self.P.get('drift_correction_offset') 
             dg = self.P.get('drift_correction_gain')
             dd = self.P.drift_correction_dir
-            
             ds = self.P.get('drift_correction_smoothing')
             self.drift_last = self.P.get('drift_correction_value')
             accum = self.P.get('drift_correction_accum')
