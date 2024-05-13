@@ -751,8 +751,8 @@ def femto(name='NULL'):
     if W.error:
         return
     L = locker(P,W) #set up locking system parameters
-    L.locker_status()  # check locking sysetm / laser status
-    P.E.write_error( L.message)
+    L.locker_status()  # check locking system / laser status
+    P.E.write_error(L.message)
     T = trigger(P)
     T.get_ns()
     D = degrees_s(P) # manages conversion of degrees to ns and back
@@ -761,7 +761,7 @@ def femto(name='NULL'):
         try:   # the never give up, never surrender loop. 
             W.check()
             P.put('busy', 0)
-            L.locker_status()  # check if the locking sysetm is OK
+            L.locker_status()  # check if the locking system is OK
             if not L.laser_ok:  # if the laser isn't working, for now just do nothing, eventually suggest fixes
                 P.E.write_error( L.message)
                 P.put('ok', 0)
@@ -769,7 +769,7 @@ def femto(name='NULL'):
                 continue            #just try again if the laser isn't ready  
             if P.get('calibrate'):
                 P.put('ok', 0)
-                P.put('busy', 1) # sysetm busy calibrating
+                P.put('busy', 1) # system busy calibrating
                 P.E.write_error( 'calibration requested - starting')
                 L.calibrate()
                 P.put('calibrate', 0)
@@ -778,7 +778,7 @@ def femto(name='NULL'):
             if  P.use_secondary_calibration:  # run calibration against scope
                 if P.get('secondary_calibration_enable'): # not requested  
                     P.put('ok', 0)
-                    P.put('busy', 1) # sysetm busy calibrating
+                    P.put('busy', 1) # system busy calibrating
                     P.E.write_error( 'secondary calibration')
                     L.second_calibrate()
                     P.put('secondary_calibration_enable', 0)
@@ -795,16 +795,16 @@ def femto(name='NULL'):
             P.put('ok', 1)
             if P.get('enable'): # is enable time control active?
                 L.set_time() # set time read earlier    
-            D.run()  # deals with degreees S band conversion    
-        except:   # catch any otehrwise uncaught error.
+            D.run()  # deals with degrees S band conversion    
+        except:   # catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # print error
             del P  #does this work?
             print('UNKNOWN ERROR, trying again')
             P = PVS(name)
             W = watchdog.watchdog(P.pvlist['watchdog'])
             L = locker(P, W) #set up locking system parameters
-            L.locker_status()  # check locking sysetm / laser status
-            P.E.write_error( L.message)
+            L.locker_status()  # check locking system / laser status
+            P.E.write_error(L.message)
             T = trigger(P)
             T.get_ns()
     P.E.write_error( 'done, exiting')
