@@ -158,7 +158,7 @@ class PVS():
 
         nm = 'FS14'
         namelist.add(nm)
-        base = 'LAS:FS14:'  #Base PV name for this laser locker
+        base = 'LAS:FS14:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:'
         counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
@@ -255,15 +255,14 @@ class PVS():
         if self.use_dither:
             self.pvlist['dither_level'] = Pv(dither_level[self.name]) 
         self.OK = 1   
-        for k, v in self.pvlist.items():  # now loop over all pvs to initialize
+        for k, v in self.pvlist.items():  # Now loop over all pvs to initialize
             try:
-                v.connect(timeout) # connect to pv
-                v.get(ctrl=True, timeout=1.0) # get data
-            except: # for now just fake it
-                print('could not open '+v.name)
-                print(k)
-                self.OK = 0 # some error with setting up PVs, can't run, will exit  
-        self.error_pv = Pv(error_pv_name[self.name]) # open pv
+                v.connect(timeout) # Connect to pv
+                v.get(ctrl=True, timeout=1.0) # Get data
+            except: 
+                print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time)
+                self.OK = 0 # Some error with setting up PVs, can't run, will exit  
+        self.error_pv = Pv(error_pv_name[self.name]) # Open pv
         self.error_pv.connect(timeout)
         self.version_pv = Pv(version_pv_name[self.name])
         self.version_pv.connect(timeout)
@@ -272,12 +271,12 @@ class PVS():
         self.E.write_error('OK')       
         
     def get(self, name):
-        """Takes a PV name, connects to the PV, and returns its value."""
+        """Takes a PV name, connects to it, and returns its value."""
         try:
             self.pvlist[name].get(ctrl=True, timeout=10.0)
             return self.pvlist[name].value                      
         except:
-            print('PV READ ERROR: ', name)
+            print('PV READ ERROR:', name, 'Error occurred at:', date_time)
             return 0   
                 
     def get_last(self, name):
@@ -289,14 +288,14 @@ class PVS():
         try:
             self.pvlist[name].put(x, timeout = 10.0) # long timeout           
         except:
-            print('UNABLE TO WRITE PV: ', name, '= ', x)
+            print('UNABLE TO WRITE PV: ', name, '= ', x, 'Error occurred at:', date_time)
                 
     def __del__ (self):
         """Disconnects from all IOC PVs."""
         for v in self.pvlist.values():
             v.disconnect()  
         self.error_pv.disconnect()    
-        print('closed all PV connections')
+        print('Closed all PV connections')
 
 
 class locker():
@@ -368,47 +367,34 @@ class locker():
         M.move(0)  # move to zero to start 
         M.wait_for_stop()
         for x in tctrl:  #loop over input array 
-            print('calib start')
             self.W.check() # check watchdog
-            print('post watchdog')
             if self.W.error:
                 return    
             if not self.P.get('calibrate'):
                 return   # canceled calibration
-            print('move motor')
             M.move(x)  # move motor
-            print('wait for stop')
             M.wait_for_stop()
-            print('sleep')
             time.sleep(2)  #Don't know why this is needed
             t_tmp = 0 # to check if we ever get a good reading
-            print('get read')
             for n in range(0, 25): # try to see if we can get a good reading
                  t_tmp = self.C.get_time()  # read time
                  if t_tmp != 0: # have a new reading
                      break # break out of loop
             tout = np.append(tout, t_tmp) # read timing and put in array
-            print('end of loop')
-            print('temp. time:\t', t_tmp)
-            print('good reading:\t', self.C.good)
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
                 print('bad counter data')
                 self.P.E.write_error('timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
-        print('min v is: ', minv)
         period = 1/self.laser_f # just defining things needed in sawtooth -  UGLY
         delay = minv - t_trig # more code cleanup neded in the future.
         err = np.array([]) # will hold array of errors
         offset = np.linspace(0, period, ns)  # array of offsets to try
-        for x in offset:  # here we blindly try different offsets to see what works
-            S = sawtooth(tctrl, t_trig, delay, x, period) # sawtooth sim
-            err = np.append(err, sum(counter_good*S.r * (S.t - tout)**2))  # total error
-        idx = np.argmin(err) # index of minimum error
-        print('offset:\t', offset[idx])
-        print('delay:\t', delay)
-        print('trig_time:\t', t_trig)
+        for x in offset:  # Tries different offsets to see what works
+            S = sawtooth(tctrl, t_trig, delay, x, period) # Sawtooth simulation
+            err = np.append(err, sum(counter_good*S.r * (S.t - tout)**2))  # Total error
+        idx = np.argmin(err) # Index of minimum error
         S = sawtooth(tctrl, t_trig, delay, offset[idx], period)
         self.P.put('calib_error', np.sqrt(err[idx]/ self.calib_points))
         self.d['delay'] = delay
@@ -540,7 +526,7 @@ class locker():
             self.d['delay'] = self.P.get('delay')
             self.d['offset'] = self.P.get('offset')
         except:
-            print('problem reading delay and offset pvs')
+            print('Problem reading delay and offset pvs. Error occurred at:', date_time)
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
@@ -673,7 +659,7 @@ class phase_motor():
             try:
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
             except:
-                print('could not get dmov')
+                print('Could not get dmov. Error occurred at:', date_time)
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
@@ -770,11 +756,17 @@ def fitres(param, tin, tout):
     return err
 
 
-def ffun( x, a, b):
+def ffun(x, a, b):
     """Takes set time, sine amplitude, and cosine amplitude, returns theoretical output time."""
     w0 = 3.808*2*np.pi
     out = a*np.sin(x * w0) + b * np.cos(x*w0)
     return out        
+
+
+def date_time():
+    """Returns the current date and time."""
+    curr_time = time.strftime("%m/%d/%Y %H:%M:%S", time.localtime())
+    return curr_time
 
 
 def femto(name='NULL'):
@@ -834,7 +826,7 @@ def femto(name='NULL'):
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
             del P  #does this work?
-            print('UNKNOWN ERROR, trying again')
+            print('UNKNOWN ERROR, trying again. Error occurred at:', date_time)
             P = PVS(name)
             W = watchdog.watchdog(P.pvlist['watchdog'])
             L = locker(P, W) #set up locking system parameters
