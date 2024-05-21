@@ -1,4 +1,4 @@
-
+"""Module provides femtosecond time control."""
 import time
 import math
 import numpy as np
@@ -12,32 +12,32 @@ class PVS():
     """Initializes dictionaries for a particular locker, reads and writes to PVs from that locker."""
     def __init__(self, nx='NULL'):
         """Assigns IOC PVs to dictionaries for each locker parameter for the selected laser system."""
-        self.version = 'Watchdog 141126a' #Version string
+        self.version = 'Watchdog 141126a' # Version string
         self.name = nx # Sets the hutch name
         print(self.name)
         namelist = set() # Checks if scripts is configured to run specified locker name
         self.pvlist = dict()  # List of all PVs
-        counter_base = dict()  # Time interval counter names
+        counter_base = dict()  # Time interval counter PV
         freq_counter = dict() # Frequency counter names
-        dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV sub-name (i.e. 'VIT' in most of the LCLS-I laser lockers)
+        dev_base = dict() # locker name
         phase_motor = dict() # Phase motor names
-        laser_trigger = dict() # EVR on time trigger PV        
-        error_pv_name = dict() # femto.py script error status for each locker   
+        laser_trigger = dict() # EVR on time trigger PV
+        error_pv_name = dict() # femto.py script error status for each locker
         use_secondary_calibration = dict() # Currently set to false for all of the laser lockers
         for n in range(0,20):
             use_secondary_calibration[n] = False  # Turn off except where needed
-        secondary_calibration_enable = dict() # Allows secondary calibration to be enabled via a PV 
+        secondary_calibration_enable = dict() # Allows secondary calibration to be enabled via a PV
         secondary_calibration = dict() # The PV to use for secondary calibration
         secondary_calibration_s = dict() # Sine term for calibration
         secondary_calibration_c = dict() # Cosine term for calibration
-        use_drift_correction = dict() # Allows drift correction feature to be turned on/off individually for each locker
-        drift_correction_signal = dict() # Drift correction float value in ps pulled from the time_tool.py script
+        use_drift_correction = dict() # drift correction bool
+        drift_correction_signal = dict() # Drift correction float value in ps from time_tool.py
         drift_correction_value = dict() # Current drift correction output in ns
-        drift_correction_offset = dict() # Fixed offset in ns applied to the drift_correction_signal value
-        drift_correction_gain = dict() # Multiplier applied to drift_correction_signal. Gain of 0 disables drift correction feedback
-        drift_correction_dir = dict()  # Bool value that is configurable based on the set-up of the timetool stage in a particular hutch 
-        drift_correction_smoothing = dict()  # Smoothing factor that reduces the drift correction step size
-        drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term)
+        drift_correction_offset = dict() # Fixed offset in ns applied to the drift_correction_signal
+        drift_correction_gain = dict() # Multiplier
+        drift_correction_dir = dict()  # Bool value that varies depending on hutch
+        drift_correction_smoothing = dict()  # Augments drift correction step size
+        drift_correction_accum = dict() # Bool for integration term
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
         use_dither = dict() # Used to allow fast dither of timing
@@ -51,16 +51,16 @@ class PVS():
         namelist.add(nm)
         base = 'LAS:FS4:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:' 
-        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
-        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
+        counter_base[nm] = base+'CNT:TI:'
+        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'
         phase_motor[nm] = base+'MMS:PH' 
-        error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
-        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
+        error_pv_name[nm] = dev_base[nm]+'FS_STATUS'
+        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = 'EVR:LAS:XCS:01:TRIG0:TDES'
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
         # Notepad PVs for drift correction feature
         drift_correction_signal[nm] = 'LAS:FS4:VIT:matlab:29'
-        drift_correction_value[nm] = 'LAS:FS4:VIT:matlab:04' 
+        drift_correction_value[nm] = 'LAS:FS4:VIT:matlab:04'
         drift_correction_offset[nm] = 'LAS:FS4:VIT:matlab:05'
         drift_correction_gain[nm] = 'LAS:FS4:VIT:matlab:06'
         drift_correction_dir[nm] = 1
@@ -74,12 +74,12 @@ class PVS():
         namelist.add(nm)
         base = 'LAS:FS45:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:'
-        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
-        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
-        phase_motor[nm] = base+'MMS:PH' 
-        error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
-        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'EVR:LAS:MFX:01:TRIG0:TDES' 
+        counter_base[nm] = base+'CNT:TI:'
+        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'
+        phase_motor[nm] = base+'MMS:PH'
+        error_pv_name[nm] = dev_base[nm]+'FS_STATUS'
+        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
+        laser_trigger[nm] = 'EVR:LAS:MFX:01:TRIG0:TDES'
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
         # Notepad PVs for drift correction feature.
         drift_correction_signal[nm] = 'LAS:FS45:VIT:matlab:29'
@@ -89,7 +89,7 @@ class PVS():
         drift_correction_dir[nm]= -1
         drift_correction_smoothing[nm]='LAS:FS45:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS45:VIT:matlab:09'
-        use_drift_correction[nm] = True  
+        use_drift_correction[nm] = True
         use_dither[nm] = False
         dither_level[nm] = 'LAS:FS45:VIT:matlab:08'
 
@@ -97,13 +97,13 @@ class PVS():
         namelist.add(nm)
         base = 'LAS:FS5:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:' 
-        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
-        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
+        counter_base[nm] = base+'CNT:TI:'
+        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'
         phase_motor[nm] = base+'MMS:PH' 
-        error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
-        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
+        error_pv_name[nm] = dev_base[nm]+'FS_STATUS'
+        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = 'EVR:LAS:CXI:01:TRIG3:TDES'
-        use_secondary_calibration[nm] = 0 # Secondary calibration turned off 
+        use_secondary_calibration[nm] = 0 # Secondary calibration turned off
         # Notepad PVs for drift correction feature
         drift_correction_signal[nm] = 'LAS:FS5:VIT:matlab:29'
         drift_correction_value[nm]= 'LAS:FS5:VIT:matlab:04'
@@ -112,32 +112,32 @@ class PVS():
         drift_correction_dir[nm]= -1
         drift_correction_smoothing[nm]='LAS:FS5:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS5:VIT:matlab:09'
-        use_drift_correction[nm] = True  
-        use_dither[nm] = False 
+        use_drift_correction[nm] = True
+        use_dither[nm] = False
 
         nm = 'MEC'
         namelist.add(nm)
         base = 'LAS:FS6:'  #Base PV name for this laser locker
-        dev_base[nm] = base+'VIT:' 
-        counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
-        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
-        phase_motor[nm] = base+'MMS:PH' 
-        error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
-        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
-        laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES' 
+        dev_base[nm] = base+'VIT:'
+        counter_base[nm] = base+'CNT:TI:'
+        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'
+        phase_motor[nm] = base+'MMS:PH'
+        error_pv_name[nm] = dev_base[nm]+'FS_STATUS'
+        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
+        laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES'
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
-        use_drift_correction[nm] = False  
-        use_dither[nm] = False # Used to allow fast dither of timing       
+        use_drift_correction[nm] = False
+        use_dither[nm] = False # Used to allow fast dither of timing
 
         nm = 'FS11'
         namelist.add(nm)
         base = 'LAS:FS11:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:'
-        counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
-        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
-        phase_motor[nm] = base+'MMS:PH' 
-        error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
-        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
+        counter_base[nm] = base+'CNT:TI:'
+        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'
+        phase_motor[nm] = base+'MMS:PH'
+        error_pv_name[nm] = dev_base[nm]+'FS_STATUS'
+        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = 'EVR:LAS:LHN:01:TRIG3:TDES'
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
         secondary_calibration_enable[nm] = 'LAS:FS11:VIT:matlab:01'
@@ -152,19 +152,19 @@ class PVS():
         drift_correction_dir[nm]= 1
         drift_correction_smoothing[nm]='LAS:FS11:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS11:VIT:matlab:09'
-        use_drift_correction[nm] = True  
-        use_dither[nm] = False 
+        use_drift_correction[nm] = True
+        use_dither[nm] = False
         dither_level[nm] = 'LAS:FS11:VIT:matlab:08'
 
         nm = 'FS14'
         namelist.add(nm)
-        base = 'LAS:FS14:'  #Base PV name for this laser locker
+        base = 'LAS:FS14:'  # Base PV name for this laser locker
         dev_base[nm] = base+'VIT:'
-        counter_base[nm] = base+'CNT:TI:'   #PV name for the Time Interval Counter (SR620)
-        freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
-        phase_motor[nm] = base+'MMS:PH' 
-        error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
-        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC' 
+        counter_base[nm] = base+'CNT:TI:'
+        freq_counter[nm] = dev_base[nm]+'FREQ_CUR' 
+        phase_motor[nm] = base+'MMS:PH'
+        error_pv_name[nm] = dev_base[nm]+'FS_STATUS'
+        version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = 'EVR:LAS:LHN:04:TRIG1:TDES'
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
         secondary_calibration_enable[nm] = 'LAS:FS14:VIT:matlab:01'
@@ -172,31 +172,31 @@ class PVS():
         secondary_calibration_s[nm] = 'LAS:FS14:VIT:matlab:02'
         secondary_calibration_c[nm] = 'LAS:FS14:VIT:matlab:03'
         # Notepad PVs for drift correction feature
-        drift_correction_signal[nm] = 'LAS:FS14:VIT:matlab:29' 
+        drift_correction_signal[nm] = 'LAS:FS14:VIT:matlab:29'
         drift_correction_value[nm]= 'LAS:FS14:VIT:matlab:04'
-        drift_correction_offset[nm]= 'LAS:FS14:VIT:matlab:05' 
+        drift_correction_offset[nm]= 'LAS:FS14:VIT:matlab:05'
         drift_correction_gain[nm]= 'LAS:FS14:VIT:matlab:06'
         drift_correction_dir[nm]= 1
         drift_correction_smoothing[nm]='LAS:FS14:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS14:VIT:matlab:09'
-        use_drift_correction[nm] = True  
+        use_drift_correction[nm] = True
         use_dither[nm] = False
         dither_level[nm] = 'LAS:FS14:VIT:matlab:08'
-        
+
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following ')
             for x in namelist:
                 print(x)
-            self.name = input('enter system name:')                           
+            self.name = input('enter system name:')
 
-        self.use_secondary_calibration = use_secondary_calibration[self.name] # Turns secondary calibration on/off based on which laser locker is selected
-        self.use_drift_correction = use_drift_correction[self.name] # Turns drift correction on/off based on which laser locker is selected
+        self.use_secondary_calibration = use_secondary_calibration[self.name] # bool
+        self.use_drift_correction = use_drift_correction[self.name] # bool
         if self.use_drift_correction:
-            self.drift_correction_dir = drift_correction_dir[self.name] # Sets drift correction direction based on which laser locker is selected
+            self.drift_correction_dir = drift_correction_dir[self.name]
         self.use_dither = use_dither[self.name] # Used to allow fast dither of timing
         if self.use_dither:
-            self.dither_level = dither_level[self.name]                  
-        
+            self.dither_level = dither_level[self.name]
+
         # List of other PVs used.
         self.pvlist['watchdog'] =  Pv(dev_base[self.name]+'FS_WATCHDOG')
         self.pvlist['oscillator_f'] =  Pv(dev_base[self.name]+'FS_OSC_TGT_FREQ')
@@ -218,12 +218,12 @@ class PVS():
         self.pvlist['deg_offset'] =  Pv(dev_base[self.name]+'POC')
         self.pvlist['ns_offset'] =  Pv(dev_base[self.name]+'FS_NS_OFFSET')
         self.pvlist['calib_error'] =  Pv(dev_base[self.name]+'FS_CALIB_ERROR')
-        self.pvlist['counter'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean')  #time interval counter result, create PV
-        self.pvlist['counter_low'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.LOW')        
-        self.pvlist['counter_high'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.HIGH')        
+        self.pvlist['counter'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean')
+        self.pvlist['counter_low'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.LOW')
+        self.pvlist['counter_high'] = Pv(counter_base[self.name]+'GetOffsetInvMeasMean.HIGH')
         self.pvlist['counter_jitter'] = Pv(counter_base[self.name]+'GetMeasJitter')
-        self.pvlist['counter_jitter_high'] = Pv(counter_base[self.name]+'GetMeasJitter.HIGH')        
-        self.pvlist['freq_counter'] = Pv(freq_counter[self.name])  # frequency counter readback        
+        self.pvlist['counter_jitter_high'] = Pv(counter_base[self.name]+'GetMeasJitter.HIGH')
+        self.pvlist['freq_counter'] = Pv(freq_counter[self.name])  # frequency counter readback
         self.pvlist['phase_motor'] = Pv(phase_motor[self.name])  # phase control smart motor
         self.pvlist['phase_motor_dmov'] = Pv(phase_motor[self.name]+'.DMOV')  # motor motion status
         self.pvlist['phase_motor_rb'] = Pv(phase_motor[self.name]+'.RBV')  # motor readback
@@ -231,7 +231,7 @@ class PVS():
         self.pvlist['freq_err'] = Pv(dev_base[self.name]+'FREQ_ERR') # frequency counter error
         self.pvlist['rf_pwr']= Pv(dev_base[self.name]+'CH1_RF_PWR') # RF power readback
         self.pvlist['rf_pwr_lolo']= Pv(dev_base[self.name]+'CH1_RF_PWR'+'.LOLO') # RF power readback
-        self.pvlist['rf_pwr_hihi']= Pv(dev_base[self.name]+'CH1_RF_PWR'+'.HIHI') # RF power readback 
+        self.pvlist['rf_pwr_hihi']= Pv(dev_base[self.name]+'CH1_RF_PWR'+'.HIHI') # RF power readback
         self.pvlist['diode_pwr'] = Pv(dev_base[self.name]+'CH1_DIODE_PWR')
         self.pvlist['diode_pwr_lolo'] = Pv(dev_base[self.name]+'CH1_DIODE_PWR'+'.LOLO')
         self.pvlist['diode_pwr_hihi'] = Pv(dev_base[self.name]+'CH1_DIODE_PWR'+'.HIHI')
@@ -239,7 +239,7 @@ class PVS():
         self.pvlist['laser_locked'] = Pv(dev_base[self.name]+'PHASE_LOCKED')
         self.pvlist['lock_enable'] = Pv(dev_base[self.name]+'RF_LOCK_ENABLE')
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
-  
+
         if self.use_secondary_calibration:
             self.pvlist['secondary_calibration'] = Pv(secondary_calibration[self.name])
             self.pvlist['secondary_calibration_enable'] = Pv(secondary_calibration_enable[self.name])
@@ -253,8 +253,8 @@ class PVS():
             self.pvlist['drift_correction_smoothing'] =  Pv(drift_correction_smoothing[self.name])
             self.pvlist['drift_correction_accum'] = Pv(drift_correction_accum[self.name])
         if self.use_dither:
-            self.pvlist['dither_level'] = Pv(dither_level[self.name]) 
-        self.OK = 1   
+            self.pvlist['dither_level'] = Pv(dither_level[self.name])
+        self.OK = 1
         for k, v in self.pvlist.items():  # now loop over all pvs to initialize
             try:
                 v.connect(timeout) # connect to pv
@@ -262,40 +262,40 @@ class PVS():
             except: # for now just fake it
                 print('could not open '+v.name)
                 print(k)
-                self.OK = 0 # some error with setting up PVs, can't run, will exit  
+                self.OK = 0 # some error with setting up PVs, can't run, will exit
         self.error_pv = Pv(error_pv_name[self.name]) # open pv
         self.error_pv.connect(timeout)
         self.version_pv = Pv(version_pv_name[self.name])
         self.version_pv.connect(timeout)
         self.version_pv.put(self.version, timeout = 10.0)
         self.E = error_output(self.error_pv)
-        self.E.write_error('OK')       
-        
+        self.E.write_error('OK')
+
     def get(self, name):
         """Takes a PV name, connects to the PV, and returns its value."""
         try:
             self.pvlist[name].get(ctrl=True, timeout=10.0)
-            return self.pvlist[name].value                      
+            return self.pvlist[name].value
         except:
             print('PV READ ERROR: ', name)
-            return 0   
-                
+            return 0
+
     def get_last(self, name):
         """Takes a PV name and returns its last value, without connecting to the PV."""
-        return self.pvlist[name].value                
-                
+        return self.pvlist[name].value
+
     def put(self, name, x):
         """Takes a PV name, connects to it, and then writes a value to it."""
         try:
-            self.pvlist[name].put(x, timeout = 10.0) # long timeout           
+            self.pvlist[name].put(x, timeout = 10.0) # long timeout
         except:
             print('UNABLE TO WRITE PV: ', name, '= ', x)
-                
+
     def __del__ (self):
         """Disconnects from all IOC PVs."""
         for v in self.pvlist.values():
-            v.disconnect()  
-        self.error_pv.disconnect()    
+            v.disconnect()
+        self.error_pv.disconnect()
         print('closed all PV connections')
 
 
