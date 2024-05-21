@@ -613,44 +613,82 @@ class locker():
 
 
 class sawtooth():
-        """Takes phase motor position, EVR trigger time, delay, offset, and the Vitara period, and calculates the net laser time."""
-        def __init__(self, t0, t_trig, delay, offset, period):
-            trig_out = t_trig + delay # t_trig is the EVR trigger time, delay is the cable length after the trigger
-            laser_t0 = t0 + offset # t0 is an array of inputs that represent the phase shift time, offset is the delay from the photodiode to the time interval counter
-            tx = trig_out - laser_t0
-            nlaser = np.ceil(tx / period)
-            self.t = t0 + offset + nlaser * period
-            tr = self.t - trig_out
-            self.r = (0.5 + np.copysign(.5, tr - 0.2 * period)) * (0.5 + np.copysign(.5, .8 * period - tr)) # no sign function
+    """
+    sawtooth class
+    ...
+
+    Args
+    ----------
+    t0 : array of inputs that represent the phase shift time
+    t_trig : EVR trigger time
+    delay : cable length after trigger
+    offset : from the photodiode to the time interval counter
+    period : Vitara period
+
+    Attributes
+    ----------
+    t : net laser time
+    r : no sign function
+    """
+    def __init__(self, t0, t_trig, delay, offset, period):
+        trig_out = t_trig + delay
+        laser_t0 = t0 + offset
+        tx = trig_out - laser_t0
+        nlaser = np.ceil(tx / period)
+        self.t = t0 + offset + nlaser * period
+        tr = self.t - trig_out
+        self.r = (0.5 + np.copysign(.5, tr - 0.2 * period)) * (0.5 + np.copysign(.5, .8 * period - tr))
 
 
 class ring():
-    """A twelve element ring buffer."""
+    """
+    ring buffer class
+    ...
+
+    Methods
+    -------
+    add_element
+
+    get_last_element
+    
+    get_array
+    """
     def __init__(self, sz=12):
         """Takes a size value, creates an array for the ring buffer."""
         self.sz = sz  # hold size of ring
         self.a = np.zeros(sz)
         self.ptr = -1 # points to last data, start negative
         self.full = False # set to true when the ring is full
-        
+
     def add_element(self, x):
         """Takes an element index, adds an element to the ring at that index."""
-        self.ptr = np.mod(self.ptr+1,self.sz)        
+        self.ptr = np.mod(self.ptr+1,self.sz)
         self.a[self.ptr] = x # set this element
         if self.ptr == 7:
             self.full = True
 
     def get_last_element(self):
         """Returns most recently added element of the buffer."""
-        return self.a[self.ptr]       
-        
+        return self.a[self.ptr]
+
     def get_array(self):
         """Returns entire ring buffer array."""
         return self.a
-        
- 
+
+
 class time_interval_counter():
-    """Returns SR620 counter time if it is in acceptable range and jitter is acceptably low."""
+    """
+    time interval counter class
+    ...
+    Args
+    -------
+    P : class
+        PVs
+
+    Methods
+    -------
+    get_time
+    """
     def __init__(self, P):
         """Takes counter PVs, creates ring buffer for counter data."""
         self.scale = 1e9 # scale relative to nanoseconds
@@ -682,12 +720,24 @@ class time_interval_counter():
         self.rj.add_element(jit)  # add jitter to ring
         self.good = 1
         if self.rt.full:
-            self.range = self.scale * (max(self.rt.get_array()) - min(self.rt.get_array()))  # range of measurements
+            # range of measurements
+            self.range = self.scale * (max(self.rt.get_array()) - min(self.rt.get_array()))
         return time * self.scale
 
-   
+
 class phase_motor():
-    """Waits for phase motor to stop moving, reads and writes phase motor position."""
+    """
+    phase motor class
+    ...
+
+    Methods
+    -------
+    wait_for_stop
+
+    move
+    
+    get_position
+    """
     def __init__(self, P):
         """Takes phase motor PVs, sets up phase motor movement parameters."""
         self.scale = .001 # motor is in ps, everthing else in ns
@@ -695,54 +745,63 @@ class phase_motor():
         self.max_tries = 100
         self.loop_delay = 0.1
         self.tolerance = 3e-5  #was 5e-6 #was 2e-5
-        self.position = self.P.get('phase_motor') * self.scale  # get the current position  WARNING logic race potential
+        self.position = self.P.get('phase_motor') * self.scale  # get the current position
         self.wait_for_stop()  # wait until it stops moving
 
     def wait_for_stop(self):
         """Sleeps until phase motor is stopped and within tolerance of set value."""
         for n in range(0, self.max_tries):
             try:
-                stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
+                stopped = self.P.get('phase_motor_dmov') # 1 if stopped, error if still moving
             except:
                 print('could not get dmov')
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
                 if abs(posrb - self.position) < self.tolerance:  # are we within range
-                   break
-            time.sleep(self.loop_delay)        
+                    break
+            time.sleep(self.loop_delay)
 
     def move(self, pos):
         """Takes target position, moves phase motor to target value in ps."""
         self.P.put('phase_motor', pos/self.scale) # motor move if needed   
         self.position = pos  # requested position in ns
         self.wait_for_stop() # check
-         
+
     def get_position(self):
         """Returns phase motor position in ns."""
         self.wait_for_stop() # wait until it stops moving
         self.position = self.scale * self.P.get('phase_motor')  # get position data
-        return self.position           
+        return self.position
 
 
 class trigger():
-    """Reads and writes EVR trigger delay in ns."""
+    """
+    EVR trigger class
+    ...
+
+    Methods
+    -------
+    get_ns
+
+    set_ns
+    """
     def __init__ (self, P):  # Takes trigger scaling information from PV list
         self.P = P
-        self.time = self.P.get('laser_trigger')    
-   
+        self.time = self.P.get('laser_trigger')
+
     def get_ns(self):
         """Takes trigger PV, returns current trigger time in ns."""
         tmp = self.P.get('laser_trigger')
         self.time = tmp
         return self.time
-        
+
     def set_ns(self,t):
         """Sets trigger time in ns."""
         self.time = t
         self.P.put('laser_trigger', self.time)
-   
-  
+
+
 class error_output():
     """Writes error messages to a PV."""
     def __init__(self, pv):
@@ -750,7 +809,7 @@ class error_output():
         self.pv = pv
         self.pv.put(value= 'OK', timeout=1.0) #Error message default is 'OK'
         self.maxlen = 25 # Maximum error string length
-  
+
     def write_error(self, txt):
         """Takes error string text, writes it to error PV."""
         n = len(txt)
@@ -769,7 +828,7 @@ class degrees_s():
         self.last_deg = self.P.get('deg_Sband') # last degrees sband
         self.last_ns_offset = self.P.get('ns_offset')
         self.last_deg_offset = self.P.get('deg_offset')
-        
+
     def run(self):
         """Takes degrees and ns time values, updates them to match one another. ns time value is given priority if they have both changed."""
         ns = self.P.get('time')
@@ -777,39 +836,58 @@ class degrees_s():
         ns_offset = self.P.get('ns_offset')
         deg_offset = self.P.get('deg_offset')
         if ns != self.last_time or ns_offset != self.last_ns_offset: # nanoseconds have changed
-           deg_new = -1.0*(ns - ns_offset) * self.freq * 360 - deg_offset
-           self.last_time = ns
-           self.last_ns_offset = ns_offset
-           self.last_deg = deg_new
-           self.P.put('deg_Sband', deg_new) #write the degrees back
-           
+            deg_new = -1.0*(ns - ns_offset) * self.freq * 360 - deg_offset
+            self.last_time = ns
+            self.last_ns_offset = ns_offset
+            self.last_deg = deg_new
+            self.P.put('deg_Sband', deg_new) #write the degrees back
+
         elif deg != self.last_deg or deg_offset != self.last_deg_offset:  #changed degrees
-           ns_new = -1.0*(deg + deg_offset)/(self.freq * 360) + ns_offset
-           self.last_time = ns_new
-           self.last_deg = deg
-           self.last_deg_offset = deg_offset
-           self.P.put('time', ns_new) 
+            ns_new = -1.0*(deg + deg_offset)/(self.freq * 360) + ns_offset
+            self.last_time = ns_new
+            self.last_deg = deg
+            self.last_deg_offset = deg_offset
+            self.P.put('time', ns_new)
 
         else:
             pass
 
 
 def fitres(param, tin, tout):
-    """Takes set time, measured time, and sine/cosine amplitudes from secondary calibration, returns time error."""
+    """
+
+    Args:
+        param: sin/cos amplitudes from secondary calibration
+        tin: set time
+        tout: measured time
+
+    Returns:
+        err: time error
+
+    """
     sa,ca = param  # sa and ca are the sine and cosine amplitudes, respectively
     err = tout - ffun(tin, sa, ca)
     return err
 
 
-def ffun( x, a, b):
-    """Takes set time, sine amplitude, and cosine amplitude, returns theoretical output time."""
+def ffun(x, a, b):
+    """
+
+    Args:
+        x: time
+        a: sin amplitude
+        b: cos amplitude
+
+    Returns:
+        out: output time
+    """
     w0 = 3.808*2*np.pi
     out = a*np.sin(x * w0) + b * np.cos(x*w0)
-    return out        
+    return out
 
 
 def femto(name='NULL'):
-    """Takes name of locking system, performs complete locking and timing routine."""
+    """main femto function"""
     P = PVS(name)
     if P.OK == 0:
         return
@@ -824,7 +902,7 @@ def femto(name='NULL'):
     D = degrees_s(P) # Enables degrees to be converted to ns, and vice versa
     while W.error == 0:   # MAIN PROGRAM LOOP
         time.sleep(0.1)
-        try:   
+        try:
             W.check()
             P.put('busy', 0)
             L.locker_status()  # Checks if the locking system is OK
@@ -842,7 +920,7 @@ def femto(name='NULL'):
                 P.E.write_error( ' calibration done')
                 continue
             if  P.use_secondary_calibration:  # Executed if secondary calibration is requested
-                if P.get('secondary_calibration_enable'): # Only execute if secondary calibration is enabled for the hutch
+                if P.get('secondary_calibration_enable'):
                     P.put('ok', 0)
                     P.put('busy', 1) # Sets busy flag while calibrating
                     P.E.write_error( 'secondary calibration')
@@ -860,15 +938,15 @@ def femto(name='NULL'):
             P.put('unfixed_error', L.bucket_error)
             P.put('ok', 1)
             if P.get('enable'): # Checks if time control is enabled
-                L.set_time() # Sets laser time   
+                L.set_time() # Sets laser time
             D.run()  # Ensures degrees and ns time value match
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
-            del P  #does this work?
+            del P
             print('UNKNOWN ERROR, trying again')
             P = PVS(name)
             W = watchdog.watchdog(P.pvlist['watchdog'])
-            L = locker(P, W) #set up locking system parameters
+            L = locker(P, W) # set up locking system parameters
             L.locker_status()  # check locking system / laser status
             P.E.write_error(L.message)
             T = trigger(P)
@@ -880,4 +958,3 @@ if __name__ == "__main__":
         femto()  # null input will prompt
     else:
         femto(sys.argv[1])
-    
