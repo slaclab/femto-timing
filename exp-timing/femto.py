@@ -9,9 +9,9 @@ import random  # Used for random number generation during secondary calibration
 from scipy.optimize import leastsq # Used in secondary calibration
 
 class PVS():
-    """Initializes dictionaries for a particular locker, reads and writes to PVs from that locker."""
+    """Class for laser locker PVs"""
     def __init__(self, nx='NULL'):
-        """Assigns IOC PVs to dictionaries for each locker parameter for the selected laser system."""
+        """Laser locker PVs"""
         self.version = 'Watchdog 141126a' # Version string
         self.name = nx # Sets the hutch name
         print(self.name)
@@ -300,37 +300,61 @@ class PVS():
 
 
 class locker():
-    """Sets up locker parameters, performs calibrations, sets laser time, and corrects for bucket jumps."""
+    """
+    Laser locker class
+    ...
+
+    Attributes
+    ----------
+    P : class
+        PVS
+    W : class
+        Watchdog
+
+    Methods
+    -------
+    lockerstatus
+
+    calibrate
+    
+    second_calibrate
+    
+    set_time
+    
+    check_jump
+    
+    fix_jump
+    """
     def __init__(self, P, W):
-         """Takes locker PVs and Watchdog and assigns laser locker specific values to variables."""
-         self.P = P
-         self.W = W  # watchdog class
-         self.laser_f = 0.068 # 68MHz laser frequency
-         self.locking_f = 3.808 # 3.808GHz locking frequency 
-         self.trigger_f = 0.119 # 119MHz trigger frequency
-         self.calib_points = 50  # number of points to use in calibration cycle
-         self.calib_range = 30  # nanoseconds for calibration sweep
-         self.max_jump_error = .05 # nanoseconds too large to be a phase jump
-         self.max_frequency_error = 100.0
-         self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
-         self.max_time = 20000.0 # maximum time that can be set (ns)
-         self.d = dict()
-         self.d['delay'] =  self.P.get('delay')
-         self.d['offset'] = self.P.get('offset')
-         self.delay_offset = 0  # kludge to avoide running near sawtooth edge
-         self.drift_last= 0; # used for drift correction when activated
-         self.drift_initialized = False # will be true after first cycle
-         self.C = time_interval_counter(self.P) # creates a time interval counter object
+        """Takes locker PVs and Watchdog and assigns laser locker specific values to variables."""
+        self.P = P
+        self.W = W  # watchdog class
+        self.laser_f = 0.068 # 68MHz laser frequency
+        self.locking_f = 3.808 # 3.808GHz locking frequency
+        self.trigger_f = 0.119 # 119MHz trigger frequency
+        self.calib_points = 50  # number of points to use in calibration cycle
+        self.calib_range = 30  # nanoseconds for calibration sweep
+        self.max_jump_error = .05 # nanoseconds too large to be a phase jump
+        self.max_frequency_error = 100.0
+        self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
+        self.max_time = 20000.0 # maximum time that can be set (ns)
+        self.d = dict()
+        self.d['delay'] =  self.P.get('delay')
+        self.d['offset'] = self.P.get('offset')
+        self.delay_offset = 0  # kludge to avoide running near sawtooth edge
+        self.drift_last= 0; # used for drift correction when activated
+        self.drift_initialized = False # will be true after first cycle
+        self.C = time_interval_counter(self.P) # creates a time interval counter object
 
     def locker_status(self):
-        """Checks if core locker parameters are within optimal range and updates 'OK' flags accordingly."""
+        """Checks core locker parameters and updates 'OK' flags."""
         self.laser_ok = 1 # list of various failure modes
         self.rf_ok = 1
         self.diode_ok = 1
         self.frequency_ok = 1
         self.setpoint_ok = 1
         self.lock_ok = 1
-        self.message = 'OK' # output error message, OK means no trouble found    
+        self.message = 'OK' # output error message, OK means no trouble found
         rfpwr = self.P.get('rf_pwr')  # check RF level
         rfpwrhihi = self.P.get('rf_pwr_hihi')
         rfpwrlolo = self.P.get('rf_pwr_lolo')
@@ -345,7 +369,8 @@ class locker():
             self.message = 'diode power out of range'
             self.laser_ok = 0
             self.rf_diode_ok = 0
-        if abs(self.P.get('freq_sp') - self.P.get('oscillator_f')) > self.max_frequency_error:  # oscillator set point wrong
+        if abs(self.P.get('freq_sp') - self.P.get('oscillator_f')) > self.max_frequency_error:
+            # oscillator set point wrong
             self.laser_ok = 0
             self.frequency_ok = 0
             self.frequency_ok = 0
@@ -356,18 +381,18 @@ class locker():
             self.laser_ok = 0
 
     def calibrate(self):
-        """Performs a linear sweep of phase motor range, sets the delay and offset values to minimize counter time error."""
-        M = phase_motor(self.P)  # creates a phase motor control object (PVs were initialized earlier)
+        """linear sweep of phase motor range, sets the delay and offset values to minimize counter time error"""
+        M = phase_motor(self.P)  # creates a phase motor control object
         T = trigger(self.P)  # trigger class
-        ns = 10000 # number of different times to try for fit - INEFFICIENT - should do Newton's method but too lazy
+        ns = 10000 # number of times to try for fit
         self.P.put('busy', 1) # set busy flag
         tctrl = np.linspace(0, self.calib_range, self.calib_points) # control values to use
         tout = np.array([]) # array to hold measured time data
         counter_good = np.array([]) # array to hold array of errors
         t_trig = T.get_ns() # trigger time in nanoseconds
-        M.move(0)  # move to zero to start 
+        M.move(0)  # move to zero to start
         M.wait_for_stop()
-        for x in tctrl:  #loop over input array 
+        for x in tctrl:  #loop over input array
             print('calib start')
             self.W.check() # check watchdog
             print('post watchdog')
@@ -380,13 +405,13 @@ class locker():
             print('wait for stop')
             M.wait_for_stop()
             print('sleep')
-            time.sleep(2)  #Don't know why this is needed
+            time.sleep(2)  # Don't know why this is needed
             t_tmp = 0 # to check if we ever get a good reading
             print('get read')
             for n in range(0, 25): # try to see if we can get a good reading
-                 t_tmp = self.C.get_time()  # read time
-                 if t_tmp != 0: # have a new reading
-                     break # break out of loop
+                t_tmp = self.C.get_time()  # read time
+                if t_tmp != 0: # have a new reading
+                    break # break out of loop
             tout = np.append(tout, t_tmp) # read timing and put in array
             print('end of loop')
             print('temp. time:\t', t_tmp)
@@ -394,11 +419,11 @@ class locker():
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
                 print('bad counter data')
-                self.P.E.write_error('timer error, bad data - continuing to calibrate' ) # just for testing
-        M.move(tctrl[0])  # return to original position    
+                self.P.E.write_error('timer error, bad data - continuing to calibrate' )
+        M.move(tctrl[0])  # return to original position
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
         print('min v is: ', minv)
-        period = 1/self.laser_f # just defining things needed in sawtooth -  UGLY
+        period = 1/self.laser_f # defining for sawtooth
         delay = minv - t_trig # more code cleanup neded in the future.
         err = np.array([]) # will hold array of errors
         offset = np.linspace(0, period, ns)  # array of offsets to try
@@ -416,8 +441,8 @@ class locker():
         self.P.put('delay', delay)
         self.P.put('offset', offset[idx])
         M.wait_for_stop() # wait for motor to stop moving before exit
-        self.P.put('busy', 0)        
-        
+        self.P.put('busy', 0)
+
     def second_calibrate(self):
         print('starting second calibration - new test')
         M = phase_motor(self.P)  # create phase motor object
@@ -438,14 +463,14 @@ class locker():
             print('step:\t', n)
             print('RNG:\t', t)
             print('calib:\t', tr)
-        M.move(t0) # put motor back    
+        M.move(t0) # put motor back
         print('done motor move')
         sa = 0.01
         ca = 0.01
         param0 = sa,ca
         tdiff = tread - tset - (np.mean(tread-tset))
         print('start leastsq')
-        fout = leastsq(fitres, param0, args=(tset, tdiff))    
+        fout = leastsq(fitres, param0, args=(tset, tdiff))
         print('end leastsq, param =')
         param = fout[0]
         print(param)
@@ -455,9 +480,9 @@ class locker():
             ttest = np.append(ttest, t0 + tneg + (nx/200.0)*(tpos-tneg))
         self.P.put('secondary_calibration_s', sa)
         self.P.put('secondary_calibration_c', ca)
-        
+
     def set_time(self):
-        """Takes user-entered target time and sets trigger time and phase motor position accordingly."""
+        """Function takes target time to set trigger time and phase motor position"""
         t = self.P.get('time')
         if math.isnan(t):
             self.P.E.write_error('desired time is NaN')
@@ -475,26 +500,26 @@ class locker():
             self.P.E.write_error('TGT smaller than time_lolo')
         T = trigger(self.P) # set up trigger
         M = phase_motor(self.P)
-        laser_t = t - self.d['offset']  # Just copy workign matlab, don't think!
+        laser_t = t - self.d['offset']
         nlaser = np.floor(laser_t * self.laser_f)
         pc = t - (self.d['offset'] + nlaser / self.laser_f)
         pc = np.mod(pc, 1/self.laser_f)
-        ntrig = round((t - self.d['delay'] - (1/self.trigger_f)) * self.trigger_f) # paren was after laser_f
+        ntrig = round((t - self.d['delay'] - (1/self.trigger_f)) * self.trigger_f)
         trig = ntrig / self.trigger_f
 
         if self.P.use_drift_correction:
-            dc = self.P.get('drift_correction_signal') / 1000; # readback is in ps, but drift correction is ns, need to convert
-            do = self.P.get('drift_correction_offset') 
+            dc = self.P.get('drift_correction_signal') / 1000; # convert ps to ns
+            do = self.P.get('drift_correction_offset')
             dg = self.P.get('drift_correction_gain')
             dd = self.P.drift_correction_dir
             ds = self.P.get('drift_correction_smoothing')
             self.drift_last = self.P.get('drift_correction_value')
             accum = self.P.get('drift_correction_accum')
             # modified to not use drift_correction_offset or drift_correction_multiplier:
-            de = (dc-do)  # (hopefully) fresh pix value from TT script
-            if ( self.drift_initialized ):
-                if ( dc != self.dc_last ):           
-                    if ( accum == 1 ): # if drift correction accumulation is enabled
+            de = dc-do  # (hopefully) fresh pix value from TT script
+            if self.drift_initialized:
+                if dc != self.dc_last:
+                    if accum == 1: # if drift correction accumulation is enabled
                         #TODO: Pull these limits from the associated matlab PV
                         self.drift_last = self.drift_last + (de- self.drift_last) / ds; # smoothing
                         self.drift_last = max(-.001, self.drift_last) # floor at 1 ps
@@ -504,11 +529,11 @@ class locker():
             else:
                 self.drift_last = de # initialize to most recent reading
                 self.drift_last = max(-.001, self.drift_last) # floor at 1 ps
-                self.drift_last = min(.001, self.drift_last)#
+                self.drift_last = min(.001, self.drift_last)
                 self.dc_last = dc
-                self.drift_initialized = True # will average next time (ugly)    
+                self.drift_initialized = True # will average next time
 
-            pc = pc - (dd * dg * self.drift_last); # fix phase control. 
+            pc = pc - (dd * dg * self.drift_last); # fix phase control.
 
         if self.P.use_secondary_calibration: # make small corrections based on another calibration
             sa = self.P.get('secondary_calibration_s')
@@ -516,24 +541,27 @@ class locker():
             pc = pc - sa * np.sin(pc * 3.808*2*np.pi) - ca * np.cos(pc * 3.808*2*np.pi) # fix phase
 
         if self.P.use_dither:
-            dx = self.P.get('dither_level') 
-            pc = pc + (random.random()-0.5)* dx / 1000 # uniformly distributed random. 
+            dx = self.P.get('dither_level')
+            pc = pc + (random.random()-0.5)* dx / 1000 # uniformly distributed random.
 
         if self.P.get('enable_trig'): # Full routine when trigger can move
             if T.get_ns() != trig:   # need to move
                 T.set_ns(trig) # sets the trigger
 
-        pc_diff = M.get_position() - pc  # difference between current phase motor and desired time        
+        pc_diff = M.get_position() - pc  # difference between current phase motor and desired time
         if abs(pc_diff) > 1e-6:
             M.move(pc) # moves the phase motor
-      
+
     def check_jump(self):
-        """Takes the trigger time, phase motor position, and counter time, calculates the number of 3.808 GHz bucket jumps."""
+        """
+        Inputs: trigger time, phase motor position, counter time
+        Calculates number of 3.808 GHz bucket jumps
+        """
         T = trigger(self.P) # trigger class
-        M = phase_motor(self.P) # phase motor     
+        M = phase_motor(self.P) # phase motor
         t = self.C.get_time()
-        if t > -900000.0:      
-            self.P.put('error', t - self.P.get('time')) # timing error (reads counter)      
+        if t > -900000.0:
+            self.P.put('error', t - self.P.get('time')) # timing error (reads counter)
         t_trig = T.get_ns()
         pc = M.get_position()
         try:
@@ -541,12 +569,12 @@ class locker():
             self.d['offset'] = self.P.get('offset')
         except:
             print('problem reading delay and offset pvs')
-        S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
+        S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
         self.bucket_error = self.terror - self.buckets / self.locking_f
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0):  # too wide a range of measurements
+        if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0):
             self.buckets = 0  # do not count a bucket error if readings are not consistent
             self.P.E.write_error( 'counter not stable')
             return
@@ -554,33 +582,36 @@ class locker():
             self.buckets = 0
             self.P.E.write_error( 'not an integer number of buckets')
         self.P.E.write_error( 'Laser OK')      # laser is OK
-            
+
     def fix_jump(self):
-        """Takes exact bucket error is ns, moves the phase motor and updates the offset to correct for it."""
-        if self.buckets == 0:  #no jump to begin with
+        """
+        Input: bucket error is ns
+        Moves the phase motor and updates the offset to correct for it.
+        """
+        if self.buckets == 0:  # no jump
             self.P.E.write_error( 'trying to fix non-existent jump')
             return
         if abs(self.bucket_error) > self.max_jump_error:
             self.P.E.write_error( 'non-integer bucket error, cant fix')
             return
         self.P.E.write_error( 'Fixing Jump')
-        M = phase_motor(self.P) #phase control motor
+        M = phase_motor(self.P) # phase control motor
         M.wait_for_stop()  # just to be sure
         old_pc = M.get_position()
         new_pc = old_pc  - self.exact_error # new time for phase control
-        new_pc_fix = np.mod(new_pc, 1/self.laser_f)  # equal within one cycle. 
+        new_pc_fix = np.mod(new_pc, 1/self.laser_f)  # equal within one cycle.
         M.move(new_pc_fix) # moves phase motor to new position
         #self.P.put('fix_bucket', 0)  # turn off bucket fix TESTING
         M.wait_for_stop()
-        time.sleep(2)  # 
+        time.sleep(2)
         new_offset = self.d['offset'] - (new_pc_fix - old_pc)
         self.d['offset'] = new_offset
         self.P.put('offset', new_offset)
         self.P.E.write_error( 'Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-       
-            
+
+
 class sawtooth():
         """Takes phase motor position, EVR trigger time, delay, offset, and the Vitara period, and calculates the net laser time."""
         def __init__(self, t0, t_trig, delay, offset, period):
