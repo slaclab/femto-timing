@@ -17,6 +17,8 @@ class PVS():
         print(self.name)
         namelist = set() # Checks if scripts is configured to run specified locker name
         self.pvlist = dict()  # List of all PVs
+        self.PV_errs = dict() # List of PV connection errors
+        self.err_idx = 0
         counter_base = dict()  # Time interval counter names
         freq_counter = dict() # Frequency counter names
         dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV sub-name (i.e. 'VIT' in most of the LCLS-I laser lockers)
@@ -184,10 +186,10 @@ class PVS():
         dither_level[nm] = 'LAS:FS14:VIT:matlab:08'
         
         while not (self.name in namelist):
-            print(self.name + '  not found, please enter one of the following ')
+            print(self.name + '  not found, please enter one of the following: ')
             for x in namelist:
                 print(x)
-            self.name = input('enter system name:')                           
+            self.name = input('Enter system name:')                           
 
         self.use_secondary_calibration = use_secondary_calibration[self.name] # Turns secondary calibration on/off based on which laser locker is selected
         self.use_drift_correction = use_drift_correction[self.name] # Turns drift correction on/off based on which laser locker is selected
@@ -261,7 +263,7 @@ class PVS():
                 v.get(ctrl=True, timeout=1.0) # Get data
             except: 
                 print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time)
-                self.OK = 0 # Some error with setting up PVs, can't run, will exit  
+                self.OK = 0 # Error with setting up PVs, can't run, will exit  
         self.error_pv = Pv(error_pv_name[self.name]) # Open pv
         self.error_pv.connect(timeout)
         self.version_pv = Pv(version_pv_name[self.name])
@@ -272,13 +274,32 @@ class PVS():
         
     def get(self, name):
         """Takes a PV name, connects to it, and returns its value."""
+        if self.err_idx == 0: # Start of a new PV error report cycle
+            self.report_start = time.time() # Start time of PV error report
         try:
             self.pvlist[name].get(ctrl=True, timeout=10.0)
             return self.pvlist[name].value                      
         except:
-            print('PV READ ERROR:', name, 'Error occurred at:', date_time)
-            return 0   
-                
+            # print('PV READ ERROR:', name, 'Error occurred at:', date_time)
+            self.PV_errs[self.err_idx] = name # Store PV name that caused error 
+            self.err_idx += 1 # Increase PV error counter
+            return 0
+        finally:
+            self.curr_time = time.time()
+            self.diff = self.curr_time - self.report_start # Compare current time to time at start of report
+            if self.diff >= 600: # Have we reached 10 minutes?
+                self.num_errs = len(self.PV_errs) # Total number of errors that have occurred
+                if self.num_errs >= 1: # If an error has occurred, print report
+                    print('Current time:', date_time, 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
+                    print('PVs that encountered errors: ')
+                    self.PV_err_short = list(set(self.PV_errs))
+                    self.num_diff_errs = len(self.PV_err_short)
+                    for n in range(0, self.num_diff_errs): # Loop over all PV errors
+                        self.report_PV = self.PV_err_short[n] # Current PV error
+                        self.report_num = len([i for i in self.PV_errs if self.report_PV in i]) # Calculate the number of times current PV error occurred
+                        print('PV Name:', self.report_PV, 'Connection Errors:', self.report_num)
+                self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
+    
     def get_last(self, name):
         """Takes a PV name and returns its last value, without connecting to the PV."""
         return self.pvlist[name].value                
@@ -295,7 +316,7 @@ class PVS():
         for v in self.pvlist.values():
             v.disconnect()  
         self.error_pv.disconnect()    
-        print('Closed all PV connections')
+        print('Closed all PV connections at', date_time)
 
 
 class locker():
@@ -308,8 +329,9 @@ class locker():
          self.locking_f = 3.808 # 3.808GHz locking frequency 
          self.trigger_f = 0.119 # 119MHz trigger frequency
          self.calib_points = 50  # number of points to use in calibration cycle
-         self.calib_range = 30  # nanoseconds for calibration sweep
-         self.max_jump_error = .05 # nanoseconds too large to be a phase jump
+         self.calib_range = 30  # ns for calibration sweep
+         self.max_jump_error = .05 # ns threshold for determing if counter is stable enough for bucket correction
+         self.instability_thresh = 0.4 # ns threshold for "Counter not stable" message
          self.max_frequency_error = 100.0
          self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
          self.max_time = 20000.0 # maximum time that can be set (ns)
@@ -341,16 +363,16 @@ class locker():
         dpwrhihi = self.P.get('diode_pwr_hihi')
         dpwrlolo = self.P.get('diode_pwr_lolo')
         if (dpwr > dpwrhihi) | (dpwr < dpwrlolo):
-            self.message = 'diode power out of range'
+            self.message = 'Diode power out of range'
             self.laser_ok = 0
             self.rf_diode_ok = 0
         if abs(self.P.get('freq_sp') - self.P.get('oscillator_f')) > self.max_frequency_error:  # oscillator set point wrong
             self.laser_ok = 0
             self.frequency_ok = 0
             self.frequency_ok = 0
-            self.message = 'frequency set point out of range'
+            self.message = 'Frequency set point out of range'
         if not self.P.get('laser_locked'):
-            self.message = 'laser not indicating locked'
+            self.message = 'Laser not indicating lock'
             self.lock_ok = 0
             self.laser_ok = 0
 
@@ -383,8 +405,8 @@ class locker():
             tout = np.append(tout, t_tmp) # read timing and put in array
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
-                print('bad counter data')
-                self.P.E.write_error('timer error, bad data - continuing to calibrate' ) # just for testing
+                print('Bad counter data. Occurred at:', date_time)
+                self.P.E.write_error('Timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
         period = 1/self.laser_f # just defining things needed in sawtooth -  UGLY
@@ -405,7 +427,7 @@ class locker():
         self.P.put('busy', 0)        
         
     def second_calibrate(self):
-        print('starting second calibration - new test')
+        print('Starting second calibration - new test')
         M = phase_motor(self.P)  # create phase motor object
         ptime = 30 # seconds between cycles
         tneg = 0.5 # nanoseconds range below current  -2 ok
@@ -425,12 +447,10 @@ class locker():
             print('RNG:\t', t)
             print('calib:\t', tr)
         M.move(t0) # put motor back    
-        print('done motor move')
         sa = 0.01
         ca = 0.01
         param0 = sa,ca
         tdiff = tread - tset - (np.mean(tread-tset))
-        print('start leastsq')
         fout = leastsq(fitres, param0, args=(tset, tdiff))    
         print('end leastsq, param =')
         param = fout[0]
@@ -532,22 +552,23 @@ class locker():
         self.buckets = round(self.terror * self.locking_f)
         self.bucket_error = self.terror - self.buckets / self.locking_f
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0):  # too wide a range of measurements
-            self.buckets = 0  # do not count a bucket error if readings are not consistent
-            self.P.E.write_error( 'counter not stable')
+        if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0):  # Too wide a range of measurements
+            self.buckets = 0  # Do not count as a bucket error if readings are not consistent
             return
+        if (self.C.range > self.instability_thresh):
+            self.P.E.write_error('Counter not stable')
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
-            self.P.E.write_error( 'not an integer number of buckets')
-        self.P.E.write_error( 'Laser OK')      # laser is OK
+            self.P.E.write_error('Not an integer number of buckets')
+        self.P.E.write_error('Laser OK') # Laser is OK
             
     def fix_jump(self):
         """Takes exact bucket error is ns, moves the phase motor and updates the offset to correct for it."""
         if self.buckets == 0:  #no jump to begin with
-            self.P.E.write_error( 'trying to fix non-existent jump')
+            self.P.E.write_error('Trying to fix non-existent jump')
             return
         if abs(self.bucket_error) > self.max_jump_error:
-            self.P.E.write_error( 'non-integer bucket error, cant fix')
+            self.P.E.write_error( 'Non-integer bucket error, cant fix')
             return
         self.P.E.write_error( 'Fixing Jump')
         M = phase_motor(self.P) #phase control motor
@@ -556,13 +577,12 @@ class locker():
         new_pc = old_pc  - self.exact_error # new time for phase control
         new_pc_fix = np.mod(new_pc, 1/self.laser_f)  # equal within one cycle. 
         M.move(new_pc_fix) # moves phase motor to new position
-        #self.P.put('fix_bucket', 0)  # turn off bucket fix TESTING
         M.wait_for_stop()
         time.sleep(2)  # 
         new_offset = self.d['offset'] - (new_pc_fix - old_pc)
         self.d['offset'] = new_offset
         self.P.put('offset', new_offset)
-        self.P.E.write_error( 'Done Fixing Jump')
+        self.P.E.write_error('Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
        
@@ -620,7 +640,7 @@ class time_interval_counter():
     def get_time(self):
         """Returns counter time scaled to ns."""
         self.good = 0  # assume bad unless we fall through all the traps
-        self.range = 0; # until we overwrite
+        self.range = 0; # Until overwritten by new data
         tol = self.P.get('counter_jitter_high')
         tmin = self.P.get('counter_low')
         tmax = self.P.get('counter_high')
@@ -650,6 +670,7 @@ class phase_motor():
         self.max_tries = 100
         self.loop_delay = 0.1
         self.tolerance = 3e-5  #was 5e-6 #was 2e-5
+        self.dmov_err_cnt = 0 # Counts dmov errors 
         self.position = self.P.get('phase_motor') * self.scale  # get the current position  WARNING logic race potential
         self.wait_for_stop()  # wait until it stops moving
 
@@ -658,6 +679,11 @@ class phase_motor():
         for n in range(0, self.max_tries):
             try:
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
+                if stopped == 0:
+                    self.dmov_err_cnt+=1
+                if self.dmov_err_cnt >= 3:
+                    print('The phase_motor_dmov PV could not be reached three consecutive times. ')
+                    self.W.error = 1
             except:
                 print('Could not get dmov. Error occurred at:', date_time)
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
