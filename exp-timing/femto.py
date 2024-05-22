@@ -256,7 +256,7 @@ class PVS():
             self.pvlist['drift_correction_accum'] = Pv(drift_correction_accum[self.name])
         if self.use_dither:
             self.pvlist['dither_level'] = Pv(dither_level[self.name]) 
-        self.OK = 1   
+        self.OK = 1
         for k, v in self.pvlist.items():  # Now loop over all pvs to initialize
             try:
                 v.connect(timeout) # Connect to pv
@@ -281,24 +281,11 @@ class PVS():
             return self.pvlist[name].value                      
         except:
             # print('PV READ ERROR:', name, 'Error occurred at:', date_time)
-            self.PV_errs[self.err_idx] = name # Store PV name that caused error 
+            self.PV_errs[self.err_idx] = name+' - read' # Store PV name that caused error 
             self.err_idx += 1 # Increase PV error counter
-            return 0
+            return 0 
         finally:
-            self.curr_time = time.time()
-            self.diff = self.curr_time - self.report_start # Compare current time to time at start of report
-            if self.diff >= 600: # Have we reached 10 minutes?
-                self.num_errs = len(self.PV_errs) # Total number of errors that have occurred
-                if self.num_errs >= 1: # If an error has occurred, print report
-                    print('Current time:', date_time, 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
-                    print('PVs that encountered errors: ')
-                    self.PV_err_short = list(set(self.PV_errs))
-                    self.num_diff_errs = len(self.PV_err_short)
-                    for n in range(0, self.num_diff_errs): # Loop over all PV errors
-                        self.report_PV = self.PV_err_short[n] # Current PV error
-                        self.report_num = len([i for i in self.PV_errs if self.report_PV in i]) # Calculate the number of times current PV error occurred
-                        print('PV Name:', self.report_PV, 'Connection Errors:', self.report_num)
-                self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
+            self.PV_err_report()
     
     def get_last(self, name):
         """Takes a PV name and returns its last value, without connecting to the PV."""
@@ -306,11 +293,33 @@ class PVS():
                 
     def put(self, name, x):
         """Takes a PV name, connects to it, and then writes a value to it."""
+        if self.err_idx == 0: # Start of a new PV error report cycle
+            self.report_start = time.time() # Start time of PV error report
         try:
             self.pvlist[name].put(x, timeout = 10.0) # long timeout           
         except:
-            print('UNABLE TO WRITE PV: ', name, '= ', x, 'Error occurred at:', date_time)
+            # print('UNABLE TO WRITE PV: ', name, '= ', x, 'Error occurred at:', date_time)
+            self.PV_errs[self.err_idx] = name+' - write' # Store PV name that caused error 
+            self.err_idx += 1 # Increase PV error counter
+        finally:
+            self.PV_err_report()
                 
+    def PV_err_report(self):
+        self.curr_time = time.time()
+        self.diff = self.curr_time - self.report_start # Compare current time to time at start of report
+        if self.diff >= 600: # Have we reached 10 minutes?
+            self.num_errs = len(self.PV_errs) # Total number of errors that have occurred
+            if self.num_errs >= 1: # If an error has occurred, print report
+                print('Current time:', date_time, 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
+                print('Error report: ')
+                self.PV_err_short = list(set(self.PV_errs)) # List each PV only once 
+                self.num_diff_errs = len(self.PV_err_short) # Number of different PVs with a connection error
+                for n in range(0, self.num_diff_errs): # Loop over all unique PV errors
+                    self.report_PV = self.PV_err_short[n] # Current PV error
+                    self.report_num = len([i for i in self.PV_errs if self.report_PV in i]) # Calculate the number of times current PV error occurred
+                    print('PV Name/Error Type:', self.report_PV, 'Connection Errors:', self.report_num)
+            self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
+
     def __del__ (self):
         """Disconnects from all IOC PVs."""
         for v in self.pvlist.values():
