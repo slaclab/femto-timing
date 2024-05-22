@@ -241,6 +241,7 @@ class PVS():
         self.pvlist['laser_locked'] = Pv(dev_base[self.name]+'PHASE_LOCKED')
         self.pvlist['lock_enable'] = Pv(dev_base[self.name]+'RF_LOCK_ENABLE')
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
+        self.pvlist['bucket_correction_delay'] = Pv('LAS:UNDS:FLOAT:120')
   
         if self.use_secondary_calibration:
             self.pvlist['secondary_calibration'] = Pv(secondary_calibration[self.name])
@@ -569,6 +570,8 @@ class locker():
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
             self.P.E.write_error('Not an integer number of buckets')
+        if self.buckets != 0:
+            self.detection_t = time.time() # Time bucket jump was detected
         self.P.E.write_error('Laser OK') # Laser is OK
             
     def fix_jump(self):
@@ -594,6 +597,9 @@ class locker():
         self.P.E.write_error('Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
+        self.correction_t = time.time() # Time bucket jump was corrected
+        self.corr_diff = self.correction_t - self.detection_t # How long it took to correct jump in seconds
+        self.P.put('bucket_correction_delay', self.corr_diff) # So bucket correction delay can be archived
        
             
 class sawtooth():
