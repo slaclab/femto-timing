@@ -420,7 +420,7 @@ class locker():
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
         period = 1/self.laser_f # just defining things needed in sawtooth -  UGLY
-        delay = minv - t_trig # more code cleanup neded in the future.
+        delay = minv - t_trig # More code cleanup needed in the future.
         err = np.array([]) # will hold array of errors
         offset = np.linspace(0, period, ns)  # array of offsets to try
         for x in offset:  # Tries different offsets to see what works
@@ -491,9 +491,9 @@ class locker():
             self.P.E.write_error('TGT smaller than time_lolo')
         T = trigger(self.P) # set up trigger
         M = phase_motor(self.P)
-        laser_t = t - self.d['offset']  # Just copy workign matlab, don't think!
-        nlaser = np.floor(laser_t * self.laser_f)
-        pc = t - (self.d['offset'] + nlaser / self.laser_f)
+        laser_t = t - self.d['offset']  # Apply offset to trigger time
+        nlaser = np.floor(laser_t * self.laser_f) 
+        pc = t - (self.d['offset'] + nlaser / self.laser_f) 
         pc = np.mod(pc, 1/self.laser_f)
         ntrig = round((t - self.d['delay'] - (1/self.trigger_f)) * self.trigger_f) # paren was after laser_f
         trig = ntrig / self.trigger_f
@@ -603,15 +603,15 @@ class locker():
        
             
 class sawtooth():
-        """Takes phase motor position, EVR trigger time, delay, offset, and the Vitara period, and calculates the net laser time."""
-        def __init__(self, t0, t_trig, delay, offset, period):
-            trig_out = t_trig + delay # t_trig is the EVR trigger time, delay is the cable length after the trigger
-            laser_t0 = t0 + offset # t0 is an array of inputs that represent the phase shift time, offset is the delay from the photodiode to the time interval counter
-            tx = trig_out - laser_t0
-            nlaser = np.ceil(tx / period)
-            self.t = t0 + offset + nlaser * period
-            tr = self.t - trig_out
-            self.r = (0.5 + np.copysign(.5, tr - 0.2 * period)) * (0.5 + np.copysign(.5, .8 * period - tr)) # no sign function
+    """Takes phase motor position, EVR trigger time, delay, offset, and the Vitara period, and calculates the net laser time."""
+    def __init__(self, t0, t_trig, delay, offset, period):
+        trig_out = t_trig + delay # t_trig is the EVR trigger time, delay is the cable length after the trigger
+        laser_t0 = t0 + offset # t0 is an array of inputs that represent the phase shift time, offset is the delay from the photodiode to the time interval counter
+        tx = trig_out - laser_t0
+        nlaser = np.ceil(tx / period)
+        self.t = t0 + offset + nlaser * period
+        tr = self.t - trig_out
+        self.r = (0.5 + np.copysign(.5, tr - 0.2 * period)) * (0.5 + np.copysign(.5, .8 * period - tr)) # no sign function
 
 
 class ring():
