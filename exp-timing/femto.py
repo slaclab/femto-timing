@@ -806,7 +806,7 @@ def ffun(x, a, b):
 
 def date_time():
     """Returns the current date and time."""
-    curr_time = time.strftime("%m/%d/%Y %H:%M:%S", time.localtime())
+    curr_time = time.strftime("%D %B %Y %H:%M:%S", time.localtime())
     return curr_time
 
 
