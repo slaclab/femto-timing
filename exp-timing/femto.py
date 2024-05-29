@@ -685,7 +685,6 @@ class phase_motor():
         self.max_tries = 100
         self.loop_delay = 0.1
         self.tolerance = 3e-5  #was 5e-6 #was 2e-5
-        self.dmov_err_cnt = 0 # Counts dmov errors 
         self.position = self.P.get('phase_motor') * self.scale  # get the current position  WARNING logic race potential
         self.wait_for_stop()  # wait until it stops moving
 
@@ -694,11 +693,6 @@ class phase_motor():
         for n in range(0, self.max_tries):
             try:
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
-                if stopped == 0:
-                    self.dmov_err_cnt+=1
-                if self.dmov_err_cnt >= 3:
-                    print('The phase_motor_dmov PV could not be reached three consecutive times. ')
-                    self.W.error = 1
             except:
                 print('Could not get dmov. Error occurred at:', date_time())
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
