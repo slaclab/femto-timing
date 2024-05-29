@@ -200,7 +200,7 @@ class PVS():
             self.dither_level = dither_level[self.name]                  
         
         # List of other PVs used.
-        self.pvlist['watchdog'] =  Pv(dev_base[self.name]+'FS_WATCHDOG')
+        self.pvlist['watchdog'] =  Pv(dev_base[self.name]+'FS_WATCHDOG', verbose=False)
         self.pvlist['oscillator_f'] =  Pv(dev_base[self.name]+'FS_OSC_TGT_FREQ')
         self.pvlist['time'] =  Pv(dev_base[self.name]+'FS_TGT_TIME')
         self.pvlist['time_hihi'] =  Pv(dev_base[self.name]+'FS_TGT_TIME.HIHI')
@@ -227,7 +227,7 @@ class PVS():
         self.pvlist['counter_jitter_high'] = Pv(counter_base[self.name]+'GetMeasJitter.HIGH')        
         self.pvlist['freq_counter'] = Pv(freq_counter[self.name])  # frequency counter readback        
         self.pvlist['phase_motor'] = Pv(phase_motor[self.name])  # phase control smart motor
-        self.pvlist['phase_motor_dmov'] = Pv(phase_motor[self.name]+'.DMOV')  # motor motion status
+        self.pvlist['phase_motor_dmov'] = Pv(phase_motor[self.name]+'.DMOV', verbose=False)  # motor motion status
         self.pvlist['phase_motor_rb'] = Pv(phase_motor[self.name]+'.RBV')  # motor readback
         self.pvlist['freq_sp'] =  Pv(dev_base[self.name]+'FREQ_SP')  # frequency counter setpoint
         self.pvlist['freq_err'] = Pv(dev_base[self.name]+'FREQ_ERR') # frequency counter error
