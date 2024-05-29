@@ -263,7 +263,7 @@ class PVS():
                 v.connect(timeout) # Connect to pv
                 v.get(ctrl=True, timeout=1.0) # Get data
             except: 
-                print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time)
+                print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time())
                 self.OK = 0 # Error with setting up PVs, can't run, will exit  
         self.error_pv = Pv(error_pv_name[self.name]) # Open pv
         self.error_pv.connect(timeout)
@@ -281,7 +281,7 @@ class PVS():
             self.pvlist[name].get(ctrl=True, timeout=10.0)
             return self.pvlist[name].value                      
         except:
-            # print('PV READ ERROR:', name, 'Error occurred at:', date_time)
+            # print('PV READ ERROR:', name, 'Error occurred at:', date_time())
             self.PV_errs[self.err_idx] = name+' - read' # Store PV name that caused error 
             self.err_idx += 1 # Increase PV error counter
             return 0 
@@ -299,7 +299,7 @@ class PVS():
         try:
             self.pvlist[name].put(x, timeout = 10.0) # long timeout           
         except:
-            # print('UNABLE TO WRITE PV: ', name, '= ', x, 'Error occurred at:', date_time)
+            # print('UNABLE TO WRITE PV: ', name, '= ', x, 'Error occurred at:', date_time())
             self.PV_errs[self.err_idx] = name+' - write' # Store PV name that caused error 
             self.err_idx += 1 # Increase PV error counter
         finally:
@@ -311,7 +311,7 @@ class PVS():
         if self.diff >= 600: # Have we reached 10 minutes?
             self.num_errs = len(self.PV_errs) # Total number of errors that have occurred
             if self.num_errs >= 1: # If an error has occurred, print report
-                print('Current time:', date_time, 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
+                print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
                 print('Error report: ')
                 self.PV_err_short = list(set(self.PV_errs)) # List each PV only once 
                 self.num_diff_errs = len(self.PV_err_short) # Number of different PVs with a connection error
@@ -326,7 +326,7 @@ class PVS():
         for v in self.pvlist.values():
             v.disconnect()  
         self.error_pv.disconnect()    
-        print('Closed all PV connections at', date_time)
+        print('Closed all PV connections at', date_time())
 
 
 class locker():
@@ -415,7 +415,7 @@ class locker():
             tout = np.append(tout, t_tmp) # read timing and put in array
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
-                print('Bad counter data. Occurred at:', date_time)
+                print('Bad counter data. Occurred at:', date_time())
                 self.P.E.write_error('Timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
@@ -556,7 +556,7 @@ class locker():
             self.d['delay'] = self.P.get('delay')
             self.d['offset'] = self.P.get('offset')
         except:
-            print('Problem reading delay and offset pvs. Error occurred at:', date_time)
+            print('Problem reading delay and offset pvs. Error occurred at:', date_time())
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
@@ -700,7 +700,7 @@ class phase_motor():
                     print('The phase_motor_dmov PV could not be reached three consecutive times. ')
                     self.W.error = 1
             except:
-                print('Could not get dmov. Error occurred at:', date_time)
+                print('Could not get dmov. Error occurred at:', date_time())
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
@@ -868,7 +868,7 @@ def femto(name='NULL'):
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
             del P  #does this work?
-            print('UNKNOWN ERROR, trying again. Error occurred at:', date_time)
+            print('UNKNOWN ERROR, trying again. Error occurred at:', date_time())
             P = PVS(name)
             W = watchdog.watchdog(P.pvlist['watchdog'])
             L = locker(P, W) #set up locking system parameters
