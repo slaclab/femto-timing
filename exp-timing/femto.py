@@ -282,7 +282,7 @@ class PVS():
             return self.pvlist[name].value                      
         except:
             # print('PV READ ERROR:', name, 'Error occurred at:', date_time())
-            self.PV_errs[self.err_idx] = name+' - read' # Store PV name that caused error 
+            self.PV_errs[self.err_idx] = str(name)+' - read' # Store PV name that caused error 
             self.err_idx += 1 # Increase PV error counter
             return 0 
         finally:
@@ -300,7 +300,7 @@ class PVS():
             self.pvlist[name].put(x, timeout = 10.0) # long timeout           
         except:
             # print('UNABLE TO WRITE PV: ', name, '= ', x, 'Error occurred at:', date_time())
-            self.PV_errs[self.err_idx] = name+' - write' # Store PV name that caused error 
+            self.PV_errs[self.err_idx] = str(name)+' - write' # Store PV name that caused error 
             self.err_idx += 1 # Increase PV error counter
         finally:
             self.PV_err_report()
@@ -314,9 +314,12 @@ class PVS():
                 if self.num_errs >= 1: # If an error has occurred, print report
                     print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
                     print('Error report: ')
-                    self.PV_err_short = set(self.PV_errs) # List each PV only once 
+                    self.PV_err_short = set(self.PV_errs) # List each PV only once
+                    print('1') 
                     for n in self.PV_err_short: # Loop over all unique PV errors
+                        print('2')
                         self.report_num = self.PV_errs.count(n) # Calculate the number of times current PV error occurred
+                        print('3')
                         print('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
                 self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
         except:
