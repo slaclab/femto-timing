@@ -288,7 +288,6 @@ class PVS():
             self.pvlist[name].get(ctrl=True, timeout=10.0)
             return self.pvlist[name].value                      
         except:
-            # print('PV READ ERROR:', name, 'Error occurred at:', date_time())
             self.PV_errs[self.err_idx] = str(name)+' - read' # Store PV name that caused error 
             self.err_idx += 1 # Increase PV error counter
             return 0 
@@ -306,7 +305,6 @@ class PVS():
         try:
             self.pvlist[name].put(x, timeout = 10.0) # long timeout           
         except:
-            # print('UNABLE TO WRITE PV: ', name, '= ', x, 'Error occurred at:', date_time())
             self.PV_errs[self.err_idx] = str(name)+' - write' # Store PV name that caused error 
             self.err_idx += 1 # Increase PV error counter
         finally:
