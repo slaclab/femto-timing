@@ -40,6 +40,7 @@ class PVS():
         drift_correction_dir = dict()  # Bool value that is configurable based on the set-up of the timetool stage in a particular hutch 
         drift_correction_smoothing = dict()  # Smoothing factor that reduces the drift correction step size
         drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term)
+        bucket_correction_delay = dict() # Tracks the amount of time between bucket jump detection and correction
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
         use_dither = dict() # Used to allow fast dither of timing
@@ -71,6 +72,7 @@ class PVS():
         use_drift_correction[nm] = True
         use_dither[nm] = True
         dither_level[nm] = 'LAS:FS4:VIT:matlab:08'
+        bucket_correction_delay[nm] = 'LAS:UNDS:FLOAT:115'
 
         nm = 'MFX'
         namelist.add(nm)
@@ -94,6 +96,7 @@ class PVS():
         use_drift_correction[nm] = True  
         use_dither[nm] = False
         dither_level[nm] = 'LAS:FS45:VIT:matlab:08'
+        bucket_correction_delay[nm] = 'LAS:UNDS:FLOAT:116'
 
         nm = 'CXI'
         namelist.add(nm)
@@ -115,7 +118,8 @@ class PVS():
         drift_correction_smoothing[nm]='LAS:FS5:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS5:VIT:matlab:09'
         use_drift_correction[nm] = True  
-        use_dither[nm] = False 
+        use_dither[nm] = False
+        bucket_correction_delay[nm] = 'LAS:UNDS:FLOAT:117' 
 
         nm = 'MEC'
         namelist.add(nm)
@@ -129,7 +133,8 @@ class PVS():
         laser_trigger[nm] = 'MEC:LAS:EVR:01:TRIG5:TDES' 
         use_secondary_calibration[nm] = 0 # Secondary calibration turned off
         use_drift_correction[nm] = False  
-        use_dither[nm] = False # Used to allow fast dither of timing       
+        use_dither[nm] = False # Used to allow fast dither of timing
+        bucket_correction_delay[nm] = 'LAS:UNDS:FLOAT:118'       
 
         nm = 'FS11'
         namelist.add(nm)
@@ -157,6 +162,7 @@ class PVS():
         use_drift_correction[nm] = True  
         use_dither[nm] = False 
         dither_level[nm] = 'LAS:FS11:VIT:matlab:08'
+        bucket_correction_delay[nm] = 'LAS:UNDS:FLOAT:119'
 
         nm = 'FS14'
         namelist.add(nm)
@@ -184,6 +190,7 @@ class PVS():
         use_drift_correction[nm] = True  
         use_dither[nm] = False
         dither_level[nm] = 'LAS:FS14:VIT:matlab:08'
+        bucket_correction_delay[nm] = 'LAS:UNDS:FLOAT:120'
         
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following: ')
@@ -241,7 +248,7 @@ class PVS():
         self.pvlist['laser_locked'] = Pv(dev_base[self.name]+'PHASE_LOCKED')
         self.pvlist['lock_enable'] = Pv(dev_base[self.name]+'RF_LOCK_ENABLE')
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
-        self.pvlist['bucket_correction_delay'] = Pv('LAS:UNDS:FLOAT:120')
+        self.pvlist['bucket_correction_delay'] = Pv(bucket_correction_delay[self.name])
   
         if self.use_secondary_calibration:
             self.pvlist['secondary_calibration'] = Pv(secondary_calibration[self.name])
