@@ -311,6 +311,7 @@ class PVS():
         try:
             if self.diff >= 600: # Have we reached 10 minutes?
                 self.num_errs = len(self.PV_errs) # Total number of errors that have occurred
+                self.PV_err_list = self.PV_errs.values()
                 if self.num_errs >= 1: # If an error has occurred, print report
                     print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
                     print('Error report: ')
@@ -318,7 +319,7 @@ class PVS():
                     print('1') 
                     for n in self.PV_err_short: # Loop over all unique PV errors
                         print('2')
-                        self.report_num = self.PV_errs.count(n) # Calculate the number of times current PV error occurred
+                        self.report_num = self.PV_err_list.count(n) # Calculate the number of times current PV error occurred
                         print('3')
                         print('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
                 self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
