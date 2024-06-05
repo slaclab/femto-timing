@@ -54,9 +54,12 @@ class PVS():
         version_pv_name = dict()
         timeout = 1.0  # Default timeout for connecting to PVs
 
-        with open(self.config, 'r') as file:
+        try:
+            with open(self.config) as file:
+                self.locker_config = json.load(file)
+        except:
             self.locker_config = json.load(file)
-        
+
         # Pull locker configuration data from .json file
         print('Config Start') #Troubleshooting
         nm = self.locker_config['nm']
