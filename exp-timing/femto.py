@@ -53,18 +53,15 @@ class PVS():
             use_dither[n] = False  # Turn off except where needed
         version_pv_name = dict()
         timeout = 1.0  # Default timeout for connecting to PVs
+        print('1')
 
         try:
             with open(self.config, 'r') as file:
-                print('1')
-                self.locker_config = json.load(file)
                 print('2')
-        except:
-            print('3')
-            file.close()
-            print('4')
-            self.locker_config = json.load(file)
-            print('5')
+                self.locker_config = json.load(file)
+                print('3')
+        except json.JSONDecodeError as e:
+            print('Invalid JSON syntax:', e)
 
         # Pull locker configuration data from .json file
         print('Config Start') #Troubleshooting
@@ -99,7 +96,7 @@ class PVS():
         use_dither[nm] = self.locker_config['use_dither']
         dither_level[nm] = self.locker_config['dither_level']
         bucket_correction_delay[nm] = self.locker_config['bucket_correction_delay']
-        print('2') #Troubleshooting
+        print('4') #Troubleshooting
         
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following: ')
