@@ -16,7 +16,9 @@ class PVS():
         self.version = 'Watchdog 141126a' #Version string
         self.name = nx # Sets the hutch name
         print(self.name)
-        self.config = str(self.name)+'_locker_config.json' #Sets name of hutch config file
+        self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
+        self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
+        print(self.config) #Troubleshooting
         namelist = set() # Checks if scripts is configured to run specified locker name
         self.pvlist = dict()  # List of all PVs
         self.PV_errs = dict() # List of PV connection errors
@@ -52,10 +54,11 @@ class PVS():
         version_pv_name = dict()
         timeout = 1.0  # Default timeout for connecting to PVs
 
-        with open(self.config) as file:
+        with open(self.config, 'r') as file:
             self.locker_config = json.load(file)
         
         # Pull locker configuration data from .json file
+        print('1') #Troubleshooting
         nm = self.locker_config['nm']
         namelist.add(nm)
         base = self.locker_config['base']
@@ -84,6 +87,7 @@ class PVS():
         use_dither[nm] = self.locker_config['use_dither']
         dither_level[nm] = self.locker_config['dither_level']
         bucket_correction_delay[nm] = self.locker_config['bucket_correction_delay']
+        print('2') #Troubleshooting
         
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following: ')
