@@ -1,0 +1,17 @@
+{
+    "nm": "XCS",
+    "base": "LAS:FS4",
+    "laser_trigger": "EVR:LAS:XCS:01:TRIG0:TDES",
+    "use_secondary_calibration": 0,
+    "drift_correction_signal": "LAS:FS4:VIT:matlab:29",
+    "drift_correction_value": "LAS:FS4:VIT:matlab:04",
+    "drift_correction_offset": "LAS:FS4:VIT:matlab:05",
+    "drift_correction_gain": "LAS:FS4:VIT:matlab:06",
+    "drift_correction_dir": 1,
+    "drift_correction_smoothing": "LAS:FS4:VIT:matlab:07",
+    "drift_correction_accum": "LAS:FS4:VIT:matlab:09",
+    "use_drift_correction": true,
+    "use_dither": true,
+    "dither_level": "LAS:FS4:VIT:matlab:08",
+    "bucket_correction_delay": "LAS:UNDS:FLOAT:115"
+}

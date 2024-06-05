@@ -1,0 +1,21 @@
+{
+    "nm": "FS11",
+    "base": "LAS:FS11",
+    "laser_trigger": "EVR:LAS:LHN:01:TRIG3:TDES",
+    "use_secondary_calibration": 0,
+    "secondary_calibration_enable": "LAS:FS11:VIT:matlab:01",
+    "secondary_calibration": "XPP:USER:LAS:T0_MONITOR",
+    "secondary_calibration_s": "LAS:FS11:VIT:matlab:02",
+    "secondary_calibration_c": "LAS:FS11:VIT:matlab:03",
+    "drift_correction_signal": "LAS:FS11:VIT:matlab:29",
+    "drift_correction_value": "LAS:FS11:VIT:matlab:04",
+    "drift_correction_offset": "LAS:FS11:VIT:matlab:05",
+    "drift_correction_gain": "LAS:FS11:VIT:matlab:06",
+    "drift_correction_dir": 1,
+    "drift_correction_smoothing": "LAS:FS11:VIT:matlab:07",
+    "drift_correction_accum": "LAS:FS11:VIT:matlab:09",
+    "use_drift_correction": true,
+    "use_dither": false,
+    "dither_level": "LAS:FS11:VIT:matlab:08",
+    "bucket_correction_delay": "LAS:UNDS:FLOAT:119"
+}

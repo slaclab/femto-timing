@@ -1,0 +1,17 @@
+{
+    "nm": "MEC",
+    "base": "LAS:FS6",
+    "laser_trigger": "MEC:LAS:EVR:01:TRIG5:TDES",
+    "use_secondary_calibration": 0,
+    "drift_correction_signal": "LAS:FS6:VIT:matlab:29",
+    "drift_correction_value": "LAS:FS6:VIT:matlab:04",
+    "drift_correction_offset": "LAS:FS6:VIT:matlab:05",
+    "drift_correction_gain": "LAS:FS6:VIT:matlab:06",
+    "drift_correction_dir": 1,
+    "drift_correction_smoothing": "LAS:FS6:VIT:matlab:07",
+    "drift_correction_accum": "LAS:FS6:VIT:matlab:09",
+    "use_drift_correction": false,
+    "use_dither": false,
+    "dither_level": "LAS:FS6:VIT:matlab:08",
+    "bucket_correction_delay": "LAS:UNDS:FLOAT:118"
+}
