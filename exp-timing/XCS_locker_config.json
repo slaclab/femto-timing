@@ -1,6 +1,6 @@
 {
     "nm": "XCS",
-    "base": "LAS:FS4",
+    "base": "LAS:FS4:",
     "laser_trigger": "EVR:LAS:XCS:01:TRIG0:TDES",
     "use_secondary_calibration": 0,
     "drift_correction_signal": "LAS:FS4:VIT:matlab:29",

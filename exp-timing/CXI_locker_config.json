@@ -1,6 +1,6 @@
 {
     "nm": "CXI",
-    "base": "LAS:FS5",
+    "base": "LAS:FS5:",
     "laser_trigger": "EVR:LAS:CXI:01:TRIG3:TDES",
     "use_secondary_calibration": 0,
     "drift_correction_signal": "LAS:FS5:VIT:matlab:29",

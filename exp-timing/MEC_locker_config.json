@@ -1,6 +1,6 @@
 {
     "nm": "MEC",
-    "base": "LAS:FS6",
+    "base": "LAS:FS6:",
     "laser_trigger": "MEC:LAS:EVR:01:TRIG5:TDES",
     "use_secondary_calibration": 0,
     "drift_correction_signal": "LAS:FS6:VIT:matlab:29",

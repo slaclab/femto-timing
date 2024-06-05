@@ -1,6 +1,6 @@
 {
     "nm": "MFX",
-    "base": "LAS:FS45",
+    "base": "LAS:FS45:",
     "laser_trigger": "EVR:LAS:MFX:01:TRIG0:TDES",
     "use_secondary_calibration": 0,
     "drift_correction_signal": "LAS:FS45:VIT:matlab:29",

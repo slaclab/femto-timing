@@ -58,11 +58,14 @@ class PVS():
             self.locker_config = json.load(file)
         
         # Pull locker configuration data from .json file
-        print('1') #Troubleshooting
+        print('Config Start') #Troubleshooting
         nm = self.locker_config['nm']
+        print(nm)
         namelist.add(nm)
         base = self.locker_config['base']
+        print(base)
         dev_base[nm] = base+'VIT:'
+        print(dev_base[nm])
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
