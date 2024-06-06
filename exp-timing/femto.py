@@ -18,7 +18,6 @@ class PVS():
         print(self.name)
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
-        print(self.config) #Troubleshooting
         namelist = set() # Checks if scripts is configured to run specified locker name
         print('post-namelist')
         self.pvlist = dict()  # List of all PVs
