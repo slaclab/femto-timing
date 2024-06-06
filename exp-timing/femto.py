@@ -20,6 +20,7 @@ class PVS():
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         print(self.config) #Troubleshooting
         namelist = set() # Checks if scripts is configured to run specified locker name
+        print('post-namelist')
         self.pvlist = dict()  # List of all PVs
         self.PV_errs = dict() # List of PV connection errors
         self.err_idx = 0
@@ -53,13 +54,12 @@ class PVS():
             use_dither[n] = False  # Turn off except where needed
         version_pv_name = dict()
         timeout = 1.0  # Default timeout for connecting to PVs
-        print('1')
 
         try:
             with open(self.config, 'r') as file:
-                print('2')
+                print('opened')
                 self.locker_config = json.load(file)
-                print('3')
+                print('loaded')
         except json.JSONDecodeError as e:
             print('Invalid JSON syntax:', e)
 
