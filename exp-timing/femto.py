@@ -164,15 +164,12 @@ class PVS():
         self.OK = 1
         for k, v in self.pvlist.items():  # Now loop over all pvs to initialize
             try:
-                v.connect(timeout) # Connect to pv
                 v.get(ctrl=True, timeout=1.0) # Get data
             except: 
                 print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time())
                 self.OK = 0 # Error with setting up PVs, can't run, will exit  
         self.error_pv = Pv(error_pv_name[self.name]) # Open pv
-        self.error_pv.connect(timeout)
         self.version_pv = Pv(version_pv_name[self.name])
-        self.version_pv.connect(timeout)
         self.version_pv.put(self.version, timeout = 10.0)
         self.E = error_output(self.error_pv)
         self.E.write_error('OK')
