@@ -175,7 +175,8 @@ class PVS():
         self.version_pv.connect(timeout)
         self.version_pv.put(self.version, timeout = 10.0)
         self.E = error_output(self.error_pv)
-        self.E.write_error('OK')       
+        self.E.write_error('OK')
+        Pv.monitor_stop(self.pvlist['phase_motor_dmov'])
         
     def get(self, name):
         """Takes a PV name, connects to it, and returns its value."""
