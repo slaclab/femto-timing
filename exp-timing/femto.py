@@ -77,6 +77,7 @@ class PVS():
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
+        print(version_pv_name[nm])
         laser_trigger[nm] = self.locker_config['laser_trigger']
         use_secondary_calibration[nm] = self.locker_config['use_secondary_calibration']
         if nm == 'FS11' or nm == 'FS14':
@@ -112,6 +113,8 @@ class PVS():
         if self.use_dither:
             self.dither_level = dither_level[self.name]                  
         
+        print(dev_base[self.name]+'FS_WATCHDOG') #Troubleshooting
+
         # List of other PVs used.
         self.pvlist['watchdog'] =  Pv(dev_base[self.name]+'FS_WATCHDOG')
         self.pvlist['oscillator_f'] =  Pv(dev_base[self.name]+'FS_OSC_TGT_FREQ')
