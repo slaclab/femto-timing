@@ -33,6 +33,7 @@ class PVS():
         use_secondary_calibration = dict() # Currently set to false for all of the laser lockers
         for n in range(0,20):
             use_secondary_calibration[n] = False  # Turn off except where needed
+        print('post-second_calib')
         secondary_calibration_enable = dict() # Allows secondary calibration to be enabled via a PV 
         secondary_calibration = dict() # The PV to use for secondary calibration
         secondary_calibration_s = dict() # Sine term for calibration
@@ -48,12 +49,15 @@ class PVS():
         bucket_correction_delay = dict() # Tracks the amount of time between bucket jump detection and correction
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
+        print('post drift_corr')
         use_dither = dict() # Used to allow fast dither of timing
         dither_level = dict()  # Amount of dither in ps
         for n in range(0,20):
             use_dither[n] = False  # Turn off except where needed
         version_pv_name = dict()
+        print('post version pv')
         timeout = 1.0  # Default timeout for connecting to PVs
+        print('post-timeout')
 
         try:
             with open(self.config, 'r') as file:
