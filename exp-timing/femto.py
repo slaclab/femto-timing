@@ -19,7 +19,6 @@ class PVS():
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         namelist = set() # Checks if scripts is configured to run specified locker name
-        print('post-namelist')
         self.pvlist = dict()  # List of all PVs
         self.PV_errs = dict() # List of PV connection errors
         self.err_idx = 0
@@ -32,7 +31,6 @@ class PVS():
         use_secondary_calibration = dict() # Currently set to false for all of the laser lockers
         for n in range(0,20):
             use_secondary_calibration[n] = False  # Turn off except where needed
-        print('post-second_calib')
         secondary_calibration_enable = dict() # Allows secondary calibration to be enabled via a PV 
         secondary_calibration = dict() # The PV to use for secondary calibration
         secondary_calibration_s = dict() # Sine term for calibration
@@ -48,15 +46,12 @@ class PVS():
         bucket_correction_delay = dict() # Tracks the amount of time between bucket jump detection and correction
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
-        print('post drift_corr')
         use_dither = dict() # Used to allow fast dither of timing
         dither_level = dict()  # Amount of dither in ps
         for n in range(0,20):
             use_dither[n] = False  # Turn off except where needed
         version_pv_name = dict()
-        print('post version pv')
         timeout = 1.0  # Default timeout for connecting to PVs
-        print('post-timeout')
 
         try:
             with open(self.config, 'r') as file:
@@ -68,12 +63,12 @@ class PVS():
 
         # Pull locker configuration data from .json file
         print('Config Start') #Troubleshooting
-        nm = self.locker_config['nm']
+        nm = str(self.locker_config['nm'])
         print(nm)
         namelist.add(nm)
-        base = self.locker_config['base']
+        base = str(self.locker_config['base'])
         print(base)
-        dev_base[nm] = base+'VIT:'
+        dev_base[nm] = str(base+'VIT:')
         print(dev_base[nm])
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
@@ -81,25 +76,25 @@ class PVS():
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         print(version_pv_name[nm])
-        laser_trigger[nm] = self.locker_config['laser_trigger']
-        use_secondary_calibration[nm] = self.locker_config['use_secondary_calibration']
+        laser_trigger[nm] = str(self.locker_config['laser_trigger'])
+        use_secondary_calibration[nm] = str(self.locker_config['use_secondary_calibration'])
         if nm == 'FS11' or nm == 'FS14':
-            secondary_calibration_enable[nm] = self.locker_config['secondary_calibration_enable']
-            secondary_calibration[nm] = self.locker_config['secondary_calibration']
-            secondary_calibration_s[nm] = self.locker_config['secondary_calibration_s']
-            secondary_calibration_c[nm] = self.locker_config['secondary_calibration_c']
+            secondary_calibration_enable[nm] = str(self.locker_config['secondary_calibration_enable'])
+            secondary_calibration[nm] = str(self.locker_config['secondary_calibration'])
+            secondary_calibration_s[nm] = str(self.locker_config['secondary_calibration_s'])
+            secondary_calibration_c[nm] = str(self.locker_config['secondary_calibration_c'])
         # Notepad PVs for drift correction feature
-        drift_correction_signal[nm] = self.locker_config['drift_correction_signal']
-        drift_correction_value[nm] = self.locker_config['drift_correction_value']
-        drift_correction_offset[nm] = self.locker_config['drift_correction_offset']
-        drift_correction_gain[nm] = self.locker_config['drift_correction_gain']
-        drift_correction_dir[nm] = self.locker_config['drift_correction_dir']
-        drift_correction_smoothing[nm] = self.locker_config['drift_correction_smoothing']
-        drift_correction_accum[nm] = self.locker_config['drift_correction_accum']
-        use_drift_correction[nm] = self.locker_config['use_drift_correction']
-        use_dither[nm] = self.locker_config['use_dither']
-        dither_level[nm] = self.locker_config['dither_level']
-        bucket_correction_delay[nm] = self.locker_config['bucket_correction_delay']
+        drift_correction_signal[nm] = str(self.locker_config['drift_correction_signal'])
+        drift_correction_value[nm] = str(self.locker_config['drift_correction_value'])
+        drift_correction_offset[nm] = str(self.locker_config['drift_correction_offset'])
+        drift_correction_gain[nm] = str(self.locker_config['drift_correction_gain'])
+        drift_correction_dir[nm] = str(self.locker_config['drift_correction_dir'])
+        drift_correction_smoothing[nm] = str(self.locker_config['drift_correction_smoothing'])
+        drift_correction_accum[nm] = str(self.locker_config['drift_correction_accum'])
+        use_drift_correction[nm] = str(self.locker_config['use_drift_correction'])
+        use_dither[nm] = str(self.locker_config['use_dither'])
+        dither_level[nm] = str(self.locker_config['dither_level'])
+        bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
         print('4') #Troubleshooting
         
         while not (self.name in namelist):
