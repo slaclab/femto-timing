@@ -55,27 +55,20 @@ class PVS():
 
         try:
             with open(self.config, 'r') as file:
-                print('opened')
                 self.locker_config = json.load(file)
-                print('loaded')
         except json.JSONDecodeError as e:
             print('Invalid JSON syntax:', e)
 
         # Pull locker configuration data from .json file
-        print('Config Start') #Troubleshooting
         nm = str(self.locker_config['nm'])
-        print(nm)
         namelist.add(nm)
         base = str(self.locker_config['base'])
-        print(base)
         dev_base[nm] = str(base+'VIT:')
-        print(dev_base[nm])
         counter_base[nm] = base+'CNT:TI:'   # PV name for the Time Interval Counter (SR620)
         freq_counter[nm] = dev_base[nm]+'FREQ_CUR'        
         phase_motor[nm] = base+'MMS:PH' 
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
-        print(version_pv_name[nm])
         laser_trigger[nm] = str(self.locker_config['laser_trigger'])
         use_secondary_calibration[nm] = self.locker_config['use_secondary_calibration']
         if nm == 'FS11' or nm == 'FS14':
@@ -95,7 +88,6 @@ class PVS():
         use_dither[nm] = self.locker_config['use_dither']
         dither_level[nm] = str(self.locker_config['dither_level'])
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
-        print('4') #Troubleshooting
         
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following: ')
@@ -110,8 +102,6 @@ class PVS():
         self.use_dither = use_dither[self.name] # Used to allow fast dither of timing
         if self.use_dither:
             self.dither_level = dither_level[self.name]                  
-        
-        print(dev_base[self.name]+'FS_WATCHDOG') #Troubleshooting
 
         # List of other PVs used.
         self.pvlist['watchdog'] =  Pv(dev_base[self.name]+'FS_WATCHDOG')
