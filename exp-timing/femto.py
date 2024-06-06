@@ -77,7 +77,7 @@ class PVS():
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         print(version_pv_name[nm])
         laser_trigger[nm] = str(self.locker_config['laser_trigger'])
-        use_secondary_calibration[nm] = str(self.locker_config['use_secondary_calibration'])
+        use_secondary_calibration[nm] = self.locker_config['use_secondary_calibration']
         if nm == 'FS11' or nm == 'FS14':
             secondary_calibration_enable[nm] = str(self.locker_config['secondary_calibration_enable'])
             secondary_calibration[nm] = str(self.locker_config['secondary_calibration'])
@@ -88,11 +88,11 @@ class PVS():
         drift_correction_value[nm] = str(self.locker_config['drift_correction_value'])
         drift_correction_offset[nm] = str(self.locker_config['drift_correction_offset'])
         drift_correction_gain[nm] = str(self.locker_config['drift_correction_gain'])
-        drift_correction_dir[nm] = str(self.locker_config['drift_correction_dir'])
+        drift_correction_dir[nm] = self.locker_config['drift_correction_dir']
         drift_correction_smoothing[nm] = str(self.locker_config['drift_correction_smoothing'])
         drift_correction_accum[nm] = str(self.locker_config['drift_correction_accum'])
-        use_drift_correction[nm] = str(self.locker_config['use_drift_correction'])
-        use_dither[nm] = str(self.locker_config['use_dither'])
+        use_drift_correction[nm] = self.locker_config['use_drift_correction']
+        use_dither[nm] = self.locker_config['use_dither']
         dither_level[nm] = str(self.locker_config['dither_level'])
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
         print('4') #Troubleshooting
