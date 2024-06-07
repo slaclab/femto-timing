@@ -5,8 +5,7 @@ import numpy as np
 import watchdog
 from psp.Pv import Pv
 import sys
-import random  # Used for random number generation during secondary calibration
-from scipy.optimize import leastsq # Used in secondary calibration
+import random
 import json
 
 class PVS():
@@ -28,13 +27,6 @@ class PVS():
         phase_motor = dict() # Phase motor names
         laser_trigger = dict() # EVR on time trigger PV        
         error_pv_name = dict() # femto.py script error status for each locker   
-        use_secondary_calibration = dict() # Currently set to false for all of the laser lockers
-        for n in range(0,20):
-            use_secondary_calibration[n] = False  # Turn off except where needed
-        secondary_calibration_enable = dict() # Allows secondary calibration to be enabled via a PV 
-        secondary_calibration = dict() # The PV to use for secondary calibration
-        secondary_calibration_s = dict() # Sine term for calibration
-        secondary_calibration_c = dict() # Cosine term for calibration
         use_drift_correction = dict() # Allows drift correction feature to be turned on/off individually for each locker
         drift_correction_signal = dict() # Drift correction float value in ps pulled from the time_tool.py script
         drift_correction_value = dict() # Current drift correction output in ns
@@ -70,23 +62,17 @@ class PVS():
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = str(self.locker_config['laser_trigger'])
-        use_secondary_calibration[nm] = self.locker_config['use_secondary_calibration']
-        if nm == 'FS11' or nm == 'FS14':
-            secondary_calibration_enable[nm] = str(self.locker_config['secondary_calibration_enable'])
-            secondary_calibration[nm] = str(self.locker_config['secondary_calibration'])
-            secondary_calibration_s[nm] = str(self.locker_config['secondary_calibration_s'])
-            secondary_calibration_c[nm] = str(self.locker_config['secondary_calibration_c'])
         # Notepad PVs for drift correction feature
-        drift_correction_signal[nm] = str(self.locker_config['drift_correction_signal'])
-        drift_correction_value[nm] = str(self.locker_config['drift_correction_value'])
-        drift_correction_offset[nm] = str(self.locker_config['drift_correction_offset'])
-        drift_correction_gain[nm] = str(self.locker_config['drift_correction_gain'])
+        drift_correction_signal[nm] = dev_base[nm]+'matlab:29'
+        drift_correction_value[nm] = dev_base[nm]+'matlab:04'
+        drift_correction_offset[nm] = dev_base[nm]+'matlab:05'
+        drift_correction_gain[nm] = dev_base[nm]+'matlab:06'
         drift_correction_dir[nm] = self.locker_config['drift_correction_dir']
-        drift_correction_smoothing[nm] = str(self.locker_config['drift_correction_smoothing'])
-        drift_correction_accum[nm] = str(self.locker_config['drift_correction_accum'])
+        drift_correction_smoothing[nm] = dev_base[nm]+'matlab:07'
+        drift_correction_accum[nm] = dev_base[nm]+'matlab:09'
         use_drift_correction[nm] = self.locker_config['use_drift_correction']
         use_dither[nm] = self.locker_config['use_dither']
-        dither_level[nm] = str(self.locker_config['dither_level'])
+        dither_level[nm] = dev_base[nm]+'matlab:08'
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
         
         while not (self.name in namelist):
@@ -95,7 +81,6 @@ class PVS():
                 print(x)
             self.name = input('Enter system name:')                           
 
-        self.use_secondary_calibration = use_secondary_calibration[self.name] # Turns secondary calibration on/off based on which laser locker is selected
         self.use_drift_correction = use_drift_correction[self.name] # Turns drift correction on/off based on which laser locker is selected
         if self.use_drift_correction:
             self.drift_correction_dir = drift_correction_dir[self.name] # Sets drift correction direction based on which laser locker is selected
@@ -147,11 +132,6 @@ class PVS():
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
         self.pvlist['bucket_correction_delay'] = Pv(bucket_correction_delay[self.name])
   
-        if self.use_secondary_calibration:
-            self.pvlist['secondary_calibration'] = Pv(secondary_calibration[self.name])
-            self.pvlist['secondary_calibration_enable'] = Pv(secondary_calibration_enable[self.name])
-            self.pvlist['secondary_calibration_s'] = Pv(secondary_calibration_s[self.name])
-            self.pvlist['secondary_calibration_c'] = Pv(secondary_calibration_c[self.name])
         if self.use_drift_correction:
             self.pvlist['drift_correction_signal'] = Pv(drift_correction_signal[self.name])
             self.pvlist['drift_correction_value'] = Pv(drift_correction_value[self.name])
@@ -338,42 +318,6 @@ class locker():
         M.wait_for_stop() # wait for motor to stop moving before exit
         self.P.put('busy', 0)        
         
-    def second_calibrate(self):
-        print('Starting second calibration - new test')
-        M = phase_motor(self.P)  # create phase motor object
-        ptime = 30 # seconds between cycles
-        tneg = 0.5 # nanoseconds range below current  -2 ok
-        tpos = -0.5 # nanoseconds range above current 12 ok
-        cycles = 30
-        t0 = M.get_position() # current motor position
-        tset = np.array([]) # holds target times
-        tread = np.array([]) # holds readback times
-        for n in range(0,cycles-1):  # loop
-            t = t0 + tneg + random.random()*(tpos - tneg) # random number in range
-            tset = np.append(tset, t)  # collect list of times
-            M.move(t) # move to new position
-            time.sleep(ptime)# long wait for now
-            tr = 1e9 * self.P.get('secondary_calibration')
-            tread = np.append(tread, tr)
-            print('step:\t', n)
-            print('RNG:\t', t)
-            print('calib:\t', tr)
-        M.move(t0) # put motor back    
-        sa = 0.01
-        ca = 0.01
-        param0 = sa,ca
-        tdiff = tread - tset - (np.mean(tread-tset))
-        fout = leastsq(fitres, param0, args=(tset, tdiff))    
-        print('end leastsq, param =')
-        param = fout[0]
-        print(param)
-        sa,ca = param
-        ttest = np.array([])
-        for nx in range(0,200):
-            ttest = np.append(ttest, t0 + tneg + (nx/200.0)*(tpos-tneg))
-        self.P.put('secondary_calibration_s', sa)
-        self.P.put('secondary_calibration_c', ca)
-        
     def set_time(self):
         """Takes user-entered target time and sets trigger time and phase motor position accordingly."""
         t = self.P.get('time')
@@ -427,11 +371,6 @@ class locker():
                 self.drift_initialized = True # will average next time (ugly)    
 
             pc = pc - (dd * dg * self.drift_last); # fix phase control. 
-
-        if self.P.use_secondary_calibration: # make small corrections based on another calibration
-            sa = self.P.get('secondary_calibration_s')
-            ca = self.P.get('secondary_calibration_c')
-            pc = pc - sa * np.sin(pc * 3.808*2*np.pi) - ca * np.cos(pc * 3.808*2*np.pi) # fix phase
 
         if self.P.use_dither:
             dx = self.P.get('dither_level') 
@@ -683,21 +622,7 @@ class degrees_s():
            self.P.put('time', ns_new) 
 
         else:
-            pass
-
-
-def fitres(param, tin, tout):
-    """Takes set time, measured time, and sine/cosine amplitudes from secondary calibration, returns time error."""
-    sa,ca = param  # sa and ca are the sine and cosine amplitudes, respectively
-    err = tout - ffun(tin, sa, ca)
-    return err
-
-
-def ffun(x, a, b):
-    """Takes set time, sine amplitude, and cosine amplitude, returns theoretical output time."""
-    w0 = 3.808*2*np.pi
-    out = a*np.sin(x * w0) + b * np.cos(x*w0)
-    return out        
+            pass        
 
 
 def date_time():
@@ -740,16 +665,6 @@ def femto(name='NULL'):
                 P.put('calibrate', 0)
                 P.E.write_error( ' calibration done')
                 continue
-            if  P.use_secondary_calibration:  # Executed if secondary calibration is requested
-                if P.get('secondary_calibration_enable'): # Only execute if secondary calibration is enabled for the hutch
-                    P.put('ok', 0)
-                    P.put('busy', 1) # Sets busy flag while calibrating
-                    P.E.write_error( 'secondary calibration')
-                    L.second_calibrate()
-                    P.put('secondary_calibration_enable', 0)
-                    P.E.write_error( ' secondary calibration done')
-                    continue
-                pass
             L.check_jump()   # Checks for bucket jumps
             if P.get('fix_bucket') and L.buckets != 0 and P.get('enable'):
                 P.put('ok', 0)
