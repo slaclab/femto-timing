@@ -63,16 +63,16 @@ class PVS():
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = str(self.locker_config['laser_trigger'])
         # Notepad PVs for drift correction feature
-        drift_correction_signal[nm] = dev_base[nm]+'matlab:29'
-        drift_correction_value[nm] = dev_base[nm]+'matlab:04'
-        drift_correction_offset[nm] = dev_base[nm]+'matlab:05'
-        drift_correction_gain[nm] = dev_base[nm]+'matlab:06'
+        drift_correction_signal[nm] = dev_base[nm]+'drift_correct_sig'
+        drift_correction_value[nm] = dev_base[nm]+'drift_correct_val'
+        drift_correction_offset[nm] = dev_base[nm]+'drift_correct_off'
+        drift_correction_gain[nm] = dev_base[nm]+'drift_correct_gain'
         drift_correction_dir[nm] = self.locker_config['drift_correction_dir']
-        drift_correction_smoothing[nm] = dev_base[nm]+'matlab:07'
-        drift_correction_accum[nm] = dev_base[nm]+'matlab:09'
+        drift_correction_smoothing[nm] = dev_base[nm]+'drift_correct_smooth'
+        drift_correction_accum[nm] = dev_base[nm]+'drift_correct_accum'
         use_drift_correction[nm] = self.locker_config['use_drift_correction']
         use_dither[nm] = self.locker_config['use_dither']
-        dither_level[nm] = dev_base[nm]+'matlab:08'
+        dither_level[nm] = dev_base[nm]+'dither'
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
         
         while not (self.name in namelist):
@@ -357,7 +357,7 @@ class locker():
             if ( self.drift_initialized ):
                 if ( dc != self.dc_last ):           
                     if ( accum == 1 ): # if drift correction accumulation is enabled
-                        #TODO: Pull these limits from the associated matlab PV
+                        #TODO: Pull these limits from the associated PV
                         self.drift_last = self.drift_last + (de- self.drift_last) / ds; # smoothing
                         self.drift_last = max(-.001, self.drift_last) # floor at 1 ps
                         self.drift_last = min(.001, self.drift_last)#
