@@ -47,8 +47,8 @@ class PVS():
 
         try:
             with open(self.config, 'r') as file:
-                self.locker_config = json.load(file)
-        except json.JSONDecodeError as e:
+                self.locker_config = json.load(file) # Load parameters of current locker from json file
+        except json.JSONDecodeError as e: # Check that json file syntax is correct
             print('Invalid JSON syntax:', e)
 
         # Pull locker configuration data from .json file
