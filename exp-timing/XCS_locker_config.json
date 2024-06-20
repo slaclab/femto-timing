@@ -1,0 +1,9 @@
+{
+    "nm": "XCS",
+    "base": "LAS:FS4:",
+    "laser_trigger": "EVR:LAS:XCS:01:TRIG0:TDES",
+    "drift_correction_dir": 1,
+    "use_drift_correction": true,
+    "use_dither": true,
+    "bucket_correction_delay": "LAS:FS4:VIT:bucket_correct_dly"
+}

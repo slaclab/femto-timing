@@ -1,101 +1,102 @@
 #time_tool.py
 import time
-from pylab import *
+import numpy as np
 import watchdog
 from psp.Pv import Pv
 import sys
-import random  # random number generator for secondary calibration
-from scipy.optimize import leastsq # for secondary calibration
+
 class time_tool():
     def __init__ (self, sys='NULL'): 
-
         if sys == 'FS11': # set up for new bay 1 laser
-            print 'starting FS11'
+            print('starting FS11')
             self.delay = 0.1
             pvname = 'XPP:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS11:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS11:VIT:'  
             stagename = 'XPP:LAS:MMN:16'  # delay stage for time tool
             ipmname = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'FS14':  # set up FS14 system
             print('starting FS14 pcav2ttdrift')
             self.delay = 0.1 # 1 second delay
             pvname = 'TMO:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS14:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS14:VIT:'
             stagename = 'LM1K4:COM_MP2_DLY1'  # delay stage for time tool
             ipmname = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
         elif sys == 'XPP':  # set up xpp system
-            print 'starting XPP'''
+            print('starting XPP')
             self.delay = 0.1 # 1 second delay
             pvname = 'XPP:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS3:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS3:VIT:'
             stagename = 'XPP:LAS:MMN:16'  # delay stage for time tool
             ipmname = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'XCS':  # set up xcs system
-            print 'starting XCS'
+            print('starting XCS')
             self.delay = 0.1 # 1 second delay
             pvname = 'XCS:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS4:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS4:VIT:'
             stagename = 'XCS:LAS:MMN:01'  # delay stage for time tool
             ipmname = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'MFX':  # set up xcs system
-            print 'starting MFX'
+            print('starting MFX')
             self.delay = 0.1 # 1 second delay
             pvname = 'MFX:TT:01:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS45:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS45:VIT:'
             stagename = 'MFX:LAS:MMN:06'  # delay stage for time tool
             ipmname = 'MFX:DG2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'CXI':  # set up cxi system
-            print 'starting CXI'''
+            print('starting CXI')
             self.delay = 0.1 # 1 second delay
             pvname = 'CXI:TT:01:TTALL' #time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS5:VIT:matlab:' #start of matlab names
+            dev_base = 'LAS:FS5:VIT:'
             stagename = 'CXI:LAS:MMN:01'  # delay stage for time tool
             #stagename = 'CXI:USR:MMN:25'  # delay stage for time tool
             ipmname = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
         else:
-            print sys + '  not found, exiting'
+            print(sys+' not found, exiting')
             exit()
         
         self.ttpv = Pv(pvname)
         self.ttpv.connect(timeout=1.0) # connect to pv
         self.stagepv = Pv(stagename)
         self.stagepv.connect(timeout=1.0)
-	self.ipmpv = Pv(ipmname)
-	self.ipmpv.connect(timeout=1.0)
-        self.matlab_pv = dict()  # will hold list of pvs
+        self.ipmpv = Pv(ipmname)
+        self.ipmpv.connect(timeout=1.0)
+        self.drift_correct_pv = dict()  # will hold list of IOC pvs
         self.values = dict() # will hold the numbers from the time tool
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.nm = ['watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm','dcsignal'] #list of internal names
-        for n in range(0,10): # loop over pvs to create
-            base = matlab_prefix + str(n+matlab_start) # base pv name
-            self.matlab_pv[self.nm[n]] = [Pv(base), Pv(base+'.LOW'), Pv(base+'.HIGH'), Pv(base+'.DESC')]  # pv with normal, low and high
+        self.drift_correct_pv[0] = dev_base+'watchdog'
+        self.drift_correct_pv[1] = dev_base+'pix'
+        self.drift_correct_pv[2] = dev_base+'fs'
+        self.drift_correct_pv[3] = dev_base+'amp'
+        self.drift_correct_pv[4] = dev_base+'amp_sec'
+        self.drift_correct_pv[5] = dev_base+'ref'
+        self.drift_correct_pv[6] = dev_base+'FWHM'
+        self.drift_correct_pv[7] = dev_base+'stage'
+        self.drift_correct_pv[8] = dev_base+'ipm'
+        self.drift_correct_pv[9] = dev_base+'drift_correct_sig'
+        for n in range(0,9):
+            self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
             for x in range(0,4):
-                self.matlab_pv[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various VPs.     
+                    self.drift_correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
             for x in range(0,3):
-		self.matlab_pv[self.nm[n]][x].get(ctrl=True, timeout=1.0)
-            self.matlab_pv[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
-        self.W = watchdog.watchdog(self.matlab_pv[self.nm[0]][0]) # initialize watcdog   
+                self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)
+                self.drift_correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
+        self.W = watchdog.watchdog(self.drift_correct[self.nm[0]][0]) # initialize watchdog   
         
     def read_write(self):   
-         self.ttpv.get(ctrl=True, timeout=1.0) # get TT array data
-         self.stagepv.get(ctrl=True, timeout=1.0) # get TT stage position
-         self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
-         for n in range(1,9):
-             self.old_values[self.nm[n]] = self.matlab_pv[self.nm[n]][0].value # old PV values
-             #self.limits[self.nm[n]] = [self.matlab_pv[self.nm[n]][1].value, self.matlab_pv[self.nm[n]][2].value] # limits
-	     if n in range (1,6):
-                 self.matlab_pv[self.nm[n]][0].put(value = self.ttpv.value[n-1], timeout = 1.0)  # write to matlab PVs 
-             for x in range(0,3):
-                 self.matlab_pv[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
-         self.matlab_pv[self.nm[7]][0].put(value = self.stagepv.value, timeout = 1.0)  # read stage position
-         self.matlab_pv[self.nm[8]][0].put(value = self.ipmpv.value, timeout = 1.0) # read/write intensity profile
+        self.ttpv.get(ctrl=True, timeout=1.0) # get TT array data
+        self.stagepv.get(ctrl=True, timeout=1.0) # get TT stage position
+        self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
+        for n in range(1,9):
+             self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
+             #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
+        if n in range (1,6):
+            self.drift_correct[self.nm[n]][0].put(value = self.ttpv.value[n-1], timeout = 1.0)  # write to matlab PVs 
+            for x in range(0,3):
+                self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
+        self.drift_correct[self.nm[7]][0].put(value = self.stagepv.value, timeout = 1.0)  # read stage position
+        self.drift_correct[self.nm[8]][0].put(value = self.ipmpv.value, timeout = 1.0) # read/write intensity profile
          #print self.ttpv.value
          #print 'stage position' # TEMP
          #print self.stagepv.value # TEMP
@@ -104,22 +105,22 @@ class time_tool():
 
          # need to decide whether to output to the drift correction signal
          # 1. IPM must be in range
-	 if ( self.ipmpv.value > self.matlab_pv['ipm'][1].value ) and ( self.ipmpv.value < self.matlab_pv['ipm'][2].value ):
+        if ( self.ipmpv.value > self.drift_correct['ipm'][1].value ) and (self.ipmpv.value < self.drift_correct['ipm'][2].value ):
              #print 'intensity profile good'
              # 2. amp must be in range
-             if ( self.matlab_pv['amp'][0].value > self.matlab_pv['amp'][1].value ) and ( self.matlab_pv['amp'][0].value < self.matlab_pv['amp'][2].value ):
+             if ( self.drift_correct['amp'][0].value > self.drift_correct['amp'][1].value ) and ( self.drift_correct['amp'][0].value < self.drift_correct['amp'][2].value ):
                  #print 'TT edge fit good'
                  # 3. pix must be different from last pix, and stage must not be moving
-                 if ( self.matlab_pv['fs'][0].value <> self.old_values['fs'] ) and ( self.matlab_pv['Stage'][0].value == self.old_values['Stage'] ):
+                 if ( self.drift_correct['fs'][0].value != self.old_values['fs'] ) and ( self.drift_correct['Stage'][0].value == self.old_values['Stage'] ):
                      #print 'Data is fresh. New pix value:'
-                     #print self.matlab_pv['pix'][0].value
+                     #print self.drift_correct['pix'][0].value
                      # at this point, know that data is good and need to move it over to the drift correction algo
-                     # self.matlab_pv['dcsignal'][0].put(value = self.matlab_pv['pix'][0].value, timeout = 1.0)
-                     self.matlab_pv['dcsignal'][0].put(value = self.matlab_pv['fs'][0].value, timeout = 1.0)
+                     # self.drift_correct['dcsignal'][0].put(value = self.drift_correct['pix'][0].value, timeout = 1.0)
+                     self.drift_correct['dcsignal'][0].put(value = self.drift_correct['fs'][0].value, timeout = 1.0)
                  #else:
                      #print 'Data is stale or stage is moving'
                      #print self.old_values['pix']
-                     #print self.matlab_pv['pix'][0].value
+                     #print self.drift_correct['pix'][0].value
              #else:
                  #print 'TT edge fit bad'
          #else:
@@ -133,12 +134,12 @@ def run():  # just a loop to keep recording
         T = time_tool(sys.argv[1])
     while T.W.error == 0:
         T.W.check() # check / update watchdog counter
-        pause(T.delay)
+        time.sleep(T.delay)
         try:
             T.read_write()  # collects the data 
         except:
             del T
-            print 'crashed, restarting'
+            print('Crashed, restarting')
             T = time_tool() # create again
             if T.W.error:
                 return        

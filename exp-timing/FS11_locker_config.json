@@ -1,0 +1,9 @@
+{
+    "nm": "FS11",
+    "base": "LAS:FS11:",
+    "laser_trigger": "EVR:LAS:LHN:01:TRIG3:TDES",
+    "drift_correction_dir": 1,
+    "use_drift_correction": true,
+    "use_dither": false,
+    "bucket_correction_delay": "LAS:FS11:VIT:bucket_correct_dly"
+}

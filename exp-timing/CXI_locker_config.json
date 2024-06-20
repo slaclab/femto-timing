@@ -1,0 +1,9 @@
+{
+    "nm": "CXI",
+    "base": "LAS:FS5:",
+    "laser_trigger": "EVR:LAS:CXI:01:TRIG3:TDES",
+    "drift_correction_dir": -1,
+    "use_drift_correction": true,
+    "use_dither": false,
+    "bucket_correction_delay": "LAS:FS5:VIT:bucket_correct_dly"
+}

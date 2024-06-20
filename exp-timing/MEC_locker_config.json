@@ -1,0 +1,9 @@
+{
+    "nm": "MEC",
+    "base": "LAS:FS6:",
+    "laser_trigger": "MEC:LAS:EVR:01:TRIG5:TDES",
+    "drift_correction_dir": 1,
+    "use_drift_correction": false,
+    "use_dither": false,
+    "bucket_correction_delay": "LAS:FS6:VIT:bucket_correct_dly"
+}
