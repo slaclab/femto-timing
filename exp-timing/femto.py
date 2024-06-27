@@ -236,6 +236,7 @@ class locker():
          self.drift_last= 0; # used for drift correction when activated
          self.drift_initialized = False # will be true after first cycle
          self.C = time_interval_counter(self.P) # creates a time interval counter object
+         self.move_flag = 0
 
     def locker_status(self):
         """Checks if core locker parameters are within optimal range and updates 'OK' flags accordingly."""
@@ -441,6 +442,30 @@ class locker():
         self.correction_t = time.time() # Time bucket jump was corrected
         self.corr_diff = self.correction_t - self.detection_t # How long it took to correct jump in seconds
         self.P.put('bucket_correction_delay', self.corr_diff) # So bucket correction delay can be archived
+
+    def move_time_delay(self):
+        """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
+        try:
+            if abs(self.pc_diff) > 1e-6 or self.move_flag == 1: # Checks if phase motor set position has changed
+                self.curr_time = self.C.get_time() # Current counter time
+                T = trigger(self.P)
+                t_trig = T.get_ns()
+                S = sawtooth(self.pc_out, t_trig, self.P.get('delay'), self.P.get('offset'), 1/self.laser_f) # Calculate theoretical laser time 
+                print('Counter Time: ', self.curr_time)
+                print('Theoretical Time: ', S.t)
+                print(self.curr_time - S.t)
+                if abs(self.curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
+                    move_stop = time.time() # Pull time of last set time move
+                    move_delay = move_stop - self.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
+                    print('Move delay: ', move_delay) #troubleshooting
+                    self.P.put('move_time_delay', move_delay)
+                    self.move_flag = 0
+                else:
+                    self.move_flag = 1
+        except AttributeError as a:
+            print('Attribute error in move_time_delay:', a)
+        except TypeError as t:
+            print('Type error in move_time_delay', t)
        
             
 class sawtooth():
@@ -635,6 +660,7 @@ def date_time():
 def move_time_delay(P,L,T):
     """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
     try:
+        move_delay_last = P.get()
         if abs(L.pc_diff) > 1e-6 or move_flag == 1: # Checks if phase motor set position has changed
             C = time_interval_counter(P)
             curr_time = C.get_time() # Current counter time
@@ -700,7 +726,7 @@ def femto(name='NULL'):
             P.put('ok', 1)
             if P.get('enable'): # Checks if time control is enabled
                 L.set_time() # Sets laser time
-                move_time_delay(P,L,T) # Record delay between set time change and change in counter readback
+                L.move_time_delay() # Record delay between set time change and change in counter readback
             D.run()  # Ensures degrees and ns time value match
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
