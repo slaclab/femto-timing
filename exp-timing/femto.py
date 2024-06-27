@@ -640,10 +640,13 @@ def move_time_delay(P,L,T):
             curr_time = C.get_time() # Current counter time
             t_trig = T.get_ns()
             S = sawtooth(L.pc_out, t_trig, P.get('delay'), P.get('offset'), 1/L.laser_f) # Calculate theoretical laser time 
+            print(curr_time)
+            print(S.t)
+            print(curr_time - S.t)
             if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
                 move_stop = time.time() # Pull time of last set time move
                 move_delay = str(move_stop - L.move_start) # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
-                print(move_delay)
+                print(move_delay) #troubleshooting
                 P.put('move_time_delay', move_delay)
     except AttributeError as a:
         print('Attribute error in move_time_delay:', a)
