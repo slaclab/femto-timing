@@ -451,13 +451,9 @@ class locker():
                 T = trigger(self.P)
                 t_trig = T.get_ns()
                 S = sawtooth(self.pc_out, t_trig, self.P.get('delay'), self.P.get('offset'), 1/self.laser_f) # Calculate theoretical laser time 
-                print('Counter Time: ', self.curr_time)
-                print('Theoretical Time: ', S.t)
-                print(self.curr_time - S.t)
                 if abs(self.curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
                     move_stop = time.time() # Pull time of last set time move
                     move_delay = move_stop - self.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
-                    print('Move delay: ', move_delay) #troubleshooting
                     self.P.put('move_time_delay', move_delay)
                     self.move_flag = 0
                 else:
