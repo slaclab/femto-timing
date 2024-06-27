@@ -638,7 +638,7 @@ def move_time_delay():
         curr_time = time_interval_counter.get_time() # Current counter time
         t_trig = trigger.get_ns()
         S = sawtooth(locker.pc_out, t_trig, PVS.get('delay'), PVS.get('offset'), 1/locker.laser_f) # Calculate theoretical laser time 
-        if abs(curr_time - sawtooth.t) < 0.25: # Checks if counter reading is within 250 ps of set time
+        if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
             move_stop = time.time() # Pull time of last set time move
             move_delay = move_stop - locker.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
             PVS.put('move_time_delay', move_delay)
