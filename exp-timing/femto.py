@@ -632,17 +632,19 @@ def date_time():
     return curr_time
 
 
-def move_time_delay(P):
+def move_time_delay(P,L,T):
     """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
-    pvs = P
-    if abs(locker.pc_diff) > 1e-6: # Checks if phase motor set position has changed
-        curr_time = time_interval_counter.get_time() # Current counter time
-        t_trig = trigger.get_ns()
-        S = sawtooth(locker.pc_out, t_trig, pvs.get('delay'), pvs.get('offset'), 1/locker.laser_f) # Calculate theoretical laser time 
-        if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
-            move_stop = time.time() # Pull time of last set time move
-            move_delay = move_stop - locker.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
-            pvs.put('move_time_delay', move_delay)
+    try:
+        if abs(L.pc_diff) > 1e-6: # Checks if phase motor set position has changed
+            curr_time = time_interval_counter.get_time() # Current counter time
+            t_trig = T.get_ns()
+            S = sawtooth(L.pc_out, t_trig, P.get('delay'), P.get('offset'), 1/L.laser_f) # Calculate theoretical laser time 
+            if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
+                move_stop = time.time() # Pull time of last set time move
+                move_delay = move_stop - L.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
+                P.put('move_time_delay', move_delay)
+    except AttributeError as e:
+        print('Attribute error in move_time_delay:', e)
 
 
 def femto(name='NULL'):
@@ -688,7 +690,7 @@ def femto(name='NULL'):
             P.put('ok', 1)
             if P.get('enable'): # Checks if time control is enabled
                 L.set_time() # Sets laser time
-                move_time_delay(P) # Record delay between set time change and change in counter readback
+                move_time_delay(P,L,T) # Record delay between set time change and change in counter readback
             D.run()  # Ensures degrees and ns time value match
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
