@@ -636,7 +636,8 @@ def move_time_delay(P,L,T):
     """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
     try:
         if abs(L.pc_diff) > 1e-6: # Checks if phase motor set position has changed
-            curr_time = time_interval_counter.get_time() # Current counter time
+            C = time_interval_counter(P)
+            curr_time = C.get_time() # Current counter time
             t_trig = T.get_ns()
             S = sawtooth(L.pc_out, t_trig, P.get('delay'), P.get('offset'), 1/L.laser_f) # Calculate theoretical laser time 
             if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
