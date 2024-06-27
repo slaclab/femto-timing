@@ -381,8 +381,8 @@ class locker():
         self.pc_diff = M.get_position() - pc  # difference between current phase motor and desired time        
         if abs(self.pc_diff) > 1e-6:
             M.move(pc) # moves the phase motor
-        self.pc_out = pc # For move time delay function
-        self.move_start = time.time() # Time that set time was changed - used by the move_time_delay() function. 
+            self.move_start = time.time() # Time that set time was changed - used by the move_time_delay() function.
+            self.pc_out = pc # For move time delay function 
       
     def check_jump(self):
         """Takes the trigger time, phase motor position, and counter time, calculates the number of 3.808 GHz bucket jumps."""
@@ -641,13 +641,13 @@ def move_time_delay(P,L,T):
             curr_time = C.get_time() # Current counter time
             t_trig = T.get_ns()
             S = sawtooth(L.pc_out, t_trig, P.get('delay'), P.get('offset'), 1/L.laser_f) # Calculate theoretical laser time 
-            print(curr_time)
-            print(S.t)
+            print('Counter Time: '+curr_time)
+            print('Theoretical Time: '+S.t)
             print(curr_time - S.t)
             if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
                 move_stop = time.time() # Pull time of last set time move
                 move_delay = str(move_stop - L.move_start) # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
-                print(move_delay) #troubleshooting
+                print('Move delay: '+move_delay) #troubleshooting
                 P.put('move_time_delay', move_delay)
                 move_flag = 0
             else:
