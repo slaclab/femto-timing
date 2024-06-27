@@ -378,8 +378,8 @@ class locker():
         if self.P.get('enable_trig'): # Full routine when trigger can move
             if T.get_ns() != trig:   # need to move
                 T.set_ns(trig) # sets the trigger
-        pc_diff = M.get_position() - pc  # difference between current phase motor and desired time        
-        if abs(pc_diff) > 1e-6:
+        self.pc_diff = M.get_position() - pc  # difference between current phase motor and desired time        
+        if abs(self.pc_diff) > 1e-6:
             M.move(pc) # moves the phase motor
         self.move_start = time.time() # Time that set time was changed - used by the move_time_delay() function. 
       
@@ -635,7 +635,8 @@ def move_time_delay():
     """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
     if abs(locker.pc_diff) > 1e-6: # Checks if phase motor set position has changed
         curr_time = time_interval_counter.get_time() # Current counter time
-        S = sawtooth(locker.pc, locker.t_trig, locker.d['delay'], locker.d['offset'], 1/locker.laser_f) # Calculate theoretical laser time 
+        t_trig = trigger.get_ns()
+        S = sawtooth(locker.pc, t_trig, locker.d['delay'], locker.d['offset'], 1/locker.laser_f) # Calculate theoretical laser time 
         if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
             move_stop = time.time() # Pull time of last set time move
             move_delay = move_stop - locker.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
