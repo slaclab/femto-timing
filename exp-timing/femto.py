@@ -36,6 +36,7 @@ class PVS():
         drift_correction_smoothing = dict()  # Smoothing factor that reduces the drift correction step size
         drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term)
         bucket_correction_delay = dict() # Tracks the amount of time between bucket jump detection and correction
+        move_delay = dict()
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
         use_dither = dict() # Used to allow fast dither of timing
@@ -62,7 +63,6 @@ class PVS():
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = str(self.locker_config['laser_trigger'])
-        # Notepad PVs for drift correction feature
         drift_correction_signal[nm] = dev_base[nm]+'drift_correct_sig'
         drift_correction_value[nm] = dev_base[nm]+'drift_correct_val'
         drift_correction_offset[nm] = dev_base[nm]+'drift_correct_off'
@@ -74,6 +74,7 @@ class PVS():
         use_dither[nm] = self.locker_config['use_dither']
         dither_level[nm] = dev_base[nm]+'dither'
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
+        move_delay[nm] = str(self.locker_config['move_time_delay'])
         
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following: ')
@@ -131,6 +132,7 @@ class PVS():
         self.pvlist['lock_enable'] = Pv(dev_base[self.name]+'RF_LOCK_ENABLE')
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
         self.pvlist['bucket_correction_delay'] = Pv(bucket_correction_delay[self.name])
+        self.pvlist['move_time_delay'] = Pv(move_delay[self.name]) # Delay between when set time is changed and when counter readback changes
   
         if self.use_drift_correction:
             self.pvlist['drift_correction_signal'] = Pv(drift_correction_signal[self.name])
@@ -343,7 +345,6 @@ class locker():
         pc = np.mod(pc, 1/self.laser_f)
         ntrig = round((t - self.d['delay'] - (1/self.trigger_f)) * self.trigger_f) # paren was after laser_f
         trig = ntrig / self.trigger_f
-
         if self.P.use_drift_correction:
             dc = self.P.get('drift_correction_signal') / 1000; # readback is in ps, but drift correction is ns, need to convert
             do = self.P.get('drift_correction_offset') 
@@ -369,9 +370,7 @@ class locker():
                 self.drift_last = min(.001, self.drift_last)#
                 self.dc_last = dc
                 self.drift_initialized = True # will average next time (ugly)    
-
             pc = pc - (dd * dg * self.drift_last); # fix phase control. 
-
         if self.P.use_dither:
             dx = self.P.get('dither_level') 
             pc = pc + (random.random()-0.5)* dx / 1000 # uniformly distributed random. 
@@ -379,10 +378,10 @@ class locker():
         if self.P.get('enable_trig'): # Full routine when trigger can move
             if T.get_ns() != trig:   # need to move
                 T.set_ns(trig) # sets the trigger
-
         pc_diff = M.get_position() - pc  # difference between current phase motor and desired time        
         if abs(pc_diff) > 1e-6:
             M.move(pc) # moves the phase motor
+        self.move_start = time.time() # Time that set time was changed - used by the move_time_delay() function. 
       
     def check_jump(self):
         """Takes the trigger time, phase motor position, and counter time, calculates the number of 3.808 GHz bucket jumps."""
@@ -632,6 +631,17 @@ def date_time():
     return curr_time
 
 
+def move_time_delay():
+    """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
+    if abs(locker.pc_diff) > 1e-6: # Checks if phase motor set position has changed
+        curr_time = time_interval_counter.get_time() # Current counter time
+        S = sawtooth(locker.pc, locker.t_trig, locker.d['delay'], locker.d['offset'], 1/locker.laser_f) # Calculate theoretical laser time 
+        if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
+            move_stop = time.time() # Pull time of last set time move
+            move_delay = move_stop - locker.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
+            PVS.put('move_time_delay', move_delay)
+
+
 def femto(name='NULL'):
     """Takes name of locking system, performs complete locking and timing routine."""
     P = PVS(name)
@@ -674,7 +684,8 @@ def femto(name='NULL'):
             P.put('unfixed_error', L.bucket_error)
             P.put('ok', 1)
             if P.get('enable'): # Checks if time control is enabled
-                L.set_time() # Sets laser time   
+                L.set_time() # Sets laser time
+                move_time_delay() # Record delay between set time change and change in counter readback
             D.run()  # Ensures degrees and ns time value match
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
