@@ -635,7 +635,6 @@ def date_time():
 def move_time_delay(P,L,T):
     """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
     try:
-        move_flag = 0
         if abs(L.pc_diff) > 1e-6 or move_flag == 1: # Checks if phase motor set position has changed
             C = time_interval_counter(P)
             curr_time = C.get_time() # Current counter time
