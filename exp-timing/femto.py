@@ -632,16 +632,16 @@ def date_time():
     return curr_time
 
 
-def move_time_delay():
+def move_time_delay(P):
     """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
     if abs(locker.pc_diff) > 1e-6: # Checks if phase motor set position has changed
         curr_time = time_interval_counter.get_time() # Current counter time
         t_trig = trigger.get_ns()
-        S = sawtooth(locker.pc_out, t_trig, PVS.get('delay'), PVS.get('offset'), 1/locker.laser_f) # Calculate theoretical laser time 
+        S = sawtooth(locker.pc_out, t_trig, P.get('delay'), P.get('offset'), 1/locker.laser_f) # Calculate theoretical laser time 
         if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
             move_stop = time.time() # Pull time of last set time move
             move_delay = move_stop - locker.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
-            PVS.put('move_time_delay', move_delay)
+            P.put('move_time_delay', move_delay)
 
 
 def femto(name='NULL'):
@@ -687,7 +687,7 @@ def femto(name='NULL'):
             P.put('ok', 1)
             if P.get('enable'): # Checks if time control is enabled
                 L.set_time() # Sets laser time
-                move_time_delay() # Record delay between set time change and change in counter readback
+                move_time_delay(P) # Record delay between set time change and change in counter readback
             D.run()  # Ensures degrees and ns time value match
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
