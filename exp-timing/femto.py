@@ -136,7 +136,6 @@ class PVS():
         self.pvlist['bucket_correction_delay'] = Pv(bucket_correction_delay[self.name])
         self.pvlist['move_time_delay'] = Pv(move_delay[self.name]) # Delay between when set time is changed and when counter readback changes
         self.pvlist['loop_time'] = Pv(script_loop_time[self.name]) # Run time of the main program loop 
-  
         if self.use_drift_correction:
             self.pvlist['drift_correction_signal'] = Pv(drift_correction_signal[self.name])
             self.pvlist['drift_correction_value'] = Pv(drift_correction_value[self.name])
@@ -158,7 +157,7 @@ class PVS():
         self.version_pv.put(self.version, timeout = 10.0)
         self.E = error_output(self.error_pv)
         self.E.write_error('OK')
-        
+
     def get(self, name):
         """Takes a PV name, connects to it, and returns its value."""
         if self.err_idx == 0: # Start of a new PV error report cycle
@@ -172,7 +171,7 @@ class PVS():
             return 0 
         finally:
             self.PV_err_report()
-    
+  
     def get_last(self, name):
         """Takes a PV name and returns its last value, without connecting to the PV."""
         return self.pvlist[name].value                
@@ -240,6 +239,7 @@ class locker():
          self.drift_initialized = False # will be true after first cycle
          self.C = time_interval_counter(self.P) # creates a time interval counter object
          self.move_flag = 0
+         self.bucket_flag = 0
 
     def locker_status(self):
         """Checks if core locker parameters are within optimal range and updates 'OK' flags accordingly."""
@@ -442,9 +442,9 @@ class locker():
         self.P.E.write_error('Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-        self.correction_t = time.time() # Time bucket jump was corrected
-        self.corr_diff = self.correction_t - self.detection_t # How long it took to correct jump in seconds
-        self.P.put('bucket_correction_delay', self.corr_diff) # So bucket correction delay can be archived
+        #self.correction_t = time.time() # Time bucket jump was corrected
+        #self.corr_diff = self.correction_t - self.detection_t # How long it took to correct jump in seconds
+        #self.P.put('bucket_correction_delay', self.corr_diff) # So bucket correction delay can be archived
 
     def move_time_delay(self):
         """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
@@ -455,12 +455,24 @@ class locker():
                 t_trig = T.get_ns()
                 S = sawtooth(self.pc_out, t_trig, self.P.get('delay'), self.P.get('offset'), 1/self.laser_f) # Calculate theoretical laser time 
                 if abs(self.curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
-                    move_stop = time.time() # Pull time of last set time move
+                    move_stop = time.time() # Time of change in counter time
                     move_delay = move_stop - self.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
                     self.P.put('move_time_delay', move_delay)
                     self.move_flag = 0
                 else:
                     self.move_flag = 1
+            if self.buckets != 0 or self.bucket_flag == 1:
+                self.curr_time = self.C.get_time() # Current counter time
+                T = trigger(self.P)
+                t_trig = T.get_ns()
+                S = sawtooth(self.pc_out, t_trig, self.P.get('delay'), self.P.get('offset'), 1/self.laser_f) # Calculate theoretical laser time 
+                if abs(self.curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
+                    self.correction_t = time.time() # Time of change in counter time
+                    self.corr_diff = self.correction_t - self.move_start # Calculates approximate time in seconds it took to make see change in time on counter due to bucket correction. Imprecise because femto.py loop delay.
+                    self.P.put('bucket_correction_delay', self.corr_diff)
+                    self.bucket_flag = 0
+                else:
+                    self.bucket_flag = 1
         except AttributeError as a:
             print('Attribute error in move_time_delay:', a)
         except TypeError as t:
@@ -654,32 +666,6 @@ def date_time():
     loc_time = time.localtime()
     curr_time = time.asctime(loc_time)
     return curr_time
-
-
-def move_time_delay(P,L,T):
-    """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
-    try:
-        move_delay_last = P.get()
-        if abs(L.pc_diff) > 1e-6 or move_flag == 1: # Checks if phase motor set position has changed
-            C = time_interval_counter(P)
-            curr_time = C.get_time() # Current counter time
-            t_trig = T.get_ns()
-            S = sawtooth(L.pc_out, t_trig, P.get('delay'), P.get('offset'), 1/L.laser_f) # Calculate theoretical laser time 
-            print('Counter Time: ', curr_time)
-            print('Theoretical Time: ', S.t)
-            print(curr_time - S.t)
-            if abs(curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
-                move_stop = time.time() # Pull time of last set time move
-                move_delay = move_stop - L.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
-                print('Move delay: ', move_delay) #troubleshooting
-                P.put('move_time_delay', move_delay)
-                move_flag = 0
-            else:
-                move_flag = 1
-    except AttributeError as a:
-        print('Attribute error in move_time_delay:', a)
-    except TypeError as t:
-        print('Type error in move_time_delay', t)
 
 
 def femto(name='NULL'):
