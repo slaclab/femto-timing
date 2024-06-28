@@ -37,7 +37,7 @@ class PVS():
         drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term)
         bucket_correction_delay = dict() # Tracks the amount of time between bucket jump detection and correction
         move_delay = dict()
-        script_loop_time = dict()
+        script_loop_time = dict() # Tracks the cycle time of one main program loop
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
         use_dither = dict() # Used to allow fast dither of timing
