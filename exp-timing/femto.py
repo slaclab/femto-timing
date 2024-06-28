@@ -37,6 +37,7 @@ class PVS():
         drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term)
         bucket_correction_delay = dict() # Tracks the amount of time between bucket jump detection and correction
         move_delay = dict()
+        script_loop_time = dict()
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
         use_dither = dict() # Used to allow fast dither of timing
@@ -75,6 +76,7 @@ class PVS():
         dither_level[nm] = dev_base[nm]+'dither'
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
         move_delay[nm] = str(self.locker_config['move_time_delay'])
+        script_loop_time[nm] = str(self.locker_config['loop_time'])
         
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following: ')
@@ -133,6 +135,7 @@ class PVS():
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
         self.pvlist['bucket_correction_delay'] = Pv(bucket_correction_delay[self.name])
         self.pvlist['move_time_delay'] = Pv(move_delay[self.name]) # Delay between when set time is changed and when counter readback changes
+        self.pvlist['loop_time'] = Pv(script_loop_time[self.name]) # Run time of the main program loop 
   
         if self.use_drift_correction:
             self.pvlist['drift_correction_signal'] = Pv(drift_correction_signal[self.name])
@@ -696,6 +699,7 @@ def femto(name='NULL'):
     while W.error == 0:   # MAIN PROGRAM LOOP
         time.sleep(0.1)
         try:   
+            loop_start = time.time()
             W.check()
             P.put('busy', 0)
             L.locker_status()  # Checks if the locking system is OK
@@ -724,6 +728,9 @@ def femto(name='NULL'):
                 L.set_time() # Sets laser time
                 L.move_time_delay() # Record delay between set time change and change in counter readback
             D.run()  # Ensures degrees and ns time value match
+            loop_stop = time.time()
+            loop_time = loop_start - loop_stop
+            P.put('loop_time', loop_time)
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
             del P  #does this work?
