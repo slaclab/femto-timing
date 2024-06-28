@@ -729,7 +729,7 @@ def femto(name='NULL'):
                 L.move_time_delay() # Record delay between set time change and change in counter readback
             D.run()  # Ensures degrees and ns time value match
             loop_stop = time.time()
-            loop_time = loop_start - loop_stop
+            loop_time = loop_stop - loop_start
             P.put('loop_time', loop_time)
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
