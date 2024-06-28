@@ -442,9 +442,6 @@ class locker():
         self.P.E.write_error('Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-        #self.correction_t = time.time() # Time bucket jump was corrected
-        #self.corr_diff = self.correction_t - self.detection_t # How long it took to correct jump in seconds
-        #self.P.put('bucket_correction_delay', self.corr_diff) # So bucket correction delay can be archived
 
     def move_time_delay(self):
         """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
