@@ -6,6 +6,6 @@
     "use_drift_correction": true,
     "use_dither": true,
     "bucket_correction_delay": "LAS:FS4:VIT:bucket_correct_dly",
-    "move_time_delay": "LAS:UNDS:FLOAT:74",
+    "move_time_delay": "LAS:UNDS:FLOAT:72",
     "loop_time": "LAS:UNDS:FLOAT:111"
 }
