@@ -149,7 +149,7 @@ while True:
     print(Cntl_output)
     print('feedback delta')
     print(cntl_delta)
-    #epics.caput(SXR_CAST_PS_PV_W, Cntl_output)
+    epics.caput(SXR_CAST_PS_PV_W, Cntl_output)
     time_err_avg_prev = time_err_avg
     cntr = cntr + 1
     epics.caput(HB_PV, cntr)
