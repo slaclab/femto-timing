@@ -273,8 +273,6 @@ class locker():
             self.message = 'Laser not indicating lock'
             self.lock_ok = 0
             self.laser_ok = 0
-        if self.P.get('laser_locked') and self.P.get('enable'):
-            self.message = 'Laser OK'
 
     def calibrate(self):
         """Performs a linear sweep of phase motor range, sets the delay and offset values to minimize counter time error."""
