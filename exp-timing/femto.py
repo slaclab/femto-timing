@@ -407,9 +407,13 @@ class locker():
         self.buckets = round(self.terror * self.locking_f)
         self.bucket_error = self.terror - self.buckets / self.locking_f
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0):  # Too wide a range of measurements
+        if (self.C.range > (2 * self.max_jump_error)): # Too wide a range of measurements
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-            self.P.E.write_error('Check counter')
+            self.P.E.write_error('Counter not stable')
+            return
+        if (self.C.range == 0):  # No TIC reading
+            self.buckets = 0  # Do not count as a bucket error if readings are not consistent
+            self.P.E.write_error('No TIC reading')
             return
         self.P.E.write_error('Test Successful') #Temporary test message for MFX
         if (self.C.range > self.instability_thresh):
