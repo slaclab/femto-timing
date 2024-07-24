@@ -413,7 +413,7 @@ class locker():
             return
         if (self.C.range == 0):  # No TIC reading
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-            self.P.E.write_error('No TIC reading')
+            self.P.E.write_error('No counter reading')
             return
         self.P.E.write_error('Test Successful') #Temporary test message for MFX
         if (self.C.range > self.instability_thresh):
