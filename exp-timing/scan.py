@@ -2,9 +2,9 @@ import time
 from epics import caget, caput, cainfo, PV
 
 # setup PVs
-tgt_pv = 'LAS:FS45:VIT:FS_TGT_TIME'
-tgt_time_pv = PV('LAS:FS45:VIT:FS_TGT_TIME')
-ctr_time_pv = PV('LAS:FS45:VIT:FS_CTR_TIME')
+tgt_pv = 'LAS:FS4:VIT:FS_TGT_TIME'
+tgt_time_pv = PV('LAS:FS4:VIT:FS_TGT_TIME')
+ctr_time_pv = PV('LAS:FS4:VIT:FS_CTR_TIME')
 
 # scanning parameters 
 stop = 10 # scan range ns
