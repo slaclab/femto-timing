@@ -714,6 +714,7 @@ def femto(name='NULL'):
             loop_stop = time.time()
             loop_time = loop_stop - loop_start
             P.put('loop_time', loop_time)
+            P.E.write_error('Test Successful') #Temporary test message for MFX
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
             del P  #does this work?
