@@ -138,8 +138,8 @@ class PVS():   # creates pvs
         drift_correction_dir[nm]= 1  # Direction of timetool stage
         drift_correction_smoothing[nm]='LAS:FS4:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS4:VIT:matlab:09'
-        use_drift_correction[nm] = True  
-        use_dither[nm] = True # used to allow fast dither of timing (for special functions)
+        use_drift_correction[nm] = False  
+        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
         dither_level[nm] = 'LAS:FS4:VIT:matlab:08'    
         matlab[nm] = matlab_use
         script_loop_time[nm] = 'LAS:UNDS:FLOAT:111'
