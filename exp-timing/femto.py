@@ -409,6 +409,7 @@ class locker():
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
         if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0):  # Too wide a range of measurements
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
+            self.P.E.write_error('Check counter')
             return
         self.P.E.write_error('Test Successful') #Temporary test message for MFX
         if (self.C.range > self.instability_thresh):
