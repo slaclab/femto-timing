@@ -240,6 +240,7 @@ class locker():
          self.C = time_interval_counter(self.P) # creates a time interval counter object
          self.move_flag = 0
          self.bucket_flag = 0
+         self.stale_cnt = 0 # Counter to determine if TIC is updating
 
     def locker_status(self):
         """Checks if core locker parameters are within optimal range and updates 'OK' flags accordingly."""
@@ -413,9 +414,13 @@ class locker():
             return
         if (self.C.range == 0):  # No TIC reading
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-            self.P.E.write_error('No counter reading')
-            return
-        self.P.E.write_error('Test Successful') #Temporary test message for MFX
+            if (self.stale_cnt < 10):
+                self.stale_cnt += 1
+                return
+            else:
+                self.stale_cnt = 0
+                self.P.E.write_error('No counter reading')
+                return
         if (self.C.range > self.instability_thresh):
             self.P.E.write_error('Counter not stable')
         if abs(self.bucket_error) > self.max_jump_error:
