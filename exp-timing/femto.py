@@ -390,6 +390,7 @@ class locker():
       
     def check_jump(self):
         """Takes the trigger time, phase motor position, and counter time, calculates the number of 3.808 GHz bucket jumps."""
+        self.P.E.write_error('Test Successful') #Temporary test message for MFX
         T = trigger(self.P) # trigger class
         M = phase_motor(self.P) # phase motor     
         t = self.C.get_time()
@@ -714,7 +715,6 @@ def femto(name='NULL'):
             loop_stop = time.time()
             loop_time = loop_stop - loop_start
             P.put('loop_time', loop_time)
-            P.E.write_error('Test Successful') #Temporary test message for MFX
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
             del P  #does this work?
