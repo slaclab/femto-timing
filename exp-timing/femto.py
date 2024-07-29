@@ -68,7 +68,7 @@ class PVS():
         drift_correction_value[nm] = dev_base[nm]+'DRIFT_CORRECT_VAL'
         drift_correction_offset[nm] = dev_base[nm]+'DRIFT_CORRECT_OFF'
         drift_correction_gain[nm] = dev_base[nm]+'DRIFT_CORRECT_GAIN'
-        drift_correction_dir[nm] = self.locker_config['DRIFT_CORRECT_DIR']
+        drift_correction_dir[nm] = self.locker_config['drift_correct_dir']
         drift_correction_smoothing[nm] = dev_base[nm]+'DRIFT_CORRECT_SMOOTH'
         drift_correction_accum[nm] = dev_base[nm]+'DRIFT_CORRECT_ACCUM'
         move_delay[nm] = dev_base[nm]+'MOV_TIME_DLY'
