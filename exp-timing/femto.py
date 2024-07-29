@@ -75,7 +75,7 @@ class PVS():
         script_loop_time[nm] = dev_base[nm]+'LOOP_TIME'
         use_drift_correction[nm] = self.locker_config['use_drift_correction']
         use_dither[nm] = self.locker_config['use_dither']
-        dither_level[nm] = dev_base[nm]+'dither'
+        dither_level[nm] = dev_base[nm]+'DITHER'
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
         
         while not (self.name in namelist):
