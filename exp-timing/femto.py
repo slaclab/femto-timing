@@ -64,19 +64,19 @@ class PVS():
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = str(self.locker_config['laser_trigger'])
-        drift_correction_signal[nm] = dev_base[nm]+'drift_correct_sig'
-        drift_correction_value[nm] = dev_base[nm]+'drift_correct_val'
-        drift_correction_offset[nm] = dev_base[nm]+'drift_correct_off'
-        drift_correction_gain[nm] = dev_base[nm]+'drift_correct_gain'
-        drift_correction_dir[nm] = self.locker_config['drift_correction_dir']
-        drift_correction_smoothing[nm] = dev_base[nm]+'drift_correct_smooth'
-        drift_correction_accum[nm] = dev_base[nm]+'drift_correct_accum'
+        drift_correction_signal[nm] = dev_base[nm]+'DRIFT_CORRECT_SIG'
+        drift_correction_value[nm] = dev_base[nm]+'DRIFT_CORRECT_VAL'
+        drift_correction_offset[nm] = dev_base[nm]+'DRIFT_CORRECT_OFF'
+        drift_correction_gain[nm] = dev_base[nm]+'DRIFT_CORRECT_GAIN'
+        drift_correction_dir[nm] = self.locker_config['DRIFT_CORRECT_DIR']
+        drift_correction_smoothing[nm] = dev_base[nm]+'DRIFT_CORRECT_SMOOTH'
+        drift_correction_accum[nm] = dev_base[nm]+'DRIFT_CORRECT_ACCUM'
+        move_delay[nm] = dev_base[nm]+'MOV_TIME_DLY'
+        script_loop_time[nm] = dev_base[nm]+'LOOP_TIME'
         use_drift_correction[nm] = self.locker_config['use_drift_correction']
         use_dither[nm] = self.locker_config['use_dither']
         dither_level[nm] = dev_base[nm]+'dither'
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
-        move_delay[nm] = str(self.locker_config['move_time_delay'])
-        script_loop_time[nm] = str(self.locker_config['loop_time'])
         
         while not (self.name in namelist):
             print(self.name + '  not found, please enter one of the following: ')
