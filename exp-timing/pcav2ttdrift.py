@@ -3,7 +3,7 @@
 
 This script adapts the structure of time_tool.py, replacing the time-tool logic
 with a box-car average of the pcav data to drive a feed-forward loop on the
-lockers. This uses the same matlab pv that is defined in femto.py and
+lockers. This uses the same drift correction pv that is defined in femto.py and
 time_tool.py for drift compensation. It is possible that the desired drift
 compensation approach should include both time tool data and pcav data, the
 former being for fast corrections and the latter to account for the minute time
@@ -32,8 +32,7 @@ class time_tool():
             print('starting XPP pcav2ttdrift')
             self.delay = 0.1 # 1 second delay
             pvname = 'XPP:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS3:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS3:VIT'
             stagename = 'XPP:LAS:MMN:16'  # delay stage for time tool
             ipmname = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
             pixscale = 1.0e-6
@@ -42,8 +41,7 @@ class time_tool():
             print('starting CXI pcav2ttdrift')
             self.delay = 0.1 # 1 second delay
             pvname = 'CXI:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS5:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS5:VIT'
             stagename = 'CXI:LAS:MMN:04'  # delay stage for time tool
             ipmname = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV         
             pixscale = 1.0e-6
@@ -52,8 +50,7 @@ class time_tool():
             print('starting XCS pcav2ttdrift')
             self.delay = 0.1 # 1 second delay
             pvname = 'XCS:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS4:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS4:VIT'
             stagename = 'XCS:LAS:MMN:01'  # delay stage for time tool
             ipmname = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
             pixscale = 1.0e-6
@@ -62,8 +59,7 @@ class time_tool():
             print('starting FS11 pcav2ttdrift')
             self.delay = 0.1 # 1 second delay
             pvname = 'XPP:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS11:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS11:VIT'
             stagename = 'XPP:LAS:MMN:01'  # delay stage for time tool
             ipmname = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
             self.pixscale = 2.0e-6
@@ -72,8 +68,7 @@ class time_tool():
             print('starting FS14 pcav2ttdrift')
             self.delay = 0.1 # 1 second delay
             pvname = 'TMO:TIMETOOL:TTALL'  # time tool array name
-            matlab_start = 20 # first matlab pv
-            matlab_prefix = 'LAS:FS14:VIT:matlab:'  # start of matlab names
+            dev_base = 'LAS:FS14:VIT'
             stagename = 'LM1K4:COM_MP2_DLY1'  # delay stage for time tool
             ipmname = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
             pixscale = 2.0e-6
@@ -107,34 +102,43 @@ class time_tool():
         self.pcava.connect(timeout=1.0)
         self.pcavb=Pv(pcavpv[1])
         self.pcavb.connect(timeout=1.0)
-        self.matlab_pv = dict()  # will hold list of pvs
         self.values = dict() # will hold the numbers from the time tool
         self.pcavdata = dict() # will hold values from the phase cavities
+        self.drift_correct_pv = dict() # Will hold list of drift correction IOC PVs
         self.pcavbuffer = deque()
         self.ttbuffer = deque(maxlen=100)
         # for n in range(0,60):
         #     self.pcavbuffer.append(0.0)
         self.dccalc = 0.0
         self.pcavcalc=0.0
-        self.limits = dict() # will hold limits from matlab pvs
-        self.old_values = dict() # will hold the old values read from matlab
+        self.limits = dict() # will hold limits from drift correction pvs
+        self.old_values = dict() # will hold the old values read from drift correction pvs
         self.nm = ['watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm','dcsignal','pcavcomp'] #list of internal names
-        for nn in range(0,self.nm.__len__()): # loop over pvs to create'
-            base = matlab_prefix + str(nn+matlab_start) # base pv name
-            self.matlab_pv[self.nm[nn]] = [Pv(base), Pv(base+'.LOW'), Pv(base+'.HIGH'), Pv(base+'.DESC')]  # pv with normal, low and high
+        self.drift_correct_pv[0] = dev_base+'watchdog'
+        self.drift_correct_pv[1] = dev_base+'pix'
+        self.drift_correct_pv[2] = dev_base+'fs'
+        self.drift_correct_pv[3] = dev_base+'amp'
+        self.drift_correct_pv[4] = dev_base+'amp_sec'
+        self.drift_correct_pv[5] = dev_base+'ref'
+        self.drift_correct_pv[6] = dev_base+'FWHM'
+        self.drift_correct_pv[7] = dev_base+'stage'
+        self.drift_correct_pv[8] = dev_base+'ipm'
+        self.drift_correct_pv[9] = dev_base+'drift_correct_sig'
+        for n in range(0,10): # loop over pvs to create'
+            self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
             for x in range(0,4):
-                self.matlab_pv[self.nm[nn]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
+                self.drift_correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
             for x in range(0,3):
-                self.matlab_pv[self.nm[nn]][x].get(ctrl=True, timeout=1.0)
-            self.matlab_pv[self.nm[nn]][3].put(value = self.nm[nn], timeout = 1.0)
-        self.W = watchdog.watchdog(self.matlab_pv[self.nm[0]][0]) # initialize watcdog
+                self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)
+                self.drift_correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
+        self.W = watchdog.watchdog(self.drift_correct[self.nm[0]][0]) # initialize watcdog
         if self.usepcav:
             self.pcava.get(ctrl=True, timeout=1.0)
             self.pcavb.get(ctrl=True, timeout=1.0)
             #pdb.set_trace()
             self.pcavinitial = (self.pcava.value+self.pcavb.value)/2.0
             self.old_values['pcavcomp'] = 0.0
-            self.matlab_pv['pcavcomp'][0].put(value=0.0, timeout=1.0)
+            self.drift_correct['pcavcomp'][0].put(value=0.0, timeout=1.0)
             #pdb.set_trace()
             self.pcavscale = -0.0008439
 
@@ -146,29 +150,29 @@ class time_tool():
             self.stagepv.get(ctrl=True, timeout=1.0) # get TT stage position
             self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
             for n in range(1,9):
-                self.old_values[self.nm[n]] = self.matlab_pv[self.nm[n]][0].value # old PV values
+                self.old_values[self.nm[n]] = self.drift_correct_pv[self.nm[n]][0].value # old PV values
                 if n in range(1,6):
-                    self.matlab_pv[self.nm[n]][0].put(value = self.ttpv.value[n-1], timeout = 1.0)  # write to matlab PVs 
+                    self.drift_correct_pv[self.nm[n]][0].put(value = self.ttpv.value[n-1], timeout = 1.0)  # write to drift correction PVs 
                 for x in range(0,3):
-                    self.matlab_pv[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
-            self.matlab_pv[self.nm[7]][0].put(value = self.stagepv.value, timeout = 1.0)  # read stage position
-            self.matlab_pv[self.nm[8]][0].put(value = self.ipmpv.value, timeout = 1.0) # read/write intensity profile
+                    self.drift_correct_pv[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the drift correction pvs
+            self.drift_correct_pv[self.nm[7]][0].put(value = self.stagepv.value, timeout = 1.0)  # read stage position
+            self.drift_correct_pv[self.nm[8]][0].put(value = self.ipmpv.value, timeout = 1.0) # read/write intensity profile
         #pdb.set_trace()
         if self.usepcav:
             self.pcava.get(ctrl=True, timeout=1.0)
             self.pcavb.get(ctrl=True, timeout=1.0)
-            self.matlab_pv['pcavcomp'][0].get(ctrl=True, timeout=1.0)
-            self.old_values['pcavcomp'] = float(self.matlab_pv['pcavcomp'][0].value) # old PV values
+            self.drift_correct_pv['pcavcomp'][0].get(ctrl=True, timeout=1.0)
+            self.old_values['pcavcomp'] = float(self.drift_correct_pv['pcavcomp'][0].value) # old PV values
         #pdb.set_trace()
         if self.usett:
-            if (self.ipmpv.value > self.matlab_pv['ipm'][1].value) and (self.ipmpv.value < self.matlab_pv['ipm'][2].value):
-                if ( self.matlab_pv['amp'][0].value > self.matlab_pv['amp'][1].value ) and ( self.matlab_pv['amp'][0].value < self.matlab_pv['amp'][2].value ):
-                    if ( self.matlab_pv['pix'][0].value <> self.old_values['pix'] ) and ( self.matlab_pv['Stage'][0].value == self.old_values['Stage'] ):
+            if (self.ipmpv.value > self.drift_correct_pv['ipm'][1].value) and (self.ipmpv.value < self.drift_correct_pv['ipm'][2].value):
+                if ( self.drift_correct_pv['amp'][0].value > self.drift_correct_pv['amp'][1].value ) and ( self.drift_correct_pv['amp'][0].value < self.drift_correct_pv['amp'][2].value ):
+                    if ( self.drift_correct_pv['pix'][0].value <> self.old_values['pix'] ) and ( self.drift_correct_pv['Stage'][0].value == self.old_values['Stage'] ):
                         if self.ttbuffer.__len__() >99:
                             self.dccalc = float(mean(self.ttbuffer)*self.pixscale)
-                        self.ttbuffer.append(self.matlab_pv['pix'][0].value)
-                        #self.dccalc = float(self.matlab_pv['pix'][0].value*self.pixscale)
-                        # self.matlab_pv['dcsignal'][0].put(value = self.matlab_pv['pix'][0].value, timeout = 1.0)
+                        self.ttbuffer.append(self.drift_correct_pv['pix'][0].value)
+                        #self.dccalc = float(self.drift_correct_pv['pix'][0].value*self.pixscale)
+                        # self.drift_correct_pv['dcsignal'][0].put(value = self.drift_correct_pv['pix'][0].value, timeout = 1.0)
         #pdb.set_trace()
         if self.usepcav:
             if self.pcavbuffer.__len__() >= 600:
@@ -177,13 +181,13 @@ class time_tool():
             self.pcavbuffer.append((self.pcava.value+self.pcavb.value)/2.0-self.pcavinitial)
             # self.pcavcalc = mean(self.pcavbuffer)-self.old_values['pcavcomp']
             self.pcavcalc = mean(self.pcavbuffer)*self.pcavscale
-            self.matlab_pv['pcavcomp'][0].put(value = mean(self.pcavbuffer), timeout=1.0)
+            self.drift_correct_pv['pcavcomp'][0].put(value = mean(self.pcavbuffer), timeout=1.0)
         else:
             self.pcavcalc = 0.0
         if self.debug:
             print('tt + pcav: %f'%(self.dccalc+self.pcavcalc))
         else:
-            self.matlab_pv['dcsignal'][0].put(value = float(self.dccalc)+float(self.pcavcalc), timeout = 1.0)
+            self.drift_correct_pv['dcsignal'][0].put(value = float(self.dccalc)+float(self.pcavcalc), timeout = 1.0)
 
 
 
