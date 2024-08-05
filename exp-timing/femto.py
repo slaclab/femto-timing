@@ -19,7 +19,7 @@ class PVS():
         logging.basicConfig(
                 level=logging.DEBUG,
                 filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
-                filemode='a'
+                filemode='a',
             )
         logging.info(self.name)
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
