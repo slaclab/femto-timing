@@ -16,6 +16,10 @@ class PVS():
         self.version = 'Watchdog 141126a' #Version string
         self.name = nx # Sets the hutch name
         print(self.name)
+        logging.basicConfig(
+                filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
+                filemode='a'
+            )
         logging.info(self.name)
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
