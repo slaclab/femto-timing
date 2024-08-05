@@ -59,7 +59,7 @@ class PVS():
                 self.locker_config = json.load(file) # Load parameters of current locker from json file
         except json.JSONDecodeError as e: # Check that json file syntax is correct
             print('Invalid JSON syntax:', e)
-            logging.error('Invalid JSON syntax:', e)
+            logging.error(str('Invalid JSON syntax: '+e))
 
         # Pull locker configuration data from .json file
         nm = str(self.locker_config['nm'])
@@ -159,7 +159,7 @@ class PVS():
                 v.get(ctrl=True, timeout=1.0) # Get data
             except: 
                 print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time())
-                logging.warning('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time())
+                logging.warning(str('Could not open: '+v.name+' ('+k+'), Error occurred at: '+date_time()))
                 self.OK = 0 # Error with setting up PVs, can't run, will exit  
         self.error_pv = Pv(error_pv_name[self.name]) # Open pv
         self.version_pv = Pv(version_pv_name[self.name])
@@ -206,14 +206,14 @@ class PVS():
                 self.PV_err_list = self.PV_errs.values()
                 if self.num_errs >= 1: # If an error has occurred, print report
                     print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
-                    logging.warning('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
+                    logging.warning(str('Current time: '+date_time()+' In the past 10 minutes, '+self.num_errs+' PV connection errors have occurred.'))
                     print('Error report: ')
                     logging.warning('Error report: ')
                     self.PV_err_short = set(self.PV_err_list) # List each PV only once
                     for n in self.PV_err_short: # Loop over all unique PV errors
                         self.report_num = self.PV_err_list.count(n) # Calculate the number of times current PV error occurred
                         print('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
-                        logging.warning('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
+                        logging.warning(str('PV Name/Error Type: '+n+' Connection Errors: '+self.report_num))
                 self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
         except:
             self.err_idx = 0 #If loop breaks, restart the counter so we don't spam the log
@@ -225,7 +225,7 @@ class PVS():
             v.disconnect()  
         self.error_pv.disconnect()    
         print('Closed all PV connections at', date_time())
-        logging.warning('Closed all PV connections at', date_time())
+        logging.warning('Closed all PV connections at '+date_time())
 
 
 class locker():
@@ -318,7 +318,7 @@ class locker():
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
                 print('Bad counter data. Occurred at:', date_time())
-                logging.warning('Bad counter data. Occurred at:', date_time())
+                logging.warning('Bad counter data. Occurred at: '+date_time())
                 self.P.E.write_error('Timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
@@ -417,7 +417,7 @@ class locker():
             self.d['offset'] = self.P.get('offset')
         except:
             print('Problem reading delay and offset pvs. Error occurred at:', date_time())
-            logging.error('Problem reading delay and offset pvs. Error occurred at:', date_time())
+            logging.error('Problem reading delay and offset pvs. Error occurred at: '+date_time())
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
@@ -498,10 +498,10 @@ class locker():
                     self.bucket_flag = 1
         except AttributeError as a:
             print('Attribute error in move_time_delay:', a)
-            logging.error('Attribute error in move_time_delay:', a)
+            logging.error('Attribute error in move_time_delay: '+a)
         except TypeError as t:
             print('Type error in move_time_delay', t)
-            logging.error('Type error in move_time_delay', t)
+            logging.error('Type error in move_time_delay '+t)
        
             
 class sawtooth():
@@ -597,7 +597,7 @@ class phase_motor():
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
             except:
                 print('Could not get dmov. Error occurred at:', date_time())
-                logging.error('Could not get dmov. Error occurred at:', date_time())
+                logging.error('Could not get dmov. Error occurred at: '+date_time())
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
@@ -745,7 +745,7 @@ def femto(name='NULL'):
             P.put('loop_time', loop_time)
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
-            logging.error(sys.exc_info()[0])
+            logging.error(str(sys.exc_info()[0]))
             del P  #does this work?
             print('UNKNOWN ERROR, trying again. Error occurred at:', date_time())
             P = PVS(name)
