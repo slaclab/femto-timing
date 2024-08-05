@@ -17,6 +17,7 @@ class PVS():
         self.name = nx # Sets the hutch name
         print(self.name)
         logging.basicConfig(
+                level=logging.DEBUG,
                 filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
                 filemode='a'
             )
