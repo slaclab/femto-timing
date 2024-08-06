@@ -27,17 +27,13 @@ class PVS():
         try:
            logging.info('%s', self.name)
         except:
-           print('FAIL')
+           print('Logging configured improperly.')
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         namelist = set() # Checks if scripts is configured to run specified locker name
         self.pvlist = dict()  # List of all PVs
         self.PV_errs = dict() # List of PV connection errors
         self.err_idx = 0
-        #try:
-        #    logging.warning(f'This definitely worked: {self.err_idx}')
-        #except:
-        #    print('FAIL')
         counter_base = dict()  # Time interval counter names
         freq_counter = dict() # Frequency counter names
         dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV sub-name (i.e. 'VIT' in most of the LCLS-I laser lockers)
@@ -69,7 +65,7 @@ class PVS():
                 self.locker_config = json.load(file) # Load parameters of current locker from json file
         except json.JSONDecodeError as e: # Check that json file syntax is correct
             print('Invalid JSON syntax: '+e)
-            # logging.error(f'Invalid JSON syntax: {e}')
+            logging.error('Invalid JSON syntax: %s', e)
 
         # Pull locker configuration data from .json file
         nm = str(self.locker_config['nm'])
@@ -169,7 +165,7 @@ class PVS():
                 v.get(ctrl=True, timeout=1.0) # Get data
             except: 
                 print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time())
-                # logging.warning(f'Could not open: {v.name} ({k}), Error occurred at: {date_time()}')
+                logging.warning('Could not open: %s (%s), Error occurred at: %s', v.name, k, date_time())
                 self.OK = 0 # Error with setting up PVs, can't run, will exit  
         self.error_pv = Pv(error_pv_name[self.name]) # Open pv
         self.version_pv = Pv(version_pv_name[self.name])
