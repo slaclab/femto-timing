@@ -25,7 +25,7 @@ class PVS():
                 filemode='a',
             )
         try:
-           logging.info('%s', self.name)
+           logging.info('Hutch: %s. IOC Enabled/Rebooted.', self.name)
         except:
            print('Logging configured improperly.')
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
@@ -212,14 +212,14 @@ class PVS():
                 self.PV_err_list = self.PV_errs.values()
                 if self.num_errs >= 1: # If an error has occurred, print report
                     print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
-                    # logging.warning(f'Current time: {date_time()} In the past 10 minutes, {self.num_errs} PV connection errors have occurred.')
+                    logging.warning('Current time: %s. In the past 10 minutes, %s PV connection errors have occurred.', date_time(), self.num_errs)
                     print('Error report: ')
-                    # logging.warning('Error report: ')
+                    logging.warning('Error report: ')
                     self.PV_err_short = set(self.PV_err_list) # List each PV only once
                     for n in self.PV_err_short: # Loop over all unique PV errors
                         self.report_num = self.PV_err_list.count(n) # Calculate the number of times current PV error occurred
                         print('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
-                        # logging.warning(f'PV Name/Error Type: {n} Connection Errors: {self.report_num}')
+                        logging.warning('PV Name/Error Type: %s Connection Errors: %s', n, self.report_num)
                 self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
         except:
             self.err_idx = 0 #If loop breaks, restart the counter so we don't spam the log
@@ -231,7 +231,7 @@ class PVS():
             v.disconnect()  
         self.error_pv.disconnect()    
         print('Closed all PV connections at', date_time())
-        # logging.warning(f'Closed all PV connections at {date_time()}')
+        logging.warning('Closed all PV connections at %s', date_time())
 
 
 class locker():
@@ -324,7 +324,7 @@ class locker():
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
                 print('Bad counter data. Occurred at:', date_time())
-                # logging.warning(f'Bad counter data. Occurred at: {date_time()}')
+                logging.warning('Bad counter data. Occurred at: %s', date_time())
                 self.P.E.write_error('Timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
@@ -423,7 +423,7 @@ class locker():
             self.d['offset'] = self.P.get('offset')
         except:
             print('Problem reading delay and offset pvs. Error occurred at:', date_time())
-            # logging.error(f'Problem reading delay and offset pvs. Error occurred at: {date_time()}')
+            logging.error('Problem reading delay and offset pvs. Error occurred at: %s', date_time())
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
@@ -504,10 +504,10 @@ class locker():
                     self.bucket_flag = 1
         except AttributeError as a:
             print('Attribute error in move_time_delay:', a)
-            # logging.error(f'Attribute error in move_time_delay: {a}')
+            logging.error('Attribute error in move_time_delay: %s', a)
         except TypeError as t:
             print('Type error in move_time_delay', t)
-            # logging.error(f'Type error in move_time_delay {t}')
+            logging.error('Type error in move_time_delay %s', t)
        
             
 class sawtooth():
@@ -603,7 +603,7 @@ class phase_motor():
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
             except:
                 print('Could not get dmov. Error occurred at:', date_time())
-                # logging.error(f'Could not get dmov. Error occurred at: {date_time()}')
+                logging.error('Could not get dmov. Error occurred at: %s', date_time())
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
@@ -751,7 +751,7 @@ def femto(name='NULL'):
             P.put('loop_time', loop_time)
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
-            # logging.error(f'{sys.exc_info()[0]}')
+            logging.error('%s', sys.exc_info()[0])
             del P  #does this work?
             print('UNKNOWN ERROR, trying again. Error occurred at:', date_time())
             P = PVS(name)
