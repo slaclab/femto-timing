@@ -210,16 +210,16 @@ class PVS():
             if self.diff >= 600: # Have we reached 10 minutes?
                 self.num_errs = len(self.PV_errs) # Total number of errors that have occurred
                 self.PV_err_list = self.PV_errs.values()
-                if self.num_errs >= 1: # If an error has occurred, print report
-                    print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
-                    logging.warning('In the past 10 minutes, %s PV connection errors have occurred.', self.num_errs)
-                    print('Error report: ')
-                    logging.warning('Error report: ')
-                    self.PV_err_short = set(self.PV_err_list) # List each PV only once
-                    for n in self.PV_err_short: # Loop over all unique PV errors
-                        self.report_num = self.PV_err_list.count(n) # Calculate the number of times current PV error occurred
-                        print('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
-                        logging.warning('PV Name/Error Type: %s Connection Errors: %s', n, self.report_num)
+                #if self.num_errs >= 1: # If an error has occurred, print report
+                print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
+                logging.warning('In the past 10 minutes, %s PV connection errors have occurred.', self.num_errs)
+                print('Error report: ')
+                logging.warning('Error report: ')
+                self.PV_err_short = set(self.PV_err_list) # List each PV only once
+                for n in self.PV_err_short: # Loop over all unique PV errors
+                    self.report_num = self.PV_err_list.count(n) # Calculate the number of times current PV error occurred
+                    print('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
+                    logging.warning('PV Name/Error Type: %s Connection Errors: %s', n, self.report_num)
                 self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
         except:
             self.err_idx = 0 #If loop breaks, restart the counter so we don't spam the log
