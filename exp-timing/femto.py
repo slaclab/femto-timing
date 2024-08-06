@@ -24,10 +24,7 @@ class PVS():
                 filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
                 filemode='a',
             )
-        try:
-           logging.info('Hutch: %s. IOC Enabled/Rebooted.', self.name)
-        except:
-           print('Logging configured improperly.')
+        logging.info('Hutch: %s. IOC Enabled/Rebooted.', self.name)
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         namelist = set() # Checks if scripts is configured to run specified locker name
