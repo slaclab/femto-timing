@@ -21,7 +21,7 @@ class PVS():
                 filemode='a',
             )
         try:
-           logging.info('%' % self.name)
+           logging.info('%s' % self.name)
         except:
            print('FAIL')
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
