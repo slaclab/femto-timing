@@ -28,11 +28,6 @@ class PVS():
            logging.info('Hutch: %s. IOC Enabled/Rebooted.', self.name)
         except:
            print('Logging configured improperly.')
-        try:
-            logging.warning('Current time is %s', date_time())
-        except:
-            print('Cannot include a function in a logger statement.')
-            logging.info('Cannot include a function in a logger statement.')
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         namelist = set() # Checks if scripts is configured to run specified locker name
@@ -217,7 +212,7 @@ class PVS():
                 self.PV_err_list = self.PV_errs.values()
                 if self.num_errs >= 1: # If an error has occurred, print report
                     print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
-                    logging.warning('Current time: %s. In the past 10 minutes, %s PV connection errors have occurred.', date_time(), self.num_errs)
+                    logging.warning('In the past 10 minutes, %s PV connection errors have occurred.', self.num_errs)
                     print('Error report: ')
                     logging.warning('Error report: ')
                     self.PV_err_short = set(self.PV_err_list) # List each PV only once
@@ -236,7 +231,7 @@ class PVS():
             v.disconnect()  
         self.error_pv.disconnect()    
         print('Closed all PV connections at', date_time())
-        logging.warning('Closed all PV connections at %s', date_time())
+        logging.warning('Closed all PV connections.')
 
 
 class locker():
@@ -329,7 +324,7 @@ class locker():
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
                 print('Bad counter data. Occurred at:', date_time())
-                logging.warning('Bad counter data. Occurred at: %s', date_time())
+                logging.warning('Bad counter data.')
                 self.P.E.write_error('Timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
@@ -428,7 +423,7 @@ class locker():
             self.d['offset'] = self.P.get('offset')
         except:
             print('Problem reading delay and offset pvs. Error occurred at:', date_time())
-            logging.error('Problem reading delay and offset pvs. Error occurred at: %s', date_time())
+            logging.error('Problem reading delay and offset pvs.')
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
@@ -608,7 +603,7 @@ class phase_motor():
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
             except:
                 print('Could not get dmov. Error occurred at:', date_time())
-                logging.error('Could not get dmov. Error occurred at: %s', date_time())
+                logging.error('Could not get dmov.')
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
