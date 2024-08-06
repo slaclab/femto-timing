@@ -28,6 +28,11 @@ class PVS():
            logging.info('Hutch: %s. IOC Enabled/Rebooted.', self.name)
         except:
            print('Logging configured improperly.')
+        try:
+            logging.warning('Current time is %s', date_time())
+        except:
+            print('Cannot include a function in a logger statement.')
+            logging.info('Cannot include a function in a logger statement.')
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         namelist = set() # Checks if scripts is configured to run specified locker name
