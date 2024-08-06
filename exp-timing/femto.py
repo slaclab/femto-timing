@@ -20,20 +20,20 @@ class PVS():
                 filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
                 filemode='a',
             )
-        try:
-            logging.info(f'{self.name}')
-        except:
-            print('FAIL')
+        #try:
+        #    logging.info(f'{self.name}')
+        #except:
+        #    print('FAIL')
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         namelist = set() # Checks if scripts is configured to run specified locker name
         self.pvlist = dict()  # List of all PVs
         self.PV_errs = dict() # List of PV connection errors
         self.err_idx = 0
-        try:
-            logging.warning(f'This definitely worked: {self.err_idx}')
-        except:
-            print('FAIL')
+        #try:
+        #    logging.warning(f'This definitely worked: {self.err_idx}')
+        #except:
+        #    print('FAIL')
         counter_base = dict()  # Time interval counter names
         freq_counter = dict() # Frequency counter names
         dev_base = dict() # dev_base is a combination of the locker name of the subsequent string in the IOC PV sub-name (i.e. 'VIT' in most of the LCLS-I laser lockers)
