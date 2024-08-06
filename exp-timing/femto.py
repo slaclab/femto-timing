@@ -17,9 +17,8 @@ class PVS():
         self.name = nx # Sets the hutch name
         print(self.name)
         logging.basicConfig(
-                level=logging.DEBUG,
                 filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
-                filemode='w',
+                filemode='a',
             )
         logging.info(self.name)
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
@@ -58,7 +57,7 @@ class PVS():
             with open(self.config, 'r') as file:
                 self.locker_config = json.load(file) # Load parameters of current locker from json file
         except json.JSONDecodeError as e: # Check that json file syntax is correct
-            print('Invalid JSON syntax:', e)
+            print('Invalid JSON syntax: '+e)
             logging.error(str('Invalid JSON syntax: '+e))
 
         # Pull locker configuration data from .json file
@@ -206,7 +205,10 @@ class PVS():
                 self.PV_err_list = self.PV_errs.values()
                 if self.num_errs >= 1: # If an error has occurred, print report
                     print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
-                    logging.warning(str('Current time: '+date_time()+' In the past 10 minutes, '+self.num_errs+' PV connection errors have occurred.'))
+                    try:
+                        logging.warning(str('Current time: '+date_time()+' In the past 10 minutes, '+self.num_errs+' PV connection errors have occurred.'))
+                    except:
+                        print('Logging did not work.')
                     print('Error report: ')
                     logging.warning('Error report: ')
                     self.PV_err_short = set(self.PV_err_list) # List each PV only once
