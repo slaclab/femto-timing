@@ -17,15 +17,15 @@ class PVS():
         self.name = nx # Sets the hutch name
         print(self.name)
         logging.basicConfig(
+                format='%(asctime)s - %(levelname)s - %(message)s',
+                style='%',
+                datefmt='%Y-%m-%d %H:%M',
                 level=logging.DEBUG,
-                format="{asctime} - {levelname} - {message}",
-                style="{",
-                datefmt="%Y-%m-%d %H:%M",
                 filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
                 filemode='a',
             )
         try:
-           logging.info('%s' % self.name)
+           logging.info('%s', self.name)
         except:
            print('FAIL')
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
