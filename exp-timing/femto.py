@@ -426,7 +426,7 @@ class locker():
         self.buckets = round(self.terror * self.locking_f)
         self.bucket_error = self.terror - self.buckets / self.locking_f
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        if (self.C.range > self.C.tol):
+        if (self.C.range > self.instability_thresh):
             self.P.E.write_error('Counter not stable')
         if (self.C.range == 0) and (self.C.range < self.C.tol):  # No TIC reading
             if (self.stale_cnt < 500):
@@ -570,7 +570,7 @@ class time_interval_counter():
             return 0 # data out of range
         jit = self.P.get('counter_jitter')
         if jit > self.tol:
-            return 1  # 1 to differentiate from no data or out of range data
+            return 1  # 1 to    differentiate from no data or out of range data
         # if we got here, we have a good reading
         self.rt.add_element(time) # add time to ring
         self.rj.add_element(jit)  # add jitter to ring
