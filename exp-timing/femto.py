@@ -428,9 +428,11 @@ class locker():
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
         if (self.C.range > (2 * self.max_jump_error)): # Too wide a range of measurements
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-        if (self.C.range > self.instability_thresh):
-            self.P.E.write_error('Counter not stable')
+            self.P.E.write_error( 'Counter not stable')
             return
+        # if (self.C.range > self.instability_thresh):
+        #     self.P.E.write_error('Counter not stable')
+        #     return
         if (self.C.range == 0):  # No TIC reading
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
             if (self.stale_cnt < 500):
@@ -462,7 +464,7 @@ class locker():
         new_pc_fix = np.mod(new_pc, 1/self.laser_f)  # equal within one cycle. 
         M.move(new_pc_fix) # moves phase motor to new position
         M.wait_for_stop()
-        time.sleep(2)  # 
+        time.sleep(2)
         new_offset = self.d['offset'] - (new_pc_fix - old_pc)
         self.d['offset'] = new_offset
         self.P.put('offset', new_offset)
