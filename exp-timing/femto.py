@@ -431,6 +431,7 @@ class locker():
         if (self.C.range == 0):  # No TIC reading
             if (self.stale_cnt < 500):
                 self.stale_cnt += 1
+                print(self.stale_cnt) #For troubleshooting purposes only
             else:
                 self.stale_cnt = 0
                 self.P.E.write_error('No counter reading')
