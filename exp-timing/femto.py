@@ -243,7 +243,7 @@ class locker():
          self.calib_points = 50  # number of points to use in calibration cycle
          self.calib_range = 30  # ns for calibration sweep
          self.max_jump_error = .05 # ns threshold for determing if counter is stable enough for bucket correction
-         self.instability_thresh = 0.4 # ns threshold for "Counter not stable" message
+         self.instability_thresh = 1 # ns threshold for "Counter not stable" message
          self.max_frequency_error = 100.0
          self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
          self.max_time = 20000.0 # maximum time that can be set (ns)
@@ -432,7 +432,7 @@ class locker():
             return
         if (self.C.range == 0):  # No TIC reading
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-            if (self.stale_cnt < 10):
+            if (self.stale_cnt < 50):
                 self.stale_cnt += 1
                 return
             else:
