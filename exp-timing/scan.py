@@ -3,7 +3,6 @@ import logging
 import sys
 from epics import caget, caput, cainfo, PV
 
-name = sys.argv[1]
 logging.basicConfig(
                 format='%(asctime)s - %(levelname)s - %(message)s',
                 style='%',
@@ -19,7 +18,7 @@ tgt_time_pv = PV('LAS:FS4:VIT:FS_TGT_TIME')
 ctr_time_pv = PV('LAS:FS4:VIT:FS_CTR_TIME')
 
 # scanning parameters 
-stop = 10 # scan range ns
+stop = 10 # scan range ns  
 step = 1 # scan step interval in ns 
 direction = -1 # -1 for down, 1 for up 
 wait_time = 5 # wait time in seconds b/t steps
