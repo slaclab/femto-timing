@@ -428,6 +428,8 @@ class locker():
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
         if (self.C.range > (2 * self.max_jump_error)): # Too wide a range of measurements
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
+        if (self.C.range > self.instability_thresh):
+            self.P.E.write_error('Counter not stable')
             return
         if (self.C.range == 0):  # No TIC reading
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
@@ -437,9 +439,6 @@ class locker():
                 self.stale_cnt = 0
                 self.P.E.write_error('No counter reading')
                 return
-        if (self.C.range > self.instability_thresh):
-            self.P.E.write_error('Counter not stable')
-            return
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
             self.P.E.write_error('Not an integer number of buckets')
