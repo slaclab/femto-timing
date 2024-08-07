@@ -439,6 +439,7 @@ class locker():
                 return
         if (self.C.range > self.instability_thresh):
             self.P.E.write_error('Counter not stable')
+            return
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
             self.P.E.write_error('Not an integer number of buckets')
