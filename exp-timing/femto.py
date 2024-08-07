@@ -243,7 +243,7 @@ class locker():
          self.calib_points = 50  # number of points to use in calibration cycle
          self.calib_range = 30  # ns for calibration sweep
          self.max_jump_error = .05 # ns threshold for determing if counter is stable enough for bucket correction
-         self.instability_thresh = 0.3 # ns threshold for "Counter not stable" message
+         self.instability_thresh = 0.2 # ns threshold for "Counter not stable" message
          self.max_frequency_error = 100.0
          self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
          self.max_time = 20000.0 # maximum time that can be set (ns)
