@@ -444,7 +444,7 @@ class locker():
             self.P.E.write_error('Not an integer number of buckets')
         if self.buckets != 0:
             self.detection_t = time.time() # Time bucket jump was detected
-        # self.P.E.write_error('Laser OK') # Laser is OK
+        self.P.E.write_error('Laser OK') # Laser is OK
             
     def fix_jump(self):
         """Takes exact bucket error is ns, moves the phase motor and updates the offset to correct for it."""
