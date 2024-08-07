@@ -9,7 +9,7 @@ logging.basicConfig(
                 style='%',
                 datefmt='%Y-%m-%d %H:%M',
                 level=logging.DEBUG,
-                filename=str('/reg/d/iocData/py-fstiming-'+name+'/iocInfo/scan.log'),
+                filename=str('/reg/d/iocData/py-fstiming-XCS/iocInfo/scan.log'),
                 filemode='a',
             )
 
