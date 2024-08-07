@@ -435,6 +435,8 @@ class locker():
             else:
                 self.stale_cnt = 0
                 self.P.E.write_error('No counter reading')
+        else:
+            self.stale_cnt = 0 # Reset the stale counter if there is new TIC data
         if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0): # Too wide a range of measurements
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
             return
