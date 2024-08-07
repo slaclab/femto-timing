@@ -429,9 +429,8 @@ class locker():
         if (self.C.range > self.instability_thresh) or (self.C.range == 1): # The latter condition catches the when self.C.range>self.C.tol
             self.P.E.write_error('Counter not stable')
         if (self.C.range == 0):  # No TIC reading
-            if (self.stale_cnt < 500):
+            if (self.stale_cnt < 50):
                 self.stale_cnt += 1
-                print(self.stale_cnt) #For troubleshooting purposes only
             else:
                 self.stale_cnt = 0
                 self.P.E.write_error('No counter reading')
