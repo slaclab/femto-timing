@@ -431,9 +431,8 @@ class locker():
             return
         if (self.C.range == 0):  # No TIC reading
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-            if (self.stale_cnt < 50):
+            if (self.stale_cnt < 500):
                 self.stale_cnt += 1
-                return
             else:
                 self.stale_cnt = 0
                 self.P.E.write_error('No counter reading')
