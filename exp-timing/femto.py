@@ -570,7 +570,7 @@ class time_interval_counter():
             return 0 # data out of range
         jit = self.P.get('counter_jitter')
         if jit > self.tol:
-            return 0  # jitter too high
+            return 1  # 1 to differentiate from no data or out of range data
         # if we got here, we have a good reading
         self.rt.add_element(time) # add time to ring
         self.rj.add_element(jit)  # add jitter to ring
