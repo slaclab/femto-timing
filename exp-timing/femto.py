@@ -426,9 +426,9 @@ class locker():
         self.buckets = round(self.terror * self.locking_f)
         self.bucket_error = self.terror - self.buckets / self.locking_f
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        if (self.C.range > self.instability_thresh):
+        if (self.C.range > self.instability_thresh) or (self.C.range == 1): # The latter condition catches the when self.C.range>self.C.tol
             self.P.E.write_error('Counter not stable')
-        if (self.C.range == 0) and (self.C.range < self.C.tol):  # No TIC reading
+        if (self.C.range == 0):  # No TIC reading
             if (self.stale_cnt < 500):
                 self.stale_cnt += 1
                 print(self.stale_cnt) #For troubleshooting purposes only
