@@ -11,14 +11,14 @@ import datetime
 
 pause_time = 0.025
 DC_sw_PV  = 'LAS:FS4:VIT:TT_DRIFT_ENABLE'  # Put 0 for disable, put 1 for enable
-DC_val_PV = 'LAS:FS4:VIT:matlab:04'        # Drift correct value in ns
+DC_val_PV = 'LAS:FS4:VIT:drift_correct_val'        # Drift correct value in ns
 ATM_PV = 'XCS:TIMETOOL:TTALL'              # ATM waveform PV
 TTC_PV = 'XCS:LAS:MMN:01'                  # ATM mech delay stage
 IPM_PV = 'XCS:SB1:BMMON:SUM'               # intensity profile monitor PV
-IPM_HI_PV = 'LAS:FS4:VIT:matlab:28.HIGH'
-IPM_LO_PV = 'LAS:FS4:VIT:matlab:28.LOW'
-TT_time_PV = 'LAS:FS4:VIT:matlab:22'
-TT_amp_PV = 'LAS:FS4:VIT:matlab:23'
+IPM_HI_PV = 'LAS:FS4:VIT:ipm.HIGH'
+IPM_LO_PV = 'LAS:FS4:VIT:ipm.LOW'
+TT_time_PV = 'LAS:FS4:VIT:fs'
+TT_amp_PV = 'LAS:FS4:VIT:amp'
 TT_amp_HI_PV  = str(TT_amp_PV + '.HIGH')
 TT_amp_LO_PV  = str(TT_amp_PV + '.LOW')
 TT_fwhm_PV = 'LAS:UNDH:FLOAT:14'
