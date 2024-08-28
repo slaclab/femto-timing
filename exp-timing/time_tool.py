@@ -65,16 +65,16 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.nm = ['watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm','dcsignal'] #list of internal names
-        self.drift_correct_pv[0] = dev_base+'watchdog'
-        self.drift_correct_pv[1] = dev_base+'pix'
-        self.drift_correct_pv[2] = dev_base+'fs'
-        self.drift_correct_pv[3] = dev_base+'amp'
-        self.drift_correct_pv[4] = dev_base+'amp_sec'
-        self.drift_correct_pv[5] = dev_base+'ref'
+        self.drift_correct_pv[0] = dev_base+'WATCHDOG'
+        self.drift_correct_pv[1] = dev_base+'PIX'
+        self.drift_correct_pv[2] = dev_base+'FS'
+        self.drift_correct_pv[3] = dev_base+'AMP'
+        self.drift_correct_pv[4] = dev_base+'AMP_SEC'
+        self.drift_correct_pv[5] = dev_base+'REF'
         self.drift_correct_pv[6] = dev_base+'FWHM'
-        self.drift_correct_pv[7] = dev_base+'stage'
-        self.drift_correct_pv[8] = dev_base+'ipm'
-        self.drift_correct_pv[9] = dev_base+'drift_correct_sig'
+        self.drift_correct_pv[7] = dev_base+'STAGE'
+        self.drift_correct_pv[8] = dev_base+'IPM'
+        self.drift_correct_pv[9] = dev_base+'DRIFT_CORRECT_SIG'
         for n in range(0,9):
             self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
             for x in range(0,4):
