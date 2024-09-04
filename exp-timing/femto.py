@@ -245,13 +245,13 @@ class locker():
          self.max_jump_error = .05 # ns threshold for determing if counter is stable enough for bucket correction
          self.instability_thresh = 0.5 # ns threshold for "Counter not stable" message
          self.max_frequency_error = 100.0
-         self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
+         self.min_time = -880000 # minimum time that can be set (ns)
          self.max_time = 20000.0 # maximum time that can be set (ns)
          self.d = dict()
          self.d['delay'] =  self.P.get('delay')
          self.d['offset'] = self.P.get('offset')
-         self.delay_offset = 0  # kludge to avoide running near sawtooth edge
-         self.drift_last= 0; # used for drift correction when activated
+         self.delay_offset = 0  # kludge to avoid running near sawtooth edge
+         self.drift_last= 0 # used for drift correction when activated
          self.drift_initialized = False # will be true after first cycle
          self.C = time_interval_counter(self.P) # creates a time interval counter object
          self.move_flag = 0
