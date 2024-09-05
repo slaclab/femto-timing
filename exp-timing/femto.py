@@ -7,6 +7,7 @@ from psp.Pv import Pv
 import sys
 import random
 import json
+import logging
 
 class PVS():
     """Initializes dictionaries for a particular locker, reads and writes to PVs from that locker."""
@@ -15,6 +16,15 @@ class PVS():
         self.version = 'Watchdog 141126a' #Version string
         self.name = nx # Sets the hutch name
         print(self.name)
+        logging.basicConfig(
+                format='%(asctime)s - %(levelname)s - %(message)s',
+                style='%',
+                datefmt='%Y-%m-%d %H:%M',
+                level=logging.DEBUG,
+                filename=str('/reg/d/iocData/py-fstiming-'+self.name+'/iocInfo/femto.log'),
+                filemode='a',
+            )
+        logging.info('Hutch: %s. IOC Enabled/Rebooted.', self.name)
         self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
         self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
         namelist = set() # Checks if scripts is configured to run specified locker name
@@ -36,6 +46,8 @@ class PVS():
         drift_correction_smoothing = dict()  # Smoothing factor that reduces the drift correction step size
         drift_correction_accum = dict() # Enables/disables drift correction accumulation (integration term)
         bucket_correction_delay = dict() # Tracks the amount of time between bucket jump detection and correction
+        move_delay = dict()
+        script_loop_time = dict() # Tracks the cycle time of one main program loop
         for n in range(0,20):
             use_drift_correction[n] = False  # Turn off except where needed
         use_dither = dict() # Used to allow fast dither of timing
@@ -49,7 +61,8 @@ class PVS():
             with open(self.config, 'r') as file:
                 self.locker_config = json.load(file) # Load parameters of current locker from json file
         except json.JSONDecodeError as e: # Check that json file syntax is correct
-            print('Invalid JSON syntax:', e)
+            print('Invalid JSON syntax: '+e)
+            logging.error('Invalid JSON syntax: %s', e)
 
         # Pull locker configuration data from .json file
         nm = str(self.locker_config['nm'])
@@ -62,17 +75,18 @@ class PVS():
         error_pv_name[nm] = dev_base[nm]+'FS_STATUS' 
         version_pv_name[nm] = dev_base[nm]+'FS_WATCHDOG.DESC'
         laser_trigger[nm] = str(self.locker_config['laser_trigger'])
-        # Notepad PVs for drift correction feature
-        drift_correction_signal[nm] = dev_base[nm]+'drift_correct_sig'
-        drift_correction_value[nm] = dev_base[nm]+'drift_correct_val'
-        drift_correction_offset[nm] = dev_base[nm]+'drift_correct_off'
-        drift_correction_gain[nm] = dev_base[nm]+'drift_correct_gain'
+        drift_correction_signal[nm] = dev_base[nm]+'DRIFT_CORRECT_SIG'
+        drift_correction_value[nm] = dev_base[nm]+'DRIFT_CORRECT_VAL'
+        drift_correction_offset[nm] = dev_base[nm]+'DRIFT_CORRECT_OFF'
+        drift_correction_gain[nm] = dev_base[nm]+'DRIFT_CORRECT_GAIN'
         drift_correction_dir[nm] = self.locker_config['drift_correction_dir']
-        drift_correction_smoothing[nm] = dev_base[nm]+'drift_correct_smooth'
-        drift_correction_accum[nm] = dev_base[nm]+'drift_correct_accum'
+        drift_correction_smoothing[nm] = dev_base[nm]+'DRIFT_CORRECT_SMOOTH'
+        drift_correction_accum[nm] = dev_base[nm]+'DRIFT_CORRECT_ACCUM'
+        move_delay[nm] = dev_base[nm]+'MOV_TIME_DLY'
+        script_loop_time[nm] = dev_base[nm]+'LOOP_TIME'
         use_drift_correction[nm] = self.locker_config['use_drift_correction']
         use_dither[nm] = self.locker_config['use_dither']
-        dither_level[nm] = dev_base[nm]+'dither'
+        dither_level[nm] = dev_base[nm]+'DITHER'
         bucket_correction_delay[nm] = str(self.locker_config['bucket_correction_delay'])
         
         while not (self.name in namelist):
@@ -131,7 +145,8 @@ class PVS():
         self.pvlist['lock_enable'] = Pv(dev_base[self.name]+'RF_LOCK_ENABLE')
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
         self.pvlist['bucket_correction_delay'] = Pv(bucket_correction_delay[self.name])
-  
+        self.pvlist['move_time_delay'] = Pv(move_delay[self.name]) # Delay between when set time is changed and when counter readback changes
+        self.pvlist['loop_time'] = Pv(script_loop_time[self.name]) # Run time of the main program loop 
         if self.use_drift_correction:
             self.pvlist['drift_correction_signal'] = Pv(drift_correction_signal[self.name])
             self.pvlist['drift_correction_value'] = Pv(drift_correction_value[self.name])
@@ -147,13 +162,14 @@ class PVS():
                 v.get(ctrl=True, timeout=1.0) # Get data
             except: 
                 print('Could not open:', v.name, '(', k, '),', 'Error occurred at:', date_time())
+                logging.warning('Could not open: %s (%s), Error occurred at: %s', v.name, k, date_time())
                 self.OK = 0 # Error with setting up PVs, can't run, will exit  
         self.error_pv = Pv(error_pv_name[self.name]) # Open pv
         self.version_pv = Pv(version_pv_name[self.name])
         self.version_pv.put(self.version, timeout = 10.0)
         self.E = error_output(self.error_pv)
         self.E.write_error('OK')
-        
+
     def get(self, name):
         """Takes a PV name, connects to it, and returns its value."""
         if self.err_idx == 0: # Start of a new PV error report cycle
@@ -167,7 +183,7 @@ class PVS():
             return 0 
         finally:
             self.PV_err_report()
-    
+  
     def get_last(self, name):
         """Takes a PV name and returns its last value, without connecting to the PV."""
         return self.pvlist[name].value                
@@ -193,11 +209,14 @@ class PVS():
                 self.PV_err_list = self.PV_errs.values()
                 if self.num_errs >= 1: # If an error has occurred, print report
                     print('Current time:', date_time(), 'In the past 10 minutes,', self.num_errs, 'PV connection errors have occurred.')
+                    logging.warning('In the past 10 minutes, %s PV connection errors have occurred.', self.num_errs)
                     print('Error report: ')
+                    logging.warning('Error report: ')
                     self.PV_err_short = set(self.PV_err_list) # List each PV only once
                     for n in self.PV_err_short: # Loop over all unique PV errors
                         self.report_num = self.PV_err_list.count(n) # Calculate the number of times current PV error occurred
                         print('PV Name/Error Type:', n, 'Connection Errors:', self.report_num)
+                        logging.warning('PV Name/Error Type: %s Connection Errors: %s', n, self.report_num)
                 self.err_idx = 0 # Restart PV error counter regardless of whether error has occurred
         except:
             self.err_idx = 0 #If loop breaks, restart the counter so we don't spam the log
@@ -209,6 +228,7 @@ class PVS():
             v.disconnect()  
         self.error_pv.disconnect()    
         print('Closed all PV connections at', date_time())
+        logging.warning('Closed all PV connections.')
 
 
 class locker():
@@ -223,7 +243,7 @@ class locker():
          self.calib_points = 50  # number of points to use in calibration cycle
          self.calib_range = 30  # ns for calibration sweep
          self.max_jump_error = .05 # ns threshold for determing if counter is stable enough for bucket correction
-         self.instability_thresh = 0.4 # ns threshold for "Counter not stable" message
+         self.instability_thresh = 1 # ns threshold for "Counter not stable" message
          self.max_frequency_error = 100.0
          self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
          self.max_time = 20000.0 # maximum time that can be set (ns)
@@ -234,6 +254,9 @@ class locker():
          self.drift_last= 0; # used for drift correction when activated
          self.drift_initialized = False # will be true after first cycle
          self.C = time_interval_counter(self.P) # creates a time interval counter object
+         self.move_flag = 0
+         self.bucket_flag = 0
+         self.stale_cnt = 0 # Counter to determine if TIC is updating
 
     def locker_status(self):
         """Checks if core locker parameters are within optimal range and updates 'OK' flags accordingly."""
@@ -298,6 +321,7 @@ class locker():
             counter_good = np.append(counter_good, self.C.good) # will use to filter data
             if not self.C.good:
                 print('Bad counter data. Occurred at:', date_time())
+                logging.warning('Bad counter data.')
                 self.P.E.write_error('Timer error, bad data - continuing to calibrate' ) # just for testing
         M.move(tctrl[0])  # return to original position    
         minv = min(tout[np.nonzero(counter_good)])+ self.delay_offset
@@ -343,7 +367,6 @@ class locker():
         pc = np.mod(pc, 1/self.laser_f)
         ntrig = round((t - self.d['delay'] - (1/self.trigger_f)) * self.trigger_f) # paren was after laser_f
         trig = ntrig / self.trigger_f
-
         if self.P.use_drift_correction:
             dc = self.P.get('drift_correction_signal') / 1000; # readback is in ps, but drift correction is ns, need to convert
             do = self.P.get('drift_correction_offset') 
@@ -369,9 +392,7 @@ class locker():
                 self.drift_last = min(.001, self.drift_last)#
                 self.dc_last = dc
                 self.drift_initialized = True # will average next time (ugly)    
-
             pc = pc - (dd * dg * self.drift_last); # fix phase control. 
-
         if self.P.use_dither:
             dx = self.P.get('dither_level') 
             pc = pc + (random.random()-0.5)* dx / 1000 # uniformly distributed random. 
@@ -379,10 +400,11 @@ class locker():
         if self.P.get('enable_trig'): # Full routine when trigger can move
             if T.get_ns() != trig:   # need to move
                 T.set_ns(trig) # sets the trigger
-
-        pc_diff = M.get_position() - pc  # difference between current phase motor and desired time        
-        if abs(pc_diff) > 1e-6:
+        self.pc_diff = M.get_position() - pc  # difference between current phase motor and desired time        
+        if abs(self.pc_diff) > 1e-6:
             M.move(pc) # moves the phase motor
+            self.move_start = time.time() # Time that set time was changed - used by the move_time_delay() function.
+            self.pc_out = pc # For move time delay function 
       
     def check_jump(self):
         """Takes the trigger time, phase motor position, and counter time, calculates the number of 3.808 GHz bucket jumps."""
@@ -398,16 +420,26 @@ class locker():
             self.d['offset'] = self.P.get('offset')
         except:
             print('Problem reading delay and offset pvs. Error occurred at:', date_time())
+            logging.error('Problem reading delay and offset pvs.')
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
         self.terror = t - S.t # error in ns
         self.buckets = round(self.terror * self.locking_f)
         self.bucket_error = self.terror - self.buckets / self.locking_f
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0):  # Too wide a range of measurements
+        if (self.C.range > (2 * self.max_jump_error)): # Too wide a range of measurements
             self.buckets = 0  # Do not count as a bucket error if readings are not consistent
             return
+        if (self.C.range == 0):  # No TIC reading
+            self.buckets = 0  # Do not count as a bucket error if readings are not consistent
+            if (self.stale_cnt < 500):
+                self.stale_cnt += 1
+            else:
+                self.stale_cnt = 0
+                self.P.E.write_error('No counter reading')
+                return
         if (self.C.range > self.instability_thresh):
             self.P.E.write_error('Counter not stable')
+            return
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
             self.P.E.write_error('Not an integer number of buckets')
@@ -438,9 +470,40 @@ class locker():
         self.P.E.write_error('Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-        self.correction_t = time.time() # Time bucket jump was corrected
-        self.corr_diff = self.correction_t - self.detection_t # How long it took to correct jump in seconds
-        self.P.put('bucket_correction_delay', self.corr_diff) # So bucket correction delay can be archived
+
+    def move_time_delay(self):
+        """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
+        try:
+            if abs(self.pc_diff) > 1e-6 or self.move_flag == 1: # Checks if phase motor set position has changed
+                self.curr_time = self.C.get_time() # Current counter time
+                T = trigger(self.P)
+                t_trig = T.get_ns()
+                S = sawtooth(self.pc_out, t_trig, self.P.get('delay'), self.P.get('offset'), 1/self.laser_f) # Calculate theoretical laser time 
+                if abs(self.curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
+                    move_stop = time.time() # Time of change in counter time
+                    move_delay = move_stop - self.move_start # Calculates approximate time in seconds it took to make see change in time on counter. Imprecise because femto.py loop delay.
+                    self.P.put('move_time_delay', move_delay)
+                    self.move_flag = 0
+                else:
+                    self.move_flag = 1
+            if self.buckets != 0 or self.bucket_flag == 1:
+                self.curr_time = self.C.get_time() # Current counter time
+                T = trigger(self.P)
+                t_trig = T.get_ns()
+                S = sawtooth(self.pc_out, t_trig, self.P.get('delay'), self.P.get('offset'), 1/self.laser_f) # Calculate theoretical laser time 
+                if abs(self.curr_time - S.t) < 0.25: # Checks if counter reading is within 250 ps of set time
+                    self.correction_t = time.time() # Time of change in counter time
+                    self.corr_diff = self.correction_t - self.move_start # Calculates approximate time in seconds it took to make see change in time on counter due to bucket correction. Imprecise because femto.py loop delay.
+                    self.P.put('bucket_correction_delay', self.corr_diff)
+                    self.bucket_flag = 0
+                else:
+                    self.bucket_flag = 1
+        except AttributeError as a:
+            print('Attribute error in move_time_delay:', a)
+            logging.error('Attribute error in move_time_delay: %s', a)
+        except TypeError as t:
+            print('Type error in move_time_delay', t)
+            logging.error('Type error in move_time_delay %s', t)
        
             
 class sawtooth():
@@ -536,6 +599,7 @@ class phase_motor():
                 stopped = self.P.get('phase_motor_dmov') # 1 if stopped, if throws error, is still moving
             except:
                 print('Could not get dmov. Error occurred at:', date_time())
+                logging.error('Could not get dmov.')
                 stopped = 0  # threw error, assume not stopped (should clean up to look for epics error)
             if stopped:
                 posrb = self.P.get('phase_motor_rb') * self.scale  # position in nanoseconds
@@ -649,6 +713,7 @@ def femto(name='NULL'):
     while W.error == 0:   # MAIN PROGRAM LOOP
         time.sleep(0.1)
         try:   
+            loop_start = time.time()
             W.check()
             P.put('busy', 0)
             L.locker_status()  # Checks if the locking system is OK
@@ -674,10 +739,15 @@ def femto(name='NULL'):
             P.put('unfixed_error', L.bucket_error)
             P.put('ok', 1)
             if P.get('enable'): # Checks if time control is enabled
-                L.set_time() # Sets laser time   
+                L.set_time() # Sets laser time
+                L.move_time_delay() # Record delay between set time change and change in counter readback
             D.run()  # Ensures degrees and ns time value match
+            loop_stop = time.time()
+            loop_time = loop_stop - loop_start
+            P.put('loop_time', loop_time)
         except:   # Catch any otherwise uncaught error.
             print(sys.exc_info()[0]) # Print error
+            logging.error('%s', sys.exc_info()[0])
             del P  #does this work?
             print('UNKNOWN ERROR, trying again. Error occurred at:', date_time())
             P = PVS(name)

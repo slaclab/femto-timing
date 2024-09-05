@@ -108,6 +108,7 @@ class PVS():   # creates pvs
         version_pv_name = dict()
         matlab = dict()  # holds all matlab use pvs
         timeout = 1.0  # default timeout for connecting to pvs
+        script_loop_time = dict() 
 
         nm = 'XCS'
         namelist.add(nm)
@@ -137,10 +138,11 @@ class PVS():   # creates pvs
         drift_correction_dir[nm]= 1  # Direction of timetool stage
         drift_correction_smoothing[nm]='LAS:FS4:VIT:matlab:07'
         drift_correction_accum[nm]='LAS:FS4:VIT:matlab:09'
-        use_drift_correction[nm] = True  
-        use_dither[nm] = True # used to allow fast dither of timing (for special functions)
+        use_drift_correction[nm] = False  
+        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
         dither_level[nm] = 'LAS:FS4:VIT:matlab:08'    
         matlab[nm] = matlab_use
+        script_loop_time[nm] = 'LAS:UNDS:FLOAT:111'
 
         nm = 'MFX'
         namelist.add(nm)
@@ -174,6 +176,7 @@ class PVS():   # creates pvs
         use_dither[nm] = False # used to allow fast dither of timing (for special functions)
         dither_level[nm] = 'LAS:FS45:VIT:matlab:08'    
         matlab[nm] = matlab_use
+        script_loop_time[nm] = 'LAS:UNDS:FLOAT:112'
 
         nm = 'CXI'
         namelist.add(nm)
@@ -206,6 +209,7 @@ class PVS():   # creates pvs
         drift_correction_accum[nm]='LAS:FS5:VIT:matlab:09'
         use_drift_correction[nm] = True  
         use_dither[nm] = False # used to allow fast dither of timing (for special functions)
+        script_loop_time[nm] = 'LAS:UNDS:FLOAT:113'
 
         nm = 'MEC'
         namelist.add(nm)
@@ -228,7 +232,8 @@ class PVS():   # creates pvs
             matlab_use[n] = False  # Use new PVs  
         matlab[nm] = matlab_use 
         use_drift_correction[nm] = False  
-        use_dither[nm] = False # used to allow fast dither of timing (for special functions)          
+        use_dither[nm] = False # used to allow fast dither of timing (for special functions)
+        script_loop_time[nm] = 'LAS:UNDS:FLOAT:114'
 
         nm = 'VITARA1'
         namelist.add(nm)
@@ -313,6 +318,7 @@ class PVS():   # creates pvs
         use_dither[nm] = False # used to allow fast dither of timing (for special functions)
         dither_level[nm] = 'LAS:FS11:VIT:matlab:08'    
         matlab[nm] = matlab_use
+        script_loop_time[nm] = 'LAS:UNDS:FLOAT:109'
 
         nm = 'FS14'
         namelist.add(nm)
@@ -350,6 +356,7 @@ class PVS():   # creates pvs
         use_dither[nm] = False # used to allow fast dither of timing (for special functions)
         dither_level[nm] = 'LAS:FS14:VIT:matlab:08'    
         matlab[nm] = matlab_use
+        script_loop_time[nm] = 'LAS:UNDS:FLOAT:110'
         
         
         while not (self.name in namelist):
@@ -440,6 +447,7 @@ class PVS():   # creates pvs
         self.pvlist['laser_locked'] = Pv(dev_base[self.name]+'PHASE_LOCKED')
         self.pvlist['lock_enable'] = Pv(dev_base[self.name]+'RF_LOCK_ENABLE')
         self.pvlist['unfixed_error'] =  Pv(dev_base[self.name]+'FS_UNFIXED_ERROR')
+        self.pvlist['loop_time'] = Pv(script_loop_time[self.name])
   
         if self.use_secondary_calibration:
             self.pvlist['secondary_calibration'] = Pv(secondary_calibration[self.name])
@@ -1039,6 +1047,7 @@ def femto(name='NULL'):
     while W.error ==0:   # MAIN PROGRAM LOOP
         pause(0.1)
         try:   # the never give up, never surrunder loop. 
+            loop_start = time.time()
             W.check()
             P.put('busy', 0)
             L.locker_status()  # check if the locking sysetm is OK
@@ -1075,7 +1084,10 @@ def femto(name='NULL'):
             P.put('ok', 1)
             if P.get('enable'): # is enable time control active?
                 L.set_time() # set time read earlier    
-            D.run()  # deals with degreees S band conversion    
+            D.run()  # deals with degreees S band conversion 
+            loop_stop = time.time()
+            loop_time = loop_stop - loop_start
+            P.put('loop_time', loop_time)   
             #P.E.write_error('Laser OK')
         except:   # catch any otehrwise uncaught error.
             print sys.exc_info()[0] # print error I hope
