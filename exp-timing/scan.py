@@ -21,11 +21,7 @@ ctr_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:GET_TIC_NS')
 stop = 10 # scan range ns  
 step = 1 # scan step interval in ns 
 direction = -1 # -1 for down, 1 for up 
-<<<<<<< Updated upstream
-wait_time = 1 # wait time in seconds b/t steps
-=======
-wait_time = 1    # wait time in seconds b/t steps
->>>>>>> Stashed changes
+wait_time = 5 # wait time in seconds b/t steps
 
 # print current tgt and ctr time
 tgt = tgt_time_pv.value
