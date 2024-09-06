@@ -36,7 +36,7 @@ for x in range(0, stop, step):
     caput(tgt_pv,tgt+x*direction, wait=True)
     time.sleep(wait_time) # wait x sec to update
     # printout the values to see on the terminal 
-    print(tgt_time_pv.value)
+    # print(tgt_time_pv.value)
     # logging.info('%s', tgt_time_pv.value)
     print(ctr_time_pv.value)
     # logging.info('%s', ctr_time_pv.value)
