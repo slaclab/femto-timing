@@ -20,7 +20,7 @@ ctr_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:GET_TIC_NS')
 # scanning parameters 
 stop = 100 # scan range ns  
 step = 1 # scan step interval in ns 
-direction = -1 # -1 for down, 1 for up 
+direction = 1 # -1 for down, 1 for up 
 wait_time = 5 # wait time in seconds b/t steps
 
 # print current tgt and ctr time
