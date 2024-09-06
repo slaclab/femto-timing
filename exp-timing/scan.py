@@ -13,12 +13,12 @@ from epics import caget, caput, cainfo, PV
 #             )
 
 # setup PVs
-tgt_pv = 'LAS:FS4:VIT:FS_TGT_TIME'
-tgt_time_pv = PV('LAS:FS4:VIT:FS_TGT_TIME')
-ctr_time_pv = PV('LAS:FS4:VIT:FS_CTR_TIME')
+tgt_pv = 'LAS:LHN:LLG2:02:PHASCTL:DELAY_SET'
+tgt_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:DELAY_SET')
+ctr_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:GET_TIC_NS')
 
 # scanning parameters 
-stop = 10 # scan range ns  
+stop = 100 # scan range ns  
 step = 1 # scan step interval in ns 
 direction = -1 # -1 for down, 1 for up 
 wait_time = 5 # wait time in seconds b/t steps
