@@ -410,6 +410,7 @@ class locker():
       
     def check_jump(self):
         """Takes the trigger time, phase motor position, and counter time, calculates the number of 3.808 GHz bucket jumps."""
+        print('Check jump start: '+date_time()) #XPP TROUBLESHOOTING
         T = trigger(self.P) # trigger class
         M = phase_motor(self.P) # phase motor     
         t = self.C.get_time()
@@ -447,9 +448,12 @@ class locker():
         if self.buckets != 0:
             self.detection_t = time.time() # Time bucket jump was detected
         self.P.E.write_error('Laser OK') # Laser is OK
+        print('Check jump complete: '+date_time()) #XPP TROUBLESHOOTING
+        print('Buckets to correct: '+self.buckets) #XPP TROUBLESHOOTING
             
     def fix_jump(self):
         """Takes exact bucket error is ns, moves the phase motor and updates the offset to correct for it."""
+        print('Fix jump start: '+date_time()) #XPP TROUBLESHOOTING
         if self.buckets == 0:  #no jump to begin with
             self.P.E.write_error('Trying to fix non-existent jump')
             return
@@ -471,6 +475,7 @@ class locker():
         self.P.E.write_error('Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
+        print('Fix jump complete: '+date_time()) #XPP TROUBLESHOOTING
 
     def move_time_delay(self):
         """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
@@ -733,6 +738,7 @@ def femto(name='NULL'):
                 continue
             L.check_jump()   # Checks for bucket jumps
             if P.get('fix_bucket') and L.buckets != 0 and P.get('enable'):
+                print('bucket correct - main loop. time: '+date_time()) # XPP TROUBLESHOOTING
                 P.put('ok', 0)
                 P.put('busy', 1)
                 L.fix_jump()  # Fixes bucket jumps
