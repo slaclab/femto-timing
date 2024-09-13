@@ -243,15 +243,15 @@ class locker():
          self.calib_points = 50  # number of points to use in calibration cycle
          self.calib_range = 30  # ns for calibration sweep
          self.max_jump_error = .05 # ns threshold for determing if counter is stable enough for bucket correction
-         self.instability_thresh = 1 # ns threshold for "Counter not stable" message
+         self.instability_thresh = 0.5 # ns threshold for "Counter not stable" message
          self.max_frequency_error = 100.0
-         self.min_time = -880000 # minimum time that can be set (ns) % was 100  %%%% tset
+         self.min_time = -880000 # minimum time that can be set (ns)
          self.max_time = 20000.0 # maximum time that can be set (ns)
          self.d = dict()
          self.d['delay'] =  self.P.get('delay')
          self.d['offset'] = self.P.get('offset')
-         self.delay_offset = 0  # kludge to avoide running near sawtooth edge
-         self.drift_last= 0; # used for drift correction when activated
+         self.delay_offset = 0  # kludge to avoid running near sawtooth edge
+         self.drift_last= 0 # used for drift correction when activated
          self.drift_initialized = False # will be true after first cycle
          self.C = time_interval_counter(self.P) # creates a time interval counter object
          self.move_flag = 0
@@ -426,19 +426,18 @@ class locker():
         self.buckets = round(self.terror * self.locking_f)
         self.bucket_error = self.terror - self.buckets / self.locking_f
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        if (self.C.range > (2 * self.max_jump_error)): # Too wide a range of measurements
-            self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-            return
+        if (self.C.range > self.instability_thresh) or (self.C.range == 1): # The latter condition catches the when self.C.range>self.C.tol
+            self.P.E.write_error('Counter not stable')
         if (self.C.range == 0):  # No TIC reading
-            self.buckets = 0  # Do not count as a bucket error if readings are not consistent
-            if (self.stale_cnt < 500):
+            if (self.stale_cnt < 50):
                 self.stale_cnt += 1
             else:
                 self.stale_cnt = 0
                 self.P.E.write_error('No counter reading')
-                return
-        if (self.C.range > self.instability_thresh):
-            self.P.E.write_error('Counter not stable')
+        else:
+            self.stale_cnt = 0 # Reset the stale counter if there is new TIC data
+        if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0): # Too wide a range of measurements
+            self.buckets = 0  # Do not count as a bucket error if readings are not consistent
             return
         if abs(self.bucket_error) > self.max_jump_error:
             self.buckets = 0
@@ -463,7 +462,7 @@ class locker():
         new_pc_fix = np.mod(new_pc, 1/self.laser_f)  # equal within one cycle. 
         M.move(new_pc_fix) # moves phase motor to new position
         M.wait_for_stop()
-        time.sleep(2)  # 
+        time.sleep(2)
         new_offset = self.d['offset'] - (new_pc_fix - old_pc)
         self.d['offset'] = new_offset
         self.P.put('offset', new_offset)
@@ -560,7 +559,7 @@ class time_interval_counter():
         """Returns counter time scaled to ns."""
         self.good = 0  # assume bad unless we fall through all the traps
         self.range = 0; # Until overwritten by new data
-        tol = self.P.get('counter_jitter_high')
+        self.tol = self.P.get('counter_jitter_high')
         tmin = self.P.get('counter_low')
         tmax = self.P.get('counter_high')
         time = self.P.get('counter')  # read counter time
@@ -569,8 +568,8 @@ class time_interval_counter():
         if (time > tmax) or (time < tmin):
             return 0 # data out of range
         jit = self.P.get('counter_jitter')
-        if jit > tol:
-            return 0  # jitter too high
+        if jit > self.tol:
+            return 1  # 1 to    differentiate from no data or out of range data
         # if we got here, we have a good reading
         self.rt.add_element(time) # add time to ring
         self.rj.add_element(jit)  # add jitter to ring
