@@ -417,18 +417,25 @@ class locker():
         if t > -900000.0:      
             self.P.put('error', t - self.P.get('time')) # timing error (reads counter)      
         t_trig = T.get_ns()
+        print('t_trig: '+t_trig) #XPP Troubleshooting
         pc = M.get_position()
+        print('pc: '+pc) #XPP Troubleshooting
         try:
             self.d['delay'] = self.P.get('delay')
             self.d['offset'] = self.P.get('offset')
         except:
             print('Problem reading delay and offset pvs. Error occurred at:', date_time())
             logging.error('Problem reading delay and offset pvs.')
-        S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time        
+        S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time
+        print('S.t: '+S.t) #XPP Troubleshooting        
         self.terror = t - S.t # error in ns
+        print('self.terror: '+self.terror) #XPP Troubleshooting
         self.buckets = round(self.terror * self.locking_f)
+        print('Initial bucket count: '+self.buckets) #XPP Troubleshooting
         self.bucket_error = self.terror - self.buckets / self.locking_f
+        print('Bucket Error: '+self.bucket_error) #XPP Troubleshooting
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
+        print('Exact Error: '+self.exact_error) #XPP Troubleshooting
         if (self.C.range > self.instability_thresh) or (self.C.range == 1): # The latter condition catches the when self.C.range>self.C.tol
             self.P.E.write_error('Counter not stable')
         if (self.C.range == 0):  # No TIC reading
