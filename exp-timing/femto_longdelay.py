@@ -410,16 +410,16 @@ class locker():
       
     def check_jump(self):
         """Takes the trigger time, phase motor position, and counter time, calculates the number of 3.808 GHz bucket jumps."""
-        print('Check jump start: '+date_time()) #XPP TROUBLESHOOTING
+        print('Check jump start: ', date_time()) #XPP TROUBLESHOOTING
         T = trigger(self.P) # trigger class
         M = phase_motor(self.P) # phase motor     
         t = self.C.get_time()
         if t > -900000.0:      
             self.P.put('error', t - self.P.get('time')) # timing error (reads counter)      
         t_trig = T.get_ns()
-        print('t_trig: '+t_trig) #XPP Troubleshooting
+        print('t_trig: ', t_trig) #XPP Troubleshooting
         pc = M.get_position()
-        print('pc: '+pc) #XPP Troubleshooting
+        print('pc: ', pc) #XPP Troubleshooting
         try:
             self.d['delay'] = self.P.get('delay')
             self.d['offset'] = self.P.get('offset')
@@ -427,15 +427,15 @@ class locker():
             print('Problem reading delay and offset pvs. Error occurred at:', date_time())
             logging.error('Problem reading delay and offset pvs.')
         S = sawtooth(pc, t_trig, self.d['delay'], self.d['offset'], 1/self.laser_f) # calculate time
-        print('S.t: '+S.t) #XPP Troubleshooting        
+        print('S.t: ', S.t) #XPP Troubleshooting        
         self.terror = t - S.t # error in ns
-        print('self.terror: '+self.terror) #XPP Troubleshooting
+        print('self.terror: ', self.terror) #XPP Troubleshooting
         self.buckets = round(self.terror * self.locking_f)
-        print('Initial bucket count: '+self.buckets) #XPP Troubleshooting
+        print('Initial bucket count: ', self.buckets) #XPP Troubleshooting
         self.bucket_error = self.terror - self.buckets / self.locking_f
-        print('Bucket Error: '+self.bucket_error) #XPP Troubleshooting
+        print('Bucket Error: ', self.bucket_error) #XPP Troubleshooting
         self.exact_error = self.buckets / self.locking_f  # number of ns to move (exactly)
-        print('Exact Error: '+self.exact_error) #XPP Troubleshooting
+        print('Exact Error: ', self.exact_error) #XPP Troubleshooting
         if (self.C.range > self.instability_thresh) or (self.C.range == 1): # The latter condition catches the when self.C.range>self.C.tol
             self.P.E.write_error('Counter not stable')
         if (self.C.range == 0):  # No TIC reading
@@ -455,12 +455,12 @@ class locker():
         if self.buckets != 0:
             self.detection_t = time.time() # Time bucket jump was detected
         self.P.E.write_error('Laser OK') # Laser is OK
-        print('Check jump complete: '+date_time()) #XPP TROUBLESHOOTING
-        print('Buckets to correct: '+self.buckets) #XPP TROUBLESHOOTING
+        print('Check jump complete: ', date_time()) #XPP TROUBLESHOOTING
+        print('Buckets to correct: ', self.buckets) #XPP TROUBLESHOOTING
             
     def fix_jump(self):
         """Takes exact bucket error is ns, moves the phase motor and updates the offset to correct for it."""
-        print('Fix jump start: '+date_time()) #XPP TROUBLESHOOTING
+        print('Fix jump start: ', date_time()) #XPP TROUBLESHOOTING
         if self.buckets == 0:  #no jump to begin with
             self.P.E.write_error('Trying to fix non-existent jump')
             return
@@ -482,7 +482,7 @@ class locker():
         self.P.E.write_error('Done Fixing Jump')
         bc = self.P.get('bucket_counter') # previous number of jumps
         self.P.put('bucket_counter', bc + 1)  # write incremented number
-        print('Fix jump complete: '+date_time()) #XPP TROUBLESHOOTING
+        print('Fix jump complete: ', date_time()) #XPP TROUBLESHOOTING
 
     def move_time_delay(self):
         """Takes the time of the most recent set time adjustment, returns the approximate delay that occurred before the time interval counter detected the change in time."""
@@ -745,7 +745,7 @@ def femto(name='NULL'):
                 continue
             L.check_jump()   # Checks for bucket jumps
             if P.get('fix_bucket') and L.buckets != 0 and P.get('enable'):
-                print('bucket correct - main loop. time: '+date_time()) # XPP TROUBLESHOOTING
+                print('bucket correct - main loop. time: ', date_time()) # XPP TROUBLESHOOTING
                 P.put('ok', 0)
                 P.put('busy', 1)
                 L.fix_jump()  # Fixes bucket jumps
