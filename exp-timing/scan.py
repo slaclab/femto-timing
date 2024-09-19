@@ -19,8 +19,8 @@ ctr_time_pv = PV('LAS:FS11:VIT:FS_CTR_TIME')
 
 # scanning parameters 
 stop = 30 # scan range ns  
-step = 5 # scan step interval in ns 
-direction = 1 # -1 for down, 1 for up 
+step = 1 # scan step interval in ns 
+direction = -1 # -1 for down, 1 for up 
 wait_time = 1 # wait time in seconds b/t steps
 
 # print current tgt and ctr time
