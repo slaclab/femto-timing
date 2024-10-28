@@ -3,15 +3,6 @@ import logging
 import sys
 from epics import caget, caput, cainfo, PV
 
-# logging.basicConfig(
-#                 format='%(asctime)s - %(levelname)s - %(message)s',
-#                 style='%',
-#                 datefmt='%Y-%m-%d %H:%M',
-#                 level=logging.DEBUG,
-#                 filename=str('/reg/d/iocData/py-fstiming-XCS/iocInfo/scan.log'),
-#                 filemode='a',
-#             )
-
 # setup PVs
 tgt_pv = 'LAS:LHN:LLG2:02:PHASCTL:DELAY_SET'
 tgt_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:DELAY_SET')
@@ -41,15 +32,11 @@ for x in range(0, stop):
 
 #print target/counter time values
 print('Target Times:')
-#logging.info('Target Times:')
 for x in range(0, stop): 
     print(tgt_time[x]) # print out all target time values first
-    # logging.info('%s', tgt_time[x])
 print('Counter Times:')
-#logging.info('Counter Times:')
 for x in range(0, stop):
     print(ctr_time[x]) # then print out all counter time values
-    # logging.info('%s', ctr_time[x])
 
 # ensure target time is back at initial value
 caput(tgt_pv,tgt, wait=True)
