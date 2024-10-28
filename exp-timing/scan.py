@@ -34,9 +34,9 @@ wait_time = 5 # wait time in seconds b/t steps
 # time scan
 for x in range(0, stop):
     if (x<(stop/2)):
-        caput(tgt_pv,tgt+init_step*(mult^x), wait=True) # step up with increasing step size
+        caput(tgt_pv,tgt+init_step*(mult**x), wait=True) # step up with increasing step size
     else:
-        caput(tgt_pv,tgt-init_step*(mult^(x-(stop/2))), wait=True) # step down with increasing step size
+        caput(tgt_pv,tgt-init_step*(mult**(x-(stop/2))), wait=True) # step down with increasing step size
     time.sleep(wait_time) # wait x sec to update
     tgt_time[x] = tgt_time_pv.value
     ctr_time[x] = ctr_time_pv.value
