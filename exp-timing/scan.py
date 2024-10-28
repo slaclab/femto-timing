@@ -47,5 +47,5 @@ move_start = time.time()
 caput(tgt_pv, tgt+5, wait=True) # move phase shifter to other side of bucket (10 ns move)
 move_stop = time.time()
 move_time = move_stop - move_start # time delay of 10 ns phase shifter move
-print('10ns Move - Phase Shifter Delay Time: ', move_time)
+print('10ns Move - Phase Shifter Delay Time (s): ', move_time)
 caput(tgt_pv,tgt, wait=True) # set target tinme back to initial value
