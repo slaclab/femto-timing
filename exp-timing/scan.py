@@ -16,10 +16,14 @@ from epics import caget, caput, cainfo, PV
 tgt_pv = 'LAS:LHN:LLG2:02:PHASCTL:DELAY_SET'
 tgt_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:DELAY_SET')
 ctr_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:GET_TIC_NS')
+ph_shft_get_pv = PV('LAS:LHN:LLG2:02:PHASCTL:RF_PHASE_RBV')
+ph_shft_set_pv = PV('LAS:LHN:LLG2:02:PHASCTL:RF_PHASE_SET')
 
-#target/counter time dictionaries
+#target/counter time dictionaries and initial values
 tgt_time = dict()
 ctr_time = dict()
+tgt = tgt_time_pv.value
+ctr = ctr_time_pv.value
 
 # scanning parameters 
 init_step = 0.05 # initial step size
@@ -27,15 +31,7 @@ stop = 8 # total number of steps to take
 mult = 10 # multiplier by which to increase/decrease step size after each step
 wait_time = 5 # wait time in seconds b/t steps
 
-# print current tgt and ctr time
-tgt = tgt_time_pv.value
-print(tgt)
-# logging.info('%s', tgt)
-ctr = ctr_time_pv.value
-print(ctr)
-# logging.info('%s', ctr)
-
-# scan through ns steps
+# time scan
 for x in range(0, stop):
     if (x<(stop/2)):
         caput(tgt_pv,tgt+init_step*(mult^x), wait=True) # step up with increasing step size
@@ -57,7 +53,16 @@ for x in range(0, stop):
     print(ctr_time[x]) # then print out all counter time values
     # logging.info('%s', ctr_time[x])
 
-# write back orig tgt time 
-print(tgt)
-# logging.info('%s', tgt)
+# phase shift time measurement
+init_shft = ph_shft_get_pv.value # get current phase shifter position
+caput(ph_shft_set_pv, -5) # set phase shifter to one side of bucket without getting too close to bucket edge to prevent jumps
+move_start = time.time()
+caput(ph_shft_set_pv, 5) # move phase shifter to other side of bucket (10 ns move)
+move_stop = time.time()
+move_time = move_stop - move_start # time delay of 10 ns phase shifter move
+print('10ns Move - Phase Shifter Delay Time: ', move_time)
+caput(ph_shft_set_pv, init_shft) # set phase shifter back to initial position
+
+
+# redundant step to ensure target time is back at initial value
 caput(tgt_pv,tgt, wait=True)
