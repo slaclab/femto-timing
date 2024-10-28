@@ -16,8 +16,6 @@ from epics import caget, caput, cainfo, PV
 tgt_pv = 'LAS:LHN:LLG2:02:PHASCTL:DELAY_SET'
 tgt_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:DELAY_SET')
 ctr_time_pv = PV('LAS:LHN:LLG2:02:PHASCTL:GET_TIC_NS')
-ph_shft_get_pv = PV('LAS:LHN:LLG2:02:PHASCTL:RF_PHASE_RBV')
-ph_shft_set_pv = PV('LAS:LHN:LLG2:02:PHASCTL:RF_PHASE_SET')
 
 #target/counter time dictionaries and initial values
 tgt_time = dict()
@@ -53,16 +51,14 @@ for x in range(0, stop):
     print(ctr_time[x]) # then print out all counter time values
     # logging.info('%s', ctr_time[x])
 
+# ensure target time is back at initial value
+caput(tgt_pv,tgt, wait=True)
+
 # phase shift time measurement
-init_shft = ph_shft_get_pv.value # get current phase shifter position
-caput(ph_shft_set_pv, -5) # set phase shifter to one side of bucket without getting too close to bucket edge to prevent jumps
+caput(tgt_pv, tgt-5, wait=True) # set phase shifter to one side of bucket without getting too close to bucket edge to prevent jumps
 move_start = time.time()
-caput(ph_shft_set_pv, 5) # move phase shifter to other side of bucket (10 ns move)
+caput(tgt_pv, tgt+5, wait=True) # move phase shifter to other side of bucket (10 ns move)
 move_stop = time.time()
 move_time = move_stop - move_start # time delay of 10 ns phase shifter move
 print('10ns Move - Phase Shifter Delay Time: ', move_time)
-caput(ph_shft_set_pv, init_shft) # set phase shifter back to initial position
-
-
-# redundant step to ensure target time is back at initial value
-caput(tgt_pv,tgt, wait=True)
+caput(tgt_pv,tgt, wait=True) # set target tinme back to initial value
