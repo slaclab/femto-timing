@@ -43,6 +43,7 @@ caput(tgt_pv,tgt, wait=True)
 
 # phase shift time measurement
 caput(tgt_pv, tgt-5, wait=True) # set phase shifter to one side of bucket without getting too close to bucket edge to prevent jumps
+time.sleep(wait_time) # wait to make sure we reach initial time
 move_start = time.time()
 caput(tgt_pv, tgt+5, wait=True) # move phase shifter to other side of bucket (10 ns move)
 while(ctr_time_pv.value<(tgt+4.9) or ctr_time_pv.value>(tgt+5.1)): # waits until the counter time is within +/-0.1 ns of the target time
