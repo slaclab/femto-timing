@@ -1,7 +1,7 @@
-<h1 align="center">The femto Scripts</h1>
+<h1 align="center">LCLS-I fstiming scripts</h1>
 
 <div align="center">
-  <strong>LCLS Femto Timing Control </strong>
+  <strong>LCLS-I fstiming </strong>
 </div>
 
 <p align="center">
@@ -12,7 +12,7 @@
 </p>
 
 ## Motivation
-LCLS needs timing... **TO DO**
+Repository for all LCLS-I fstiming scripts
 
 ## Features
 * femto.py: **TO DO**
@@ -23,7 +23,11 @@ LCLS needs timing... **TO DO**
 * watchdog.py: **TO DO**
 
 ## Basic Usage
-The... **TO DO**
+**TO DO**
+
+
+[femto resource guide](https://confluence.slac.stanford.edu/x/mYM6Gw)
+
 ```bash
 
    git checkout
