@@ -117,6 +117,7 @@ class time_tool():
                      # at this point, know that data is good and need to move it over to the drift correction algo
                      # self.drift_correct['dcsignal'][0].put(value = self.drift_correct['pix'][0].value, timeout = 1.0)
                      self.drift_correct['dcsignal'][0].put(value = self.drift_correct['fs'][0].value, timeout = 1.0)
+                     # dvc Test
                  #else:
                      #print 'Data is stale or stage is moving'
                      #print self.old_values['pix']
