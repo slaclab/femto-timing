@@ -54,6 +54,10 @@ class time_tool():
             print(sys+' not found, exiting')
             exit()
         
+
+        self.tt_script = Pv('LAS:FS14:VIT:matlab:31')
+        self.tt_script.connect(timeout=1.0) # connect to pv
+
         self.ttpv = Pv(pvname)
         self.ttpv.connect(timeout=1.0) # connect to pv
         self.stagepv = Pv(stagename)
@@ -126,7 +130,10 @@ class time_tool():
                  #print 'TT edge fit bad'
          #else:
              #print 'intensity profile bad'
-
+        if( self.tt_script == 1):
+            print 'Run TT code'
+            self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
+            time.sleep(1)
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
