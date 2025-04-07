@@ -58,9 +58,9 @@ class time_tool():
         print('Script PV 1')
         self.tt_script = Pv('LAS:FS14:VIT:matlab:31')
         print('Script PV 2')
-        "self.tt_script.connect(timeout=1.0) # connect to pv
+        #self.tt_script.connect(timeout=1.0) # connect to pv
         print('Script PV 3')
-        "print('Script value enabled = ' +self.tt_script.get(ctrl=True, timeout=1.0))
+        #print('Script value enabled = ' +self.tt_script.get(ctrl=True, timeout=1.0))
 
         self.ttpv = Pv(pvname)
         self.ttpv.connect(timeout=1.0) # connect to pv
