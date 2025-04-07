@@ -58,9 +58,9 @@ class time_tool():
         print('Script PV 1')
         self.tt_script = Pv('LAS:FS14:VIT:matlab:31')
         print('Script PV 2')
-        self.tt_script.connect(timeout=1.0) # connect to pv
+        "self.tt_script.connect(timeout=1.0) # connect to pv
         print('Script PV 3')
-        print('Script value enabled = ' +self.tt_script.get(ctrl=True, timeout=1.0))
+        "print('Script value enabled = ' +self.tt_script.get(ctrl=True, timeout=1.0))
 
         self.ttpv = Pv(pvname)
         self.ttpv.connect(timeout=1.0) # connect to pv
@@ -83,6 +83,7 @@ class time_tool():
         self.drift_correct_pv[7] = dev_base+'STAGE'
         self.drift_correct_pv[8] = dev_base+'IPM'
         self.drift_correct_pv[9] = dev_base+'DRIFT_CORRECT_SIG'
+        print('Watchdog')
         print('Value of Watchdog'+self.drift_correct_pv[0])
         for n in range(0,9):
             self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
