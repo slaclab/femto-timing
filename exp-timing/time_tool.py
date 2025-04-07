@@ -130,6 +130,8 @@ class time_tool():
                  #print 'TT edge fit bad'
          #else:
              #print 'intensity profile bad'
+
+
         if( self.tt_script == 1):
             print 'Run TT code'
             self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
@@ -138,13 +140,18 @@ class time_tool():
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
         T = time_tool()  # initialize
+        print('exit initialize')
     else:
         T = time_tool(sys.argv[1])
+    print('loop')
     while T.W.error == 0:
         T.W.check() # check / update watchdog counter
         time.sleep(T.delay)
+        print('inside loop')       
         try:
+            print('enter read_write')
             T.read_write()  # collects the data 
+            print('exit read write')
         except:
             del T
             print('Crashed, restarting')
