@@ -102,7 +102,7 @@ class time_tool():
         self.stagepv.get(ctrl=True, timeout=1.0) # get TT stage position
         self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
 
-        self.
+       self.tt_script_en.get(ctrl=True, timeout=1.0) # get intensity profile
 
         for n in range(1,9):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
