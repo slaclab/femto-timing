@@ -1,7 +1,7 @@
 #time_tool.py
 import time
 import numpy as np
-import watchdog
+import watchdog3
 from psp.Pv import Pv
 import sys
 
@@ -72,7 +72,8 @@ class time_tool():
         self.values = dict() # will hold the numbers from the time tool
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
-        self.nm = ['watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm','dcsignal'] #list of internal names
+        self.drift_correct = dict()
+        self.nm = ['watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal'] #list of internal names
         self.drift_correct_pv[0] = dev_base+'WATCHDOG'
         self.drift_correct_pv[1] = dev_base+'PIX'
         self.drift_correct_pv[2] = dev_base+'FS'
@@ -96,7 +97,7 @@ class time_tool():
                 self.drift_correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
             print('For 3')
         print('Watchdog 1')
-        self.W = watchdog.watchdog(self.drift_correct[self.nm[0]][0]) # initialize watchdog   
+        self.W = watchdog3.watchdog(self.drift_correct[self.nm[0]][0]) # initialize watchdog   
         print('Watchdog 2')
 
     def read_write(self):   
