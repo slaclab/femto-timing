@@ -1,7 +1,7 @@
 #time_tool.py
 import time
 import numpy as np
-import watchdog3
+import watchdog
 from psp.Pv import Pv
 import sys
 
@@ -56,12 +56,9 @@ class time_tool():
             exit()
         
         print('Script PV 1')
-        self.tt_script = Pv('LAS:FS14:VIT:matlab:31')
-        print('Script PV 2')
-        #self.tt_script.connect(timeout=1.0) # connect to pv
-        print('Script PV 3')
-        #print('Script value enabled = ' +self.tt_script.get(ctrl=True, timeout=1.0))
-
+        self.tt_script_en = Pv(dev_base+'matlab:31')
+        self.tt_script_en.connect(timeout=1.0) # connect to pv
+        
         self.ttpv = Pv(pvname)
         self.ttpv.connect(timeout=1.0) # connect to pv
         self.stagepv = Pv(stagename)
@@ -73,7 +70,7 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.drift_correct = dict()
-        self.nm = ['watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal'] #list of internal names
+        self.nm = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal'] #list of internal names
         self.drift_correct_pv[0] = dev_base+'WATCHDOG'
         self.drift_correct_pv[1] = dev_base+'PIX'
         self.drift_correct_pv[2] = dev_base+'FS'
@@ -104,6 +101,9 @@ class time_tool():
         self.ttpv.get(ctrl=True, timeout=1.0) # get TT array data
         self.stagepv.get(ctrl=True, timeout=1.0) # get TT stage position
         self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
+
+        self.
+
         for n in range(1,9):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
              #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
@@ -144,9 +144,9 @@ class time_tool():
              #print 'intensity profile bad'
 
 
-        if( self.tt_script == 1):
-            print('Run TT code')
-            self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
+        if( self.tt_script_en == 1):
+            print('Do a correction!')
+            #self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
             time.sleep(1)
 
 def run():  # just a loop to keep recording         
@@ -159,11 +159,8 @@ def run():  # just a loop to keep recording
     while T.W.error == 0:
         T.W.check() # check / update watchdog counter
         time.sleep(T.delay)
-        print('inside loop')       
         try:
-            print('enter read_write')
-            T.read_write()  # collects the data 
-            print('exit read write')
+            T.read_write()  # collects the data
         except:
             del T
             print('Crashed, restarting')
