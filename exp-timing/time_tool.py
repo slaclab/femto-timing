@@ -1,7 +1,7 @@
 #time_tool.py
 import time
 import numpy as np
-import watchdog
+import watchdog3
 from psp.Pv import Pv
 import sys
 
