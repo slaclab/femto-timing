@@ -84,14 +84,17 @@ class time_tool():
         self.drift_correct_pv[8] = dev_base+'IPM'
         self.drift_correct_pv[9] = dev_base+'DRIFT_CORRECT_SIG'
         print('Watchdog')
-        print('Value of Watchdog'+self.drift_correct_pv[0])
+        #print('Value of Watchdog'+self.drift_correct_pv[0])
         for n in range(0,9):
+            print('For 1')
             self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
             for x in range(0,4):
                     self.drift_correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
+            print('For 2')
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)
                 self.drift_correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
+            print('For 3')
         print('Watchdog 1')
         self.W = watchdog.watchdog(self.drift_correct[self.nm[0]][0]) # initialize watchdog   
         print('Watchdog 2')
@@ -141,7 +144,7 @@ class time_tool():
 
 
         if( self.tt_script == 1):
-            print 'Run TT code'
+            print('Run TT code')
             self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
             time.sleep(1)
 
