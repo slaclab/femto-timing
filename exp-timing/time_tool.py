@@ -109,7 +109,7 @@ class time_tool():
         for n in range(1, len(self.nm)):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
              #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
-        for n in range (1,7):
+        for n in range (1,6):
             self.drift_correct[self.nm[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
