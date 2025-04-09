@@ -84,7 +84,7 @@ class time_tool():
         self.drift_correct_pv[10] = dev_base+'matlab:10'
 
         #print('Value of Watchdog'+self.drift_correct_pv[0])
-        for n in range(0,10):
+        for n in range(0,11):
             self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
             print(n)
             for x in range(0,4):
@@ -101,7 +101,7 @@ class time_tool():
 
         self.tt_script_en.get(ctrl=True, timeout=1.0)
 
-        for n in range(1,10):
+        for n in range(1,11):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
              #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
              print(n)
