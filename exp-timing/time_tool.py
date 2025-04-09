@@ -76,7 +76,7 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.drift_correct = dict()
-        self.nm = ['Watchdog', 'pix', 'TT_Edge', 'TT_Amplitude', 'amp_second', 'ref', 'TT_FWHM', 'Stage', 'Intensity_Profile_Monitor', 'dcsignal', 'Script_Enabled'] #list of internal names
+        self.nm = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled'] #list of internal names
         self.drift_correct_pv[0] = Dev_Base+'WATCHDOG'
         self.drift_correct_pv[1] = Dev_Base+'PIX'
         self.drift_correct_pv[2] = Dev_Base+'FS'
@@ -109,7 +109,7 @@ class time_tool():
         for n in range(1, len(self.nm)):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
              #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
-        for n in range (1,6):
+        for n in range (1,7):
             self.drift_correct[self.nm[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
