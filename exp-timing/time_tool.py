@@ -102,7 +102,7 @@ class time_tool():
     def read_write(self):   
         self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
         self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
-        self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
+        self.IPM_PV.get(ctrl=True, timeout=1.0) # get intensity profile
 
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
@@ -114,7 +114,7 @@ class time_tool():
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
         self.drift_correct[self.nm[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
-        self.drift_correct[self.nm[8]][0].put(value = self.ipmpv.value, timeout = 1.0) # read/write intensity profile
+        self.drift_correct[self.nm[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
 
          ###
          #print self.TT_PV.value
@@ -125,7 +125,7 @@ class time_tool():
 
          # need to decide whether to output to the drift correction signal
          # 1. IPM must be in range
-        if ( self.ipmpv.value > self.drift_correct['ipm'][1].value ) and (self.ipmpv.value < self.drift_correct['ipm'][2].value ):
+        if ( self.IPM_PV.value > self.drift_correct['ipm'][1].value ) and (self.IPM_PV.value < self.drift_correct['ipm'][2].value ):
              #print 'intensity profile good'
              # 2. amp must be in range
              if ( self.drift_correct['amp'][0].value > self.drift_correct['amp'][1].value ) and ( self.drift_correct['amp'][0].value < self.drift_correct['amp'][2].value ):
