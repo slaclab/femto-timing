@@ -142,11 +142,12 @@ class time_tool():
              #print 'intensity profile bad'
         if( self.tt_script_en.value == 1):
             print('Do a correction!')
-            self.drift_correct[self.nm[10]][0].put(value = 1, timeout = 1.0)
+            self.drift_correct[self.nm[10]][0].put(value = self.tt_script_en.value, timeout = 1.0)
             #self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
             time.sleep(1)
         else:
-            self.drift_correct[self.nm[10]][0].put(value = 0, timeout = 1.0)
+            print('No correction')
+            self.drift_correct[self.nm[10]][0].put(value = self.tt_script_en.value, timeout = 1.0)
             time.sleep(1)
 
 def run():  # just a loop to keep recording         
