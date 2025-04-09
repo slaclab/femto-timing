@@ -114,7 +114,7 @@ class time_tool():
             print('Yes if')
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
-        else
+        else:
             print('No if')
         self.drift_correct[self.nm[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
         self.drift_correct[self.nm[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
