@@ -70,7 +70,7 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.drift_correct = dict()
-        self.nm = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal'] #list of internal names
+        self.nm = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'MATLAB10'] #list of internal names
         self.drift_correct_pv[0] = dev_base+'WATCHDOG'
         self.drift_correct_pv[1] = dev_base+'PIX'
         self.drift_correct_pv[2] = dev_base+'FS'
@@ -81,28 +81,24 @@ class time_tool():
         self.drift_correct_pv[7] = dev_base+'STAGE'
         self.drift_correct_pv[8] = dev_base+'IPM'
         self.drift_correct_pv[9] = dev_base+'DRIFT_CORRECT_SIG'
-        print('Watchdog')
+        self.drift_correct_pv[10] = dev_base+'matlab:10'
+
         #print('Value of Watchdog'+self.drift_correct_pv[0])
         for n in range(0,9):
-            print('For 1')
             self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
             for x in range(0,4):
                     self.drift_correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
-            print('For 2')
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)
                 self.drift_correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
-            print('For 3')
-        print('Watchdog 1')
         self.W = watchdog3.watchdog(self.drift_correct[self.nm[0]][0]) # initialize watchdog   
-        print('Watchdog 2')
 
     def read_write(self):   
         self.ttpv.get(ctrl=True, timeout=1.0) # get TT array data
         self.stagepv.get(ctrl=True, timeout=1.0) # get TT stage position
         self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
 
-        self.tt_script_en.get(ctrl=True, timeout=1.0) # get intensity profile
+        self.tt_script_en.get(ctrl=True, timeout=1.0)
 
         for n in range(1,9):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
@@ -113,6 +109,8 @@ class time_tool():
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
         self.drift_correct[self.nm[7]][0].put(value = self.stagepv.value, timeout = 1.0)  # read stage position
         self.drift_correct[self.nm[8]][0].put(value = self.ipmpv.value, timeout = 1.0) # read/write intensity profile
+
+         ###
          #print self.ttpv.value
          #print 'stage position' # TEMP
          #print self.stagepv.value # TEMP
@@ -142,12 +140,13 @@ class time_tool():
                  #print 'TT edge fit bad'
          #else:
              #print 'intensity profile bad'
-
-
-        if( self.tt_script_en == 1):
+        if( self.tt_script_en.value == 1):
             print('Do a correction!')
+            self.drift_correct[self.nm[10]][0].put(1, timeout = 1.0)
             #self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
             time.sleep(1)
+        else:
+            self.drift_correct[self.nm[10]][0].put(0, timeout = 1.0)
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
@@ -155,7 +154,7 @@ def run():  # just a loop to keep recording
         print('exit initialize')
     else:
         T = time_tool(sys.argv[1])
-    print('loop')
+    print('Enter main loop')
     while T.W.error == 0:
         T.W.check() # check / update watchdog counter
         time.sleep(T.delay)
