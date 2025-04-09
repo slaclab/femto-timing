@@ -147,8 +147,10 @@ class time_tool():
             time.sleep(1)
         else:
             print('No correction')
-            self.drift_correct[self.nm[10]][0].put(value = self.tt_script_en.value, timeout = 1.0)
             time.sleep(1)
+            print('sleeping')
+            self.drift_correct[self.nm[10]][0].put(value = 0, timeout = 1.0)
+            
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
