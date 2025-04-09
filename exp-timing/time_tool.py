@@ -76,7 +76,7 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.drift_correct = dict()
-        self.nm = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled'] #list of internal names
+        self.nm = ['Watchdog', 'pix', 'TT Edge', 'TT Amplitude', 'amp_second', 'ref', 'TT FWHM', 'Stage', 'IPM', 'dcsignal', 'Script Enabled'] #list of internal names
         self.drift_correct_pv[0] = Dev_Base+'WATCHDOG'
         self.drift_correct_pv[1] = Dev_Base+'PIX'
         self.drift_correct_pv[2] = Dev_Base+'FS'
