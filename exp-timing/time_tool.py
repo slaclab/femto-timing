@@ -104,22 +104,20 @@ class time_tool():
         self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
         self.ipmpv.get(ctrl=True, timeout=1.0) # get intensity profile
 
-    _    self.TT_Script_EN.get(ctrl=True, timeout=1.0)
+        self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
         for n in range(1, len(self.nm)):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
              #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
         if n in range (1,6):
-            self.drift_correct[self.nm[n]][0].put(value = self.TT_P
-V.value[n-1], timeout = 1.0)  # write to matlab PVs 
+            self.drift_correct[self.nm[n]][0].put(value = self.TT_PV.value[n-1], timeout = 1.0)  # write to matlab PVs 
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
         self.drift_correct[self.nm[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
         self.drift_correct[self.nm[8]][0].put(value = self.ipmpv.value, timeout = 1.0) # read/write intensity profile
 
-    _     ###
-         #print self.TT_P
-V.value
+         ###
+         #print self.TT_PV.value
          #print 'stage position' # TEMP
          #print self.Stage_PV.value # TEMP
          #print 'intensity profile sum'
