@@ -87,7 +87,7 @@ class time_tool():
         self.drift_correct_pv[7] = Dev_Base+'STAGE'
         self.drift_correct_pv[8] = Dev_Base+'IPM'
         self.drift_correct_pv[9] = Dev_Base+'DRIFT_CORRECT_SIG'
-        self.drift_correct_pv[10] = Dev_Base+'matlab:10'
+        self.drift_correct_pv[10]= Dev_Base+'matlab:10'
 
         #print('Value of Watchdog'+self.drift_correct_pv[0])
         for n in range(0, len(self.nm)):
@@ -110,12 +110,13 @@ class time_tool():
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
              #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
         if n in range (1,6):
-            self.drift_correct[self.nm[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs 
+            self.drift_correct[self.nm[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
+            print(self.TTALL_PV.value[n-1])
             for x in range(0,3):
                 self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
         self.drift_correct[self.nm[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
         self.drift_correct[self.nm[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
-
+        
          ###
          #print self.TTALL_PV.value
          #print 'stage position' # TEMP
