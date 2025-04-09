@@ -86,6 +86,7 @@ class time_tool():
         #print('Value of Watchdog'+self.drift_correct_pv[0])
         for n in range(0,10):
             self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
+            print(n)
             for x in range(0,4):
                     self.drift_correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
             for x in range(0,3):
@@ -103,6 +104,7 @@ class time_tool():
         for n in range(1,10):
              self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
              #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
+             print(n)
         if n in range (1,6):
             self.drift_correct[self.nm[n]][0].put(value = self.ttpv.value[n-1], timeout = 1.0)  # write to matlab PVs 
             for x in range(0,3):
