@@ -13,19 +13,19 @@ class time_tool():
             TTALL_Name = 'XPP:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS11:VIT:'  
             Stage_Name = 'XPP:LAS:MMN:16'  # delay stage for time tool
-            ipmname = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'FS14':  # set up FS14 system
             print('Starting FS14')
             self.delay = 0.1 # 1 second delay
             #TTALL_Name = 'TMO:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS14:VIT:'
             #Stage_Name = 'LM1K4:COM_MP2_DLY1'  # delay stage for time tool
-            #ipmname = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
+            #IPM_Name = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
             
             print('Borrow CXI PVs to monitor')
-            TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
+            TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
-            ipmname = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
             
             print('Exit FS14 elif')
         elif sys == 'XPP':  # set up xpp system
@@ -34,21 +34,21 @@ class time_tool():
             TTALL_Name = 'XPP:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS3:VIT:'
             Stage_Name = 'XPP:LAS:MMN:16'  # delay stage for time tool
-            ipmname = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'XCS':  # set up xcs system
             print('starting XCS')
             self.delay = 0.1 # 1 second delay
             TTALL_Name = 'XCS:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS4:VIT:'
             Stage_Name = 'XCS:LAS:MMN:01'  # delay stage for time tool
-            ipmname = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'MFX':  # set up xcs system
             print('starting MFX')
             self.delay = 0.1 # 1 second delay
             TTALL_Name = 'MFX:TT:01:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS45:VIT:'
             Stage_Name = 'MFX:LAS:MMN:06'  # delay stage for time tool
-            ipmname = 'MFX:DG2:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'MFX:DG2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'CXI':  # set up cxi system
             print('starting CXI')
             self.delay = 0.1 # 1 second delay
@@ -56,7 +56,7 @@ class time_tool():
             Dev_Base = 'LAS:FS5:VIT:'
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             #Stage_Name = 'CXI:USR:MMN:25'  # delay stage for time tool
-            ipmname = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
         else:
             print(sys+' not found, exiting')
             exit()
@@ -69,7 +69,7 @@ class time_tool():
         self.TTALL_PV.connect(timeout=1.0) # connect to pv
         self.Stage_PV = Pv(Stage_Name)
         self.Stage_PV.connect(timeout=1.0)
-        self.IPM_PV = Pv(ipmname)
+        self.IPM_PV = Pv(IPM_Name)
         self.IPM_PV.connect(timeout=1.0)
         self.drift_correct_pv = dict()  # will hold list of IOC pvs
         self.values = dict() # will hold the numbers from the time tool
