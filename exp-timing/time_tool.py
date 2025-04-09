@@ -84,7 +84,7 @@ class time_tool():
         self.drift_correct_pv[10] = dev_base+'matlab:10'
 
         #print('Value of Watchdog'+self.drift_correct_pv[0])
-        for n in range(0,9):
+        for n in range(0,10):
             self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
             for x in range(0,4):
                     self.drift_correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
