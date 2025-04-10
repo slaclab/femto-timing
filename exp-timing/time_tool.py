@@ -23,7 +23,7 @@ class time_tool():
             #IPM_Name = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
             
             print('Borrow CXI PVs to monitor')
-            TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
+            TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
             
