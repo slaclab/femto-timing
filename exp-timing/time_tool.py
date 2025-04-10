@@ -89,7 +89,7 @@ class time_tool():
         self.Drift_Correct_PV[9] = Dev_Base+'DRIFT_CORRECT_SIG'
         self.Drift_Correct_PV[10]= Dev_Base+'matlab:10'
         self.Drift_Correct_PV[11]= Dev_Base+'matlab:11'
-        self.Drift_Correct_PV[11]= Dev_Base+'matlab:12'
+        self.Drift_Correct_PV[12]= Dev_Base+'matlab:12'
 
         #print('Value of Watchdog'+self.Drift_Correct_PV[0])
         for n in range(0, len(self.Name)):
