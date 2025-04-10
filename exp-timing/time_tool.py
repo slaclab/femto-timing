@@ -128,15 +128,23 @@ class time_tool():
             time.sleep(3)
 
         #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
+        # Good signal in Intensity Profile Monitor?
+        if( self.IPM_PV.value > 500):
+            self.Drift_Correct[self.Name[11]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            time.sleep(0.1)
+        else:
+            self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
+            print('Low Signal in IPM')
+            time.sleep(1)
 
         # Good Amplitude in Time Tool?
-        if( self.TT_Script_EN.value == 1):
+        if( self.Drift_Correct[self.Name[12]][0].value < 0.02):
             self.Drift_Correct[self.Name[12]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
             time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
-            print('Time Tool Script Disabled')
-            time.sleep(3)
+            print('Low Amplitude in Time Tool')
+            time.sleep(1)
 
 """         ###
          #print self.TTALL_PV.value
