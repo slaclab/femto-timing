@@ -71,33 +71,33 @@ class time_tool():
         self.Stage_PV.connect(timeout=1.0)
         self.IPM_PV = Pv(IPM_Name)
         self.IPM_PV.connect(timeout=1.0)
-        self.drift_correct_pv = dict()  # will hold list of IOC pvs
+        self.Drift_Correct_PV = dict()  # will hold list of IOC pvs
         self.values = dict() # will hold the numbers from the time tool
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
-        self.drift_correct = dict()
-        self.nm = ['Watchdog', 'pix', 'TT Edge', 'TT Amplitude', 'amp_second', 'ref', 'TT FWHM', 'Stage', 'IPM', 'dcsignal', 'Script Enabled'] #list of internal names
-        self.drift_correct_pv[0] = Dev_Base+'WATCHDOG'
-        self.drift_correct_pv[1] = Dev_Base+'PIX'
-        self.drift_correct_pv[2] = Dev_Base+'FS'
-        self.drift_correct_pv[3] = Dev_Base+'AMP'
-        self.drift_correct_pv[4] = Dev_Base+'AMP_SEC'
-        self.drift_correct_pv[5] = Dev_Base+'REF'
-        self.drift_correct_pv[6] = Dev_Base+'FWHM'
-        self.drift_correct_pv[7] = Dev_Base+'STAGE'
-        self.drift_correct_pv[8] = Dev_Base+'IPM'
-        self.drift_correct_pv[9] = Dev_Base+'DRIFT_CORRECT_SIG'
-        self.drift_correct_pv[10]= Dev_Base+'matlab:10'
+        self.Drift_Correct = dict()
+        self.nm = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled'] #list of internal names
+        self.Drift_Correct_PV[0] = Dev_Base+'WATCHDOG'
+        self.Drift_Correct_PV[1] = Dev_Base+'PIX'
+        self.Drift_Correct_PV[2] = Dev_Base+'FS'
+        self.Drift_Correct_PV[3] = Dev_Base+'AMP'
+        self.Drift_Correct_PV[4] = Dev_Base+'AMP_SEC'
+        self.Drift_Correct_PV[5] = Dev_Base+'REF'
+        self.Drift_Correct_PV[6] = Dev_Base+'FWHM'
+        self.Drift_Correct_PV[7] = Dev_Base+'STAGE'
+        self.Drift_Correct_PV[8] = Dev_Base+'IPM'
+        self.Drift_Correct_PV[9] = Dev_Base+'DRIFT_CORRECT_SIG'
+        self.Drift_Correct_PV[10]= Dev_Base+'matlab:10'
 
-        #print('Value of Watchdog'+self.drift_correct_pv[0])
+        #print('Value of Watchdog'+self.Drift_Correct_PV[0])
         for n in range(0, len(self.nm)):
-            self.drift_correct[self.nm[n]] = [Pv(self.drift_correct_pv[n]), Pv(self.drift_correct_pv[n]+'.LOW'), Pv(self.drift_correct_pv[n]+'.HIGH'), Pv(self.drift_correct_pv[n]+'.DESC')]
+            self.Drift_Correct[self.nm[n]] = [Pv(self.Drift_Correct_PV[n]), Pv(self.Drift_Correct_PV[n]+'.LOW'), Pv(self.Drift_Correct_PV[n]+'.HIGH'), Pv(self.Drift_Correct_PV[n]+'.DESC')]
             for x in range(0,4):
-                    self.drift_correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
+                    self.Drift_Correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
             for x in range(0,3):
-                self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)
-                self.drift_correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
-        self.W = watchdog3.watchdog(self.drift_correct[self.nm[0]][0]) # initialize watchdog   
+                self.Drift_Correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)
+                self.Drift_Correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
+        self.W = watchdog3.watchdog(self.Drift_Correct[self.nm[0]][0]) # initialize watchdog   
 
     def read_write(self):   
         self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
@@ -107,14 +107,14 @@ class time_tool():
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
         for n in range(1, len(self.nm)):
-             self.old_values[self.nm[n]] = self.drift_correct[self.nm[n]][0].value # old PV values
-             #self.limits[self.nm[n]] = [self.drift_correct[self.nm[n]][1].value, self.drift_correct[self.nm[n]][2].value] # limits
+             self.old_values[self.nm[n]] = self.Drift_Correct[self.nm[n]][0].value # old PV values
+             #self.limits[self.nm[n]] = [self.Drift_Correct[self.nm[n]][1].value, self.Drift_Correct[self.nm[n]][2].value] # limits
         for n in range (1,7):
-            self.drift_correct[self.nm[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
+            self.Drift_Correct[self.nm[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
             for x in range(0,3):
-                self.drift_correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
-        self.drift_correct[self.nm[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
-        self.drift_correct[self.nm[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
+                self.Drift_Correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
+        self.Drift_Correct[self.nm[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
+        self.Drift_Correct[self.nm[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
         
          ###
          #print self.TTALL_PV.value
@@ -125,37 +125,37 @@ class time_tool():
 
          # need to decide whether to output to the drift correction signal
          # 1. IPM must be in range
-        if ( self.IPM_PV.value > self.drift_correct['ipm'][1].value ) and (self.IPM_PV.value < self.drift_correct['ipm'][2].value ):
+        if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
              #print 'intensity profile good'
              # 2. amp must be in range
-             if ( self.drift_correct['amp'][0].value > self.drift_correct['amp'][1].value ) and ( self.drift_correct['amp'][0].value < self.drift_correct['amp'][2].value ):
+             if ( self.Drift_Correct['amp'][0].value > self.Drift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
                  #print 'TT edge fit good'
                  # 3. pix must be different from last pix, and stage must not be moving
-                 if ( self.drift_correct['fs'][0].value != self.old_values['fs'] ) and ( self.drift_correct['Stage'][0].value == self.old_values['Stage'] ):
+                 if ( self.Drift_Correct['fs'][0].value != self.old_values['fs'] ) and ( self.Drift_Correct['Stage'][0].value == self.old_values['Stage'] ):
                      #print 'Data is fresh. New pix value:'
-                     #print self.drift_correct['pix'][0].value
+                     #print self.Drift_Correct['pix'][0].value
                      # at this point, know that data is good and need to move it over to the drift correction algo
-                     # self.drift_correct['dcsignal'][0].put(value = self.drift_correct['pix'][0].value, timeout = 1.0)
-                     self.drift_correct['dcsignal'][0].put(value = self.drift_correct['fs'][0].value, timeout = 1.0)
+                     # self.Drift_Correct['dcsignal'][0].put(value = self.Drift_Correct['pix'][0].value, timeout = 1.0)
+                     self.Drift_Correct['dcsignal'][0].put(value = self.Drift_Correct['fs'][0].value, timeout = 1.0)
                      # dvc Test
                  #else:
                      #print 'Data is stale or stage is moving'
                      #print self.old_values['pix']
-                     #print self.drift_correct['pix'][0].value
+                     #print self.Drift_Correct['pix'][0].value
              #else:
                  #print 'TT edge fit bad'
          #else:
              #print 'intensity profile bad'
         if( self.TT_Script_EN.value == 1):
             print('Do a correction!')
-            self.drift_correct[self.nm[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
-            #self.drift_correct_pv[0] = self.drift_correct_pv[0] + 1
+            self.Drift_Correct[self.nm[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            #self.Drift_Correct_PV[0] = self.Drift_Correct_PV[0] + 1
             time.sleep(1)
         else:
             print('No correction')
             time.sleep(1)
             print('sleeping')
-            self.drift_correct[self.nm[10]][0].put(value = 0, timeout = 1.0)
+            self.Drift_Correct[self.nm[10]][0].put(value = 0, timeout = 1.0)
             
 
 def run():  # just a loop to keep recording         
