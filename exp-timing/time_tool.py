@@ -76,7 +76,7 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.Drift_Correct = dict()
-        self.Name = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled?', 'IPM Good?', 'Amplitude Good?', 'FWHM Good?'] #list of internal names
+        self.Name = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled?', 'IPM Good?', 'Amplitude Good?', 'FWHM Good?', 'Good TT Measurement?'] #list of internal names
         self.Drift_Correct_PV[0] = Dev_Base+'WATCHDOG'
         self.Drift_Correct_PV[1] = Dev_Base+'PIX'
         self.Drift_Correct_PV[2] = Dev_Base+'FS'
@@ -91,6 +91,7 @@ class time_tool():
         self.Drift_Correct_PV[11]= Dev_Base+'matlab:11'
         self.Drift_Correct_PV[12]= Dev_Base+'matlab:12'
         self.Drift_Correct_PV[13]= Dev_Base+'matlab:13'
+        self.Drift_Correct_PV[14]= Dev_Base+'matlab:14'
 
         #print('Value of Watchdog'+self.Drift_Correct_PV[0])
         for n in range(0, len(self.Name)):
@@ -154,6 +155,18 @@ class time_tool():
             time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
+            print('FWHM Outside the Range')
+            time.sleep(1)
+
+        # Is it a Good Measurement?
+        if (self.Drift_Correct[self.Name[11]][0] == 1 and 
+            self.Drift_Correct[self.Name[12]][0] == 1 and 
+            self.Drift_Correct[self.Name[13]][0] == 1 and 
+            self.Drift_Correct[self.Name[11]][0] == 1):
+            self.Drift_Correct[self.Name[14]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            time.sleep(0.1)
+        else:
+            self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
             print('FWHM Outside the Range')
             time.sleep(1)
 
