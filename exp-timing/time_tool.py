@@ -137,13 +137,23 @@ class time_tool():
             print('Low Signal in IPM')
             time.sleep(1)
 
+        # if ( self.Drift_Correct['amp'][0].value > self.Drift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
         # Good Amplitude in Time Tool?
-        if( self.Drift_Correct[self.Name[12]][0].value < 0.02):
+        if( self.Drift_Correct[self.Name[3]][0].value > 0.02):
             self.Drift_Correct[self.Name[12]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
             time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
             print('Low Amplitude in Time Tool')
+            time.sleep(1)
+
+        # Is FWHM Within the Range?
+        if( 30 < self.Drift_Correct[self.Name[6]][0].value < 250):
+            self.Drift_Correct[self.Name[12]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            time.sleep(0.1)
+        else:
+            self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
+            print('FWHM Outside the Range')
             time.sleep(1)
 
 """         ###
