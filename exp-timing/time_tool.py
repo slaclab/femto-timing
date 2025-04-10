@@ -76,7 +76,7 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.Drift_Correct = dict()
-        self.Name = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled'] #list of internal names
+        self.Name = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled?', 'IPM Good?', 'Amplitude Good?'] #list of internal names
         self.Drift_Correct_PV[0] = Dev_Base+'WATCHDOG'
         self.Drift_Correct_PV[1] = Dev_Base+'PIX'
         self.Drift_Correct_PV[2] = Dev_Base+'FS'
@@ -88,6 +88,8 @@ class time_tool():
         self.Drift_Correct_PV[8] = Dev_Base+'IPM'
         self.Drift_Correct_PV[9] = Dev_Base+'DRIFT_CORRECT_SIG'
         self.Drift_Correct_PV[10]= Dev_Base+'matlab:10'
+        self.Drift_Correct_PV[11]= Dev_Base+'matlab:11'
+        self.Drift_Correct_PV[11]= Dev_Base+'matlab:12'
 
         #print('Value of Watchdog'+self.Drift_Correct_PV[0])
         for n in range(0, len(self.Name)):
@@ -115,8 +117,28 @@ class time_tool():
                 self.Drift_Correct[self.Name[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
         self.Drift_Correct[self.Name[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
         self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
-        
-         ###
+
+        # Script Enabled?
+        if( self.TT_Script_EN.value == 1):
+            self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            time.sleep(0.1)
+        else:
+            self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
+            print('Time Tool Script Disabled')
+            time.sleep(3)
+
+        #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
+
+        # Good Amplitude in Time Tool?
+        if( self.TT_Script_EN.value == 1):
+            self.Drift_Correct[self.Name[12]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            time.sleep(0.1)
+        else:
+            self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
+            print('Time Tool Script Disabled')
+            time.sleep(3)
+
+"""         ###
          #print self.TTALL_PV.value
          #print 'stage position' # TEMP
          #print self.Stage_PV.value # TEMP
@@ -146,17 +168,7 @@ class time_tool():
                  #print 'TT edge fit bad'
          #else:
              #print 'intensity profile bad'
-        if( self.TT_Script_EN.value == 1):
-            print('Do a correction!')
-            self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
-            #self.Drift_Correct_PV[0] = self.Drift_Correct_PV[0] + 1
-            time.sleep(1)
-        else:
-            print('No correction')
-            time.sleep(1)
-            print('sleeping')
-            self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
-            
+"""
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
