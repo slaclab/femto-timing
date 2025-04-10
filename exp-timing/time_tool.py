@@ -23,7 +23,7 @@ class time_tool():
             #IPM_Name = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
             
             print('Borrow CXI PVs to monitor')
-            TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
+            TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
             
@@ -76,7 +76,7 @@ class time_tool():
         self.limits = dict() # will hold limits from matlab pvs
         self.old_values = dict() # will hold the old values read from matlab
         self.Drift_Correct = dict()
-        self.nm = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled'] #list of internal names
+        self.Name = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled'] #list of internal names
         self.Drift_Correct_PV[0] = Dev_Base+'WATCHDOG'
         self.Drift_Correct_PV[1] = Dev_Base+'PIX'
         self.Drift_Correct_PV[2] = Dev_Base+'FS'
@@ -90,14 +90,14 @@ class time_tool():
         self.Drift_Correct_PV[10]= Dev_Base+'matlab:10'
 
         #print('Value of Watchdog'+self.Drift_Correct_PV[0])
-        for n in range(0, len(self.nm)):
-            self.Drift_Correct[self.nm[n]] = [Pv(self.Drift_Correct_PV[n]), Pv(self.Drift_Correct_PV[n]+'.LOW'), Pv(self.Drift_Correct_PV[n]+'.HIGH'), Pv(self.Drift_Correct_PV[n]+'.DESC')]
+        for n in range(0, len(self.Name)):
+            self.Drift_Correct[self.Name[n]] = [Pv(self.Drift_Correct_PV[n]), Pv(self.Drift_Correct_PV[n]+'.LOW'), Pv(self.Drift_Correct_PV[n]+'.HIGH'), Pv(self.Drift_Correct_PV[n]+'.DESC')]
             for x in range(0,4):
-                    self.Drift_Correct[self.nm[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
+                    self.Drift_Correct[self.Name[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
             for x in range(0,3):
-                self.Drift_Correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)
-                self.Drift_Correct[self.nm[n]][3].put(value = self.nm[n], timeout = 1.0)
-        self.W = watchdog3.watchdog(self.Drift_Correct[self.nm[0]][0]) # initialize watchdog   
+                self.Drift_Correct[self.Name[n]][x].get(ctrl=True, timeout=1.0)
+                self.Drift_Correct[self.Name[n]][3].put(value = self.Name[n], timeout = 1.0)
+        self.W = watchdog3.watchdog(self.Drift_Correct[self.Name[0]][0]) # initialize watchdog   
 
     def read_write(self):   
         self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
@@ -106,15 +106,15 @@ class time_tool():
 
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
-        for n in range(1, len(self.nm)):
-             self.old_values[self.nm[n]] = self.Drift_Correct[self.nm[n]][0].value # old PV values
-             #self.limits[self.nm[n]] = [self.Drift_Correct[self.nm[n]][1].value, self.Drift_Correct[self.nm[n]][2].value] # limits
+        for n in range(1, len(self.Name)):
+             self.old_values[self.Name[n]] = self.Drift_Correct[self.Name[n]][0].value # old PV values
+             #self.limits[self.Name[n]] = [self.Drift_Correct[self.Name[n]][1].value, self.Drift_Correct[self.Name[n]][2].value] # limits
         for n in range (1,7):
-            self.Drift_Correct[self.nm[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
+            self.Drift_Correct[self.Name[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
             for x in range(0,3):
-                self.Drift_Correct[self.nm[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
-        self.Drift_Correct[self.nm[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
-        self.Drift_Correct[self.nm[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
+                self.Drift_Correct[self.Name[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
+        self.Drift_Correct[self.Name[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
+        self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
         
          ###
          #print self.TTALL_PV.value
@@ -148,14 +148,14 @@ class time_tool():
              #print 'intensity profile bad'
         if( self.TT_Script_EN.value == 1):
             print('Do a correction!')
-            self.Drift_Correct[self.nm[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
             #self.Drift_Correct_PV[0] = self.Drift_Correct_PV[0] + 1
             time.sleep(1)
         else:
             print('No correction')
             time.sleep(1)
             print('sleeping')
-            self.Drift_Correct[self.nm[10]][0].put(value = 0, timeout = 1.0)
+            self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
             
 
 def run():  # just a loop to keep recording         
