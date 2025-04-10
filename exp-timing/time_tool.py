@@ -25,7 +25,7 @@ class time_tool():
             print('Borrow CXI PVs to monitor')
             TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
-            IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
             
             print('Exit FS14 elif')
         elif sys == 'XPP':  # set up xpp system
@@ -167,7 +167,7 @@ class time_tool():
             time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
-            print('FWHM Outside the Range')
+            print('Not a Good Measurement')
             time.sleep(1)
 
 """         ###
