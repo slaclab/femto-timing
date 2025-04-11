@@ -62,7 +62,7 @@ class time_tool():
         
         self.TT_Script_EN = Pv(Dev_Base+'matlab:31')
         self.TT_Script_EN.connect(timeout=1.0) # connect to pv
-        self.TT_Script_EN[3].put(value = 'Script Enabled?', timeout = 1.0)
+        #self.TT_Script_EN+'.DESC'.put(value = 'Script Enabled?', timeout = 1.0)
 
         self.TTALL_PV = Pv(TTALL_Name)
         self.TTALL_PV.connect(timeout=1.0) # connect to pv
@@ -99,7 +99,7 @@ class time_tool():
                     self.Drift_Correct[self.Name[n]][x].connect(timeout=1.0)  # connnect to all the various PVs.     
             for x in range(0,3):
                 self.Drift_Correct[self.Name[n]][x].get(ctrl=True, timeout=1.0)
-                self.Drift_Correct[self.Name[n]][3].put(value = self.Name[n], timeout = 1.0)
+            self.Drift_Correct[self.Name[n]][3].put(value = self.Name[n], timeout = 1.0)
         self.W = watchdog3.watchdog(self.Drift_Correct[self.Name[0]][0]) # initialize watchdog   
 
     def read_write(self):   
