@@ -62,7 +62,8 @@ class time_tool():
         
         self.TT_Script_EN = Pv(Dev_Base+'matlab:31')
         self.TT_Script_EN.connect(timeout=1.0) # connect to pv
-        
+        self.TT_Script_EN[3].put(value = 'Script Enabled?', timeout = 1.0)
+
         self.TTALL_PV = Pv(TTALL_Name)
         self.TTALL_PV.connect(timeout=1.0) # connect to pv
         self.Stage_PV = Pv(Stage_Name)
@@ -177,7 +178,7 @@ class time_tool():
         if (abs(self.Drift_Correct[self.Name[9]][0].value) > 0.05):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-            print(f"Making adjustment to {self.Drift_Correct[self.Name[9]][0].value}!")
+            print(f"Making adjustment to {self.Drift_Correct[self.Name[9]][0].value} ps!")
             # Put average into LXT
             # lxt.mvr(tt_average_seconds)
             # set position of LXT
