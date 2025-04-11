@@ -174,7 +174,7 @@ class time_tool():
             time.sleep(1)
 
         # Is it the Edge value greater than the threshold?
-        If (self.Drift_Correct[self.Name[9]][0].value > 0.05):            
+        if (self.Drift_Correct[self.Name[9]][0].value > 0.05):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
             print(f"Making adjustment to {self.Drift_Correct[self.Name[2]][0].value}!")
