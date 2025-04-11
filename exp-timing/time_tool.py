@@ -145,12 +145,11 @@ class time_tool():
             print('Low Amplitude in Time Tool')
 
         # Is FWHM Within the Range?
-        #self.Drift_Correct[self.Name[13]][0].put(value=int(30 < self.Drift_Correct[self.Name[6]][0].value < 250), timeout=1.0)
-        if( 30 < self.Drift_Correct[self.Name[6]][0].value < 250):
-            self.Drift_Correct[self.Name[13]][0].put(value = 1, timeout = 1.0)
-        else:
-            self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
-            print('FWHM Outside the Range')
+        self.Drift_Correct[self.Name[13]][0].put(value=int(30 < self.Drift_Correct[self.Name[6]][0].value < 250), timeout=1.0)
+        #if( 30 < self.Drift_Correct[self.Name[6]][0].value < 250):
+        #    self.Drift_Correct[self.Name[13]][0].put(value = 1, timeout = 1.0)
+        #else:
+        #    self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
 
         for n in range (9,15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
@@ -166,6 +165,7 @@ class time_tool():
             print(f"TT Edge position {self.Drift_Correct[self.Name[9]][0].value} ps")
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
+            if not self.Drift_Correct[self.Name[13]][0].value: print('FWHM Outside the Range')
             print('Not a Good Measurement')
 
         # Is it the Edge value greater than the threshold?
