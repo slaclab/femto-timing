@@ -182,6 +182,7 @@ class time_tool():
             # lxt.mvr(tt_average_seconds)
             # set position of LXT
             # lxt.set_current_position(-float(txt.position))
+            self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
 
 """         ###
          #print self.TTALL_PV.value
