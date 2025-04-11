@@ -6,7 +6,14 @@ from psp.Pv import Pv
 import sys
 
 class time_tool():
-    def __init__ (self, sys='NULL'): 
+    def __init__ (self, sys='NULL'):
+        
+        amplitude_thresh: float = 0.02,
+        ipm_thresh: float = 500.0,
+        drift_adjustment_thresh: float = 0.05,
+        #fwhm_threshs: Tuple[float, float] = (30, 130),
+        num_events: int = 61,
+
         if sys == 'FS11': # set up for new bay 1 laser
             print('starting FS11')
             self.delay = 0.1
@@ -106,7 +113,6 @@ class time_tool():
         self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
         self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
         self.IPM_PV.get(ctrl=True, timeout=1.0) # get intensity profile
-
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
         #for n in range(1, len(self.Name)):
@@ -130,7 +136,7 @@ class time_tool():
 
         #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
         # Good signal in Intensity Profile Monitor?
-        if( self.IPM_PV.value > 500):
+        if( self.IPM_PV.value > ipm_thresh):
             self.Drift_Correct[self.Name[11]][0].put(value = 1, timeout = 1.0)
         else:
             self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
@@ -151,7 +157,7 @@ class time_tool():
         #else:
         #    self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
 
-        for n in range (9,15):
+        for n in range (9, 15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
         
         # Is it a Good Measurement?
