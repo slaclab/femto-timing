@@ -122,6 +122,7 @@ class time_tool():
         # Script Enabled?
         if( self.TT_Script_EN.value == 1):
             self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            time.sleep(1)
         else:
             self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
             print('Time Tool Script Disabled')
@@ -134,16 +135,14 @@ class time_tool():
         else:
             self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
             print('Low Signal in IPM')
-            time.sleep(1)
 
-        # if ( self.Drift_Correct['amp'][0].value > self.Drift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
+        # if ( self.Drift_Correct['amp'][0].value > self.D rift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
         # Good Amplitude in Time Tool?
         if( self.Drift_Correct[self.Name[3]][0].value > 0.02):
             self.Drift_Correct[self.Name[12]][0].put(value = 1, timeout = 1.0)
         else:
             self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
             print('Low Amplitude in Time Tool')
-            time.sleep(1)
 
         # Is FWHM Within the Range?
         #self.Drift_Correct[self.Name[13]][0].put(value=int(30 < self.Drift_Correct[self.Name[6]][0].value < 250), timeout=1.0)
@@ -152,20 +151,9 @@ class time_tool():
         else:
             self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
             print('FWHM Outside the Range')
-            time.sleep(1)
 
-        value = 1 if 30 < self.Drift_Correct[self.Name[6]][0].value < 250 else 0
-        self.Drift_Correct[self.Name[13]][0].put(value=value, timeout=1.0)
-        time.sleep(0.1 if value == 1 else 1)
-        if value == 0:
-            print('FWHM Outside the Range')
-
-        self.Drift_Correct[self.Name[9]][0].get(ctrl=True, timeout = 1.0)
-        self.Drift_Correct[self.Name[10]][0].get(ctrl=True, timeout = 1.0)
-        self.Drift_Correct[self.Name[11]][0].get(ctrl=True, timeout = 1.0)
-        self.Drift_Correct[self.Name[12]][0].get(ctrl=True, timeout = 1.0)
-        self.Drift_Correct[self.Name[13]][0].get(ctrl=True, timeout = 1.0)
-        self.Drift_Correct[self.Name[14]][0].get(ctrl=True, timeout = 1.0)
+        for n in range (9,15):
+            self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
         
         # Is it a Good Measurement?
         if (self.Drift_Correct[self.Name[10]][0].value == 1 and
@@ -176,11 +164,9 @@ class time_tool():
             self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
             self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
             print(f"TT Edge position {self.Drift_Correct[self.Name[9]][0].value} ps")
-            time.sleep(1)
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
             print('Not a Good Measurement')
-            time.sleep(1)
 
         # Is it the Edge value greater than the threshold?
         if (abs(self.Drift_Correct[self.Name[9]][0].value) > 0.05):            
@@ -192,38 +178,6 @@ class time_tool():
             # set position of LXT
             # lxt.set_current_position(-float(txt.position))
             #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
-
-"""         ###
-         #print self.TTALL_PV.value
-         #print 'stage position' # TEMP
-         #print self.Stage_PV.value # TEMP
-         #print 'intensity profile sum'
-         #print self.IPM_PV.value
-
-         # need to decide whether to output to the drift correction signal
-         # 1. IPM must be in range
-        if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
-             #print 'intensity profile good'
-             # 2. amp must be in range
-             if ( self.Drift_Correct['amp'][0].value > self.Drift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
-                 #print 'TT edge fit good'
-                 # 3. pix must be different from last pix, and stage must not be moving
-                 if ( self.Drift_Correct['fs'][0].value != self.old_values['fs'] ) and ( self.Drift_Correct['Stage'][0].value == self.old_values['Stage'] ):
-                     #print 'Data is fresh. New pix value:'
-                     #print self.Drift_Correct['pix'][0].value
-                     # at this point, know that data is good and need to move it over to the drift correction algo
-                     # self.Drift_Correct['dcsignal'][0].put(value = self.Drift_Correct['pix'][0].value, timeout = 1.0)
-                     self.Drift_Correct['dcsignal'][0].put(value = self.Drift_Correct['fs'][0].value, timeout = 1.0)
-                     # dvc Test
-                 #else:
-                     #print 'Data is stale or stage is moving'
-                     #print self.old_values['pix']
-                     #print self.Drift_Correct['pix'][0].value
-             #else:
-                 #print 'TT edge fit bad'
-         #else:
-             #print 'intensity profile bad'
-"""
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
