@@ -166,8 +166,7 @@ class time_tool():
         if (self.Drift_Correct[self.Name[10]][0].value == 1 and
             self.Drift_Correct[self.Name[11]][0].value == 1 and
             self.Drift_Correct[self.Name[12]][0].value == 1 and
-            self.Drift_Correct[self.Name[13]][0].value == 1 and
-            self.Drift_Correct[self.Name[14]][0].value == 1):
+            self.Drift_Correct[self.Name[13]][0].value == 1 and):
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)            
             self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
             print('Good Measurement!')
