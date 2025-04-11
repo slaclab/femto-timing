@@ -132,7 +132,7 @@ class time_tool():
         #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
         # Good signal in Intensity Profile Monitor?
         if( self.IPM_PV.value > 500):
-            self.Drift_Correct[self.Name[11]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            self.Drift_Correct[self.Name[11]][0].put(value = 1, timeout = 1.0)
             time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
@@ -142,7 +142,7 @@ class time_tool():
         # if ( self.Drift_Correct['amp'][0].value > self.Drift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
         # Good Amplitude in Time Tool?
         if( self.Drift_Correct[self.Name[3]][0].value > 0.02):
-            self.Drift_Correct[self.Name[12]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            self.Drift_Correct[self.Name[12]][0].put(value = 1, timeout = 1.0)
             time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
@@ -151,7 +151,7 @@ class time_tool():
 
         # Is FWHM Within the Range?
         if( 30 < self.Drift_Correct[self.Name[6]][0].value < 250):
-            self.Drift_Correct[self.Name[13]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+            self.Drift_Correct[self.Name[13]][0].put(value = 1, timeout = 1.0)
             time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
@@ -159,18 +159,29 @@ class time_tool():
             time.sleep(1)
 
         # Is it a Good Measurement?
-        if (self.Drift_Correct[self.Name[10]][0] == 1 and
-            self.Drift_Correct[self.Name[11]][0] == 1 and
-            self.Drift_Correct[self.Name[12]][0] == 1 and
-            self.Drift_Correct[self.Name[13]][0] == 1 and
-            self.Drift_Correct[self.Name[14]][0] == 1):
-            self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)
+        if (self.Drift_Correct[self.Name[10]][0].value == 1 and
+            self.Drift_Correct[self.Name[11]][0].value == 1 and
+            self.Drift_Correct[self.Name[12]][0].value == 1 and
+            self.Drift_Correct[self.Name[13]][0].value == 1 and
+            self.Drift_Correct[self.Name[14]][0].value == 1):
+            self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)            
+            self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
             print('Good Measurement')
             time.sleep(1)
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
             print('Not a Good Measurement')
             time.sleep(1)
+
+        # Is it the Edge value greater than the threshold?
+        If (self.Drift_Correct[self.Name[9]][0].value > 0.05):            
+            # Convert to seconds
+            # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
+            print(f"Making adjustment to {self.Drift_Correct[self.Name[2]][0].value}!")
+            # Put average into LXT
+            # lxt.mvr(tt_average_seconds)
+            # set position of LXT
+            # lxt.set_current_position(-float(txt.position))
 
 """         ###
          #print self.TTALL_PV.value
