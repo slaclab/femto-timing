@@ -26,8 +26,7 @@ class time_tool():
             TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
-            
-            print('Exit FS14 elif')
+
         elif sys == 'XPP':  # set up xpp system
             print('starting XPP')
             self.delay = 0.1 # 1 second delay
@@ -61,7 +60,6 @@ class time_tool():
             print(sys+' not found, exiting')
             exit()
         
-        print('Script PV 1')
         self.TT_Script_EN = Pv(Dev_Base+'matlab:31')
         self.TT_Script_EN.connect(timeout=1.0) # connect to pv
         
