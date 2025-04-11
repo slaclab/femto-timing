@@ -122,7 +122,6 @@ class time_tool():
         # Script Enabled?
         if( self.TT_Script_EN.value == 1):
             self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
-            time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
             print('Time Tool Script Disabled')
@@ -132,7 +131,6 @@ class time_tool():
         # Good signal in Intensity Profile Monitor?
         if( self.IPM_PV.value > 500):
             self.Drift_Correct[self.Name[11]][0].put(value = 1, timeout = 1.0)
-            time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
             print('Low Signal in IPM')
@@ -142,20 +140,25 @@ class time_tool():
         # Good Amplitude in Time Tool?
         if( self.Drift_Correct[self.Name[3]][0].value > 0.02):
             self.Drift_Correct[self.Name[12]][0].put(value = 1, timeout = 1.0)
-            time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
             print('Low Amplitude in Time Tool')
             time.sleep(1)
 
         # Is FWHM Within the Range?
+        #self.Drift_Correct[self.Name[13]][0].put(value=int(30 < self.Drift_Correct[self.Name[6]][0].value < 250), timeout=1.0)
         if( 30 < self.Drift_Correct[self.Name[6]][0].value < 250):
             self.Drift_Correct[self.Name[13]][0].put(value = 1, timeout = 1.0)
-            time.sleep(0.1)
         else:
             self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
             print('FWHM Outside the Range')
             time.sleep(1)
+
+        value = 1 if 30 < self.Drift_Correct[self.Name[6]][0].value < 250 else 0
+        self.Drift_Correct[self.Name[13]][0].put(value=value, timeout=1.0)
+        time.sleep(0.1 if value == 1 else 1)
+        if value == 0:
+            print('FWHM Outside the Range')
 
         self.Drift_Correct[self.Name[9]][0].get(ctrl=True, timeout = 1.0)
         self.Drift_Correct[self.Name[10]][0].get(ctrl=True, timeout = 1.0)
