@@ -8,11 +8,11 @@ import sys
 class time_tool():
     def __init__ (self, sys='NULL'):
         
-        self.amplitude_thresh: float = 0.02
-        self.ipm_thresh: float = 500.0
-        self.drift_adjustment_thresh: float = 0.05
+        self.amplitude_thresh = 0.02
+        self.ipm_thresh = 500.0
+        self.drift_adjustment_thresh = 0.05
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
-        self.num_events: int = 61
+        self.num_events = 61
 
         if sys == 'FS11': # set up for new bay 1 laser
             print('starting FS11')
