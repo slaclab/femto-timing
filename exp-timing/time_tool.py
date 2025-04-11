@@ -72,9 +72,9 @@ class time_tool():
         self.IPM_PV = Pv(IPM_Name)
         self.IPM_PV.connect(timeout=1.0)
         self.Drift_Correct_PV = dict()  # will hold list of IOC pvs
-        self.values = dict() # will hold the numbers from the time tool
-        self.limits = dict() # will hold limits from matlab pvs
-        self.old_values = dict() # will hold the old values read from matlab
+        #self.values = dict() # will hold the numbers from the time tool
+        #self.limits = dict() # will hold limits from matlab pvs
+        #self.old_values = dict() # will hold the old values read from matlab
         self.Drift_Correct = dict()
         self.Name = ['Watchdog', 'pix', 'fs', 'amp', 'amp_second', 'ref', 'FWHM', 'Stage', 'ipm', 'dcsignal', 'Script Enabled?', 'IPM Good?', 'Amplitude Good?', 'FWHM Good?', 'Good TT Measurement?'] #list of internal names
         self.Drift_Correct_PV[0] = Dev_Base+'WATCHDOG'
@@ -110,9 +110,9 @@ class time_tool():
 
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
-        for n in range(1, len(self.Name)):
-             self.old_values[self.Name[n]] = self.Drift_Correct[self.Name[n]][0].value # old PV values
-             #self.limits[self.Name[n]] = [self.Drift_Correct[self.Name[n]][1].value, self.Drift_Correct[self.Name[n]][2].value] # limits
+        #for n in range(1, len(self.Name)):
+        #     self.old_values[self.Name[n]] = self.Drift_Correct[self.Name[n]][0].value # old PV values
+        #     #self.limits[self.Name[n]] = [self.Drift_Correct[self.Name[n]][1].value, self.Drift_Correct[self.Name[n]][2].value] # limits
         for n in range (1,7):
             self.Drift_Correct[self.Name[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
             for x in range(0,3):
@@ -177,7 +177,7 @@ class time_tool():
         if (self.Drift_Correct[self.Name[9]][0].value > 0.05):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-            print(f"Making adjustment to {self.Drift_Correct[self.Name[2]][0].value}!")
+            print(f"Making adjustment to {self.Drift_Correct[self.Name[9]][0].value}!")
             # Put average into LXT
             # lxt.mvr(tt_average_seconds)
             # set position of LXT
