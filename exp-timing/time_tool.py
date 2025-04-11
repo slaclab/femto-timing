@@ -8,11 +8,11 @@ import sys
 class time_tool():
     def __init__ (self, sys='NULL'):
         
-        amplitude_thresh: float = 0.02,
-        ipm_thresh: float = 500.0,
-        drift_adjustment_thresh: float = 0.05,
-        #fwhm_threshs: Tuple[float, float] = (30, 130),
-        num_events: int = 61,
+        self.amplitude_thresh: float = 0.02,
+        self.ipm_thresh: float = 500.0,
+        self.drift_adjustment_thresh: float = 0.05,
+        #self.fwhm_threshs: Tuple[float, float] = (30, 130),
+        self.num_events: int = 61,
 
         if sys == 'FS11': # set up for new bay 1 laser
             print('starting FS11')
@@ -136,7 +136,7 @@ class time_tool():
 
         #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
         # Good signal in Intensity Profile Monitor?
-        if( self.IPM_PV.value > ipm_thresh):
+        if( self.IPM_PV.value > self.ipm_thresh):
             self.Drift_Correct[self.Name[11]][0].put(value = 1, timeout = 1.0)
         else:
             self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
