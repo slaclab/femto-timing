@@ -157,11 +157,13 @@ class time_tool():
             print('FWHM Outside the Range')
             time.sleep(1)
 
+        self.Drift_Correct[self.Name[9]][0].get(ctrl=True, timeout = 1.0)
         self.Drift_Correct[self.Name[10]][0].get(ctrl=True, timeout = 1.0)
         self.Drift_Correct[self.Name[11]][0].get(ctrl=True, timeout = 1.0)
         self.Drift_Correct[self.Name[12]][0].get(ctrl=True, timeout = 1.0)
         self.Drift_Correct[self.Name[13]][0].get(ctrl=True, timeout = 1.0)
         self.Drift_Correct[self.Name[14]][0].get(ctrl=True, timeout = 1.0)
+        
         # Is it a Good Measurement?
         if (self.Drift_Correct[self.Name[10]][0].value == 1 and
             self.Drift_Correct[self.Name[11]][0].value == 1 and
@@ -178,7 +180,6 @@ class time_tool():
             time.sleep(1)
 
         # Is it the Edge value greater than the threshold?
-        self.Drift_Correct[self.Name[9]][0].get(ctrl=True, timeout = 1.0)
         if (abs(self.Drift_Correct[self.Name[9]][0].value) > 0.05):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
