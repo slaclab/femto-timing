@@ -149,12 +149,12 @@ class time_tool():
         for n in range (8, 15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
         
-        signal_status = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
-        signal_status = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
-        signal_status = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
-        print(f'{signal_status} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
-        print(f'{signal_status} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
-        print(f'{signal_status} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
+        IPM_Status = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
+        Amp_Status = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
+        FWHM_Status = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
+        print(f'{IPM_Status} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
+        print(f'{Amp_Status} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
+        print(f'{FWHM_Status} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
         time.sleep(1)
 
