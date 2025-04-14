@@ -11,6 +11,8 @@ class time_tool():
         self.Amplitude_Threshold = 0.02
         self.IPM_Threshold = 10.0 #500.0
         self.Drift_Adjustment_Threshold = 0.05
+        self.FWHM_Threshold_Low = 30.0
+        self.FWHM_Threshold_High = 250.0
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
         self.num_events = 61
 
@@ -141,27 +143,18 @@ class time_tool():
         self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
         # Good Amplitude in Time Tool?
         self.Drift_Correct[self.Name[12]][0].put(value=int(self.Drift_Correct[self.Name[3]][0].value > self.Amplitude_Threshold), timeout=1.0)
-
-
         # Is FWHM Within the Range?
-        self.Drift_Correct[self.Name[13]][0].put(value=int(30 < self.Drift_Correct[self.Name[6]][0].value < 250), timeout=1.0)
-        #if( 30 < self.Drift_Correct[self.Name[6]][0].value < 250):
-        #    self.Drift_Correct[self.Name[13]][0].put(value = 1, timeout = 1.0)
-        #else:
-        #    self.Drift_Correct[self.Name[13]][0].put(value = 0, timeout = 1.0)
+        self.Drift_Correct[self.Name[13]][0].put(value=int(self.FWHM_Threshold_Low < self.Drift_Correct[self.Name[6]][0].value < self.FWHM_Threshold_High), timeout=1.0)
 
         for n in range (8, 15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
         
-        #if (self.Drift_Correct[self.Name[11]][0].value == 1):
-        #    print(f'Good Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
-        #else:
-        #    print(f'Low Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
-        
         signal_status = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
         signal_status = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
-        print(f'{signal_status} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
-        print(f'{signal_status} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value}')
+        signal_status = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
+        print(f'{signal_status} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
+        print(f'{signal_status} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
+        print(f'{signal_status} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
         time.sleep(1)
 
@@ -176,7 +169,6 @@ class time_tool():
             print(f"TT Edge position {self.Drift_Correct[self.Name[9]][0].value} ps")
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
-            if not self.Drift_Correct[self.Name[13]][0].value: print('FWHM Outside the Range')
             print('Not a Good Measurement')
 
         # Is it the Edge value greater than the threshold?
