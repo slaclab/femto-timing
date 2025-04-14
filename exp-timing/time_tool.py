@@ -142,9 +142,11 @@ class time_tool():
         #else:
         #    self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
         if (self.Drift_Correct[self.Name[11]][0].value == 1):
-            print(f'Good Signal in IPM: {self.Drift_Correct[self.Name[6]][0].value}')
+            print(f'Good Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
         else:
-            print(f'Low Signal in IPM: {self.Drift_Correct[self.Name[6]][0].value}')
+            print(f'Low Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
+        
+        time.sleep(1)
 
         # if ( self.Drift_Correct['amp'][0].value > self.D rift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
         # Good Amplitude in Time Tool?
