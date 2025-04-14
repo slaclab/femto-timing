@@ -134,6 +134,9 @@ class time_tool():
             print('Time Tool Script Disabled')
             time.sleep(3)
 
+        for n in range (7, 11):
+            self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
+
         #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
         # Good signal in Intensity Profile Monitor?
         self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
