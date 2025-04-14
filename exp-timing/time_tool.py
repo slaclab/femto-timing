@@ -137,21 +137,11 @@ class time_tool():
         for n in range (7, 11):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
-        #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
         # Good signal in Intensity Profile Monitor?
         self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
-        #if( self.IPM_PV.value > self.IPM_Threshold):
-        #    self.Drift_Correct[self.Name[11]][0].put(value = 1, timeout = 1.0)
-        #else:
-        #    self.Drift_Correct[self.Name[11]][0].put(value = 0, timeout = 1.0)
-        
-        # if ( self.Drift_Correct['amp'][0].value > self.D rift_Correct['amp'][1].value ) and ( self.Drift_Correct['amp'][0].value < self.Drift_Correct['amp'][2].value ):
         # Good Amplitude in Time Tool?
-        if( self.Drift_Correct[self.Name[3]][0].value > 0.02):
-            self.Drift_Correct[self.Name[12]][0].put(value = 1, timeout = 1.0)
-        else:
-            self.Drift_Correct[self.Name[12]][0].put(value = 0, timeout = 1.0)
-            print('Low Amplitude in Time Tool')
+        self.Drift_Correct[self.Name[12]][0].put(value=int(self.Drift_Correct[self.Name[3]][0].value > self.Amplitude_Threshold), timeout=1.0)
+
 
         # Is FWHM Within the Range?
         self.Drift_Correct[self.Name[13]][0].put(value=int(30 < self.Drift_Correct[self.Name[6]][0].value < 250), timeout=1.0)
@@ -163,13 +153,17 @@ class time_tool():
         for n in range (8, 15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
         
-        if (self.Drift_Correct[self.Name[11]][0].value == 1):
-            print(f'Good Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
-        else:
-            print(f'Low Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
+        #if (self.Drift_Correct[self.Name[11]][0].value == 1):
+        #    print(f'Good Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
+        #else:
+        #    print(f'Low Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
         
-        time.sleep(1)
+        signal_status = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
+        signal_status = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
+        print(f'{signal_status} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value}')
+        print(f'{signal_status} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value}')
 
+        time.sleep(1)
 
         # Is it a Good Measurement?
         if (self.Drift_Correct[self.Name[10]][0].value == 1 and
