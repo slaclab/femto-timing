@@ -136,7 +136,7 @@ class time_tool():
 
         #if ( self.IPM_PV.value > self.Drift_Correct['ipm'][1].value ) and (self.IPM_PV.value < self.Drift_Correct['ipm'][2].value ):
         # Good signal in Intensity Profile Monitor?
-        self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[6]][0].value > self.IPM_Threshold), timeout=1.0)
+        self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
         #if( self.IPM_PV.value > self.IPM_Threshold):
         #    self.Drift_Correct[self.Name[11]][0].put(value = 1, timeout = 1.0)
         #else:
