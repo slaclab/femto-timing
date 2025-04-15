@@ -69,21 +69,19 @@ class time_tool():
             print(sys+' not found, exiting')
             exit()
         
-        self.TT_Script_EN = Pv(Dev_Base+'matlab:31')
-        self.TT_Script_EN.connect(timeout=1.0) # connect to pv
-        #self.TT_Script_EN+'.DESC'.put(value = 'Script Enabled?', timeout = 1.0)
-
         self.TTALL_PV = Pv(TTALL_Name)
         self.TTALL_PV.connect(timeout=1.0) # connect to pv
         self.Stage_PV = Pv(Stage_Name)
         self.Stage_PV.connect(timeout=1.0)
         self.IPM_PV = Pv(IPM_Name)
         self.IPM_PV.connect(timeout=1.0)
-        self.Drift_Correct_PV = dict()  # will hold list of IOC pvs
+        self.TT_Script_EN = Pv(Dev_Base+'matlab:31')
+        self.TT_Script_EN.connect(timeout=1.0) # connect to pv
         #self.values = dict() # will hold the numbers from the time tool
         #self.limits = dict() # will hold limits from matlab pvs
         #self.old_values = dict() # will hold the old values read from matlab
         self.Drift_Correct = dict()
+        self.Drift_Correct_PV = dict()  # will hold list of IOC pvs
         self.Name = ['Watchdog', 'pix', 'Edge Position', 'Amplitude', 'amp_second', 'ref', 'FWHM', 'Stage', 'IPM', 'Drift Correct Signal', 'Script Enabled?', 'IPM Good?', 'Amplitude Good?', 'FWHM Good?', 'Good TT Measurement?'] #list of internal names
         self.Drift_Correct_PV[0] = Dev_Base+'WATCHDOG'
         self.Drift_Correct_PV[1] = Dev_Base+'PIX'
@@ -126,19 +124,19 @@ class time_tool():
                 self.Drift_Correct[self.Name[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
         self.Drift_Correct[self.Name[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
         self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
-
-        # Script Enabled?
-        if( self.TT_Script_EN.value == 1):
-            self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
-            time.sleep(1)
-        else:
-            self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
-            print('Time Tool Script Disabled')
-            time.sleep(3)
-
         for n in range (7, 11):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
-
+        # Use this TT Script to Correct Drift?
+        #if( self.TT_Script_EN.value == 1):
+        #    self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
+        #    time.sleep(1)
+        #else:
+        #    self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
+        #    print('Time Tool Script Disabled')
+        #    time.sleep(3)
+        
+        # Use this TT Script to Correct Drift?
+        self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
         # Good signal in Intensity Profile Monitor?
         self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
         # Good Amplitude in Time Tool?
@@ -148,14 +146,17 @@ class time_tool():
 
         for n in range (8, 15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
-        
+
+        #    print('Time Tool Script Disabled')
+
+        Script_Status = 'Enabled' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Disabled'
         IPM_Status = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
         Amp_Status = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
         FWHM_Status = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
+        print(f'The Time Tool Script is {Script_Status}')
         print(f'{IPM_Status} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
         print(f'{Amp_Status} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
         print(f'{FWHM_Status} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
-
         time.sleep(1)
 
         # Is it a Good Measurement?
