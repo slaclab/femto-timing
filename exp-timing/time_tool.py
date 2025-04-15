@@ -166,7 +166,7 @@ class time_tool():
             # lxt.set_current_position(-float(txt.position))
             #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
         
-        printf('---------------------------------')
+        print('---------------------------------')
         time.sleep(1)
 
 def run():  # just a loop to keep recording         
