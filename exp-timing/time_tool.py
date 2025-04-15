@@ -14,7 +14,8 @@ class time_tool():
         self.FWHM_Threshold_Low = 30.0
         self.FWHM_Threshold_High = 250.0
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
-        self.num_events = 61
+        self.Number_Events = 7
+        self.TimeTool_Edges = np.zeros([self.Number_Events])
 
         if sys == 'FS11': # set up for new bay 1 laser
             print('starting FS11')
@@ -99,7 +100,6 @@ class time_tool():
         self.Drift_Correct_PV[13]= Dev_Base+'matlab:13'
         self.Drift_Correct_PV[14]= Dev_Base+'matlab:14'
 
-        #print('Value of Watchdog'+self.Drift_Correct_PV[0])
         for n in range(0, len(self.Name)):
             self.Drift_Correct[self.Name[n]] = [Pv(self.Drift_Correct_PV[n]), Pv(self.Drift_Correct_PV[n]+'.LOW'), Pv(self.Drift_Correct_PV[n]+'.HIGH'), Pv(self.Drift_Correct_PV[n]+'.DESC')]
             for x in range(0,4):
@@ -110,21 +110,17 @@ class time_tool():
         self.W = watchdog3.watchdog(self.Drift_Correct[self.Name[0]][0]) # initialize watchdog   
 
     def read_write(self):   
+        
         self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
         self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
         self.IPM_PV.get(ctrl=True, timeout=1.0) # get intensity profile
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
-        #for n in range(1, len(self.Name)):
-        #     self.old_values[self.Name[n]] = self.Drift_Correct[self.Name[n]][0].value # old PV values
-        #     #self.limits[self.Name[n]] = [self.Drift_Correct[self.Name[n]][1].value, self.Drift_Correct[self.Name[n]][2].value] # limits
         for n in range (1,7):
             self.Drift_Correct[self.Name[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
-            for x in range(0,3):
-                self.Drift_Correct[self.Name[n]][x].get(ctrl=True, timeout=1.0)  # get all the matlab pvs
         self.Drift_Correct[self.Name[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
         self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
-        for n in range (7, 11):
+        for n in range (1, 11):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
         
         # Use this TT Script to Correct Drift?
@@ -149,10 +145,7 @@ class time_tool():
         print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
         # Is it a Good Measurement?
-        if (self.Drift_Correct[self.Name[10]][0].value == 1 and
-            self.Drift_Correct[self.Name[11]][0].value == 1 and
-            self.Drift_Correct[self.Name[12]][0].value == 1 and
-            self.Drift_Correct[self.Name[13]][0].value == 1):
+        if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(10, 14)):
             print('Good Measurement!')
             self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
             self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
