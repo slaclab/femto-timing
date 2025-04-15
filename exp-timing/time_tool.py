@@ -149,7 +149,10 @@ class time_tool():
         print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
         # Is it a Good Measurement?
-        if (Run_Script == 1 and IPM_Good == 1 and Amp_Good == 1 and FWHM_Good == 1):
+        if (self.Drift_Correct[self.Name[10]][0].value == 1 and
+            self.Drift_Correct[self.Name[11]][0].value == 1 and
+            self.Drift_Correct[self.Name[12]][0].value == 1 and
+            self.Drift_Correct[self.Name[13]][0].value == 1):
             print('Good Measurement!')
             self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
             self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
