@@ -126,14 +126,6 @@ class time_tool():
         self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
         for n in range (7, 11):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
-        # Use this TT Script to Correct Drift?
-        #if( self.TT_Script_EN.value == 1):
-        #    self.Drift_Correct[self.Name[10]][0].put(value = self.TT_Script_EN.value, timeout = 1.0)
-        #    time.sleep(1)
-        #else:
-        #    self.Drift_Correct[self.Name[10]][0].put(value = 0, timeout = 1.0)
-        #    print('Time Tool Script Disabled')
-        #    time.sleep(3)
         
         # Use this TT Script to Correct Drift?
         self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
@@ -147,27 +139,22 @@ class time_tool():
         for n in range (8, 15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
-        #    print('Time Tool Script Disabled')
-
-        Script_Status = 'Enabled' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Disabled'
-        IPM_Status = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
-        Amp_Status = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
-        FWHM_Status = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
-        print(f'The Time Tool Script is {Script_Status}')
-        print(f'{IPM_Status} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
-        print(f'{Amp_Status} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
-        print(f'{FWHM_Status} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
+        Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
+        IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
+        Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
+        FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
+        print(f'The Time Tool Script is {Run_Script}')
+        print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
+        print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
+        print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
         time.sleep(1)
 
         # Is it a Good Measurement?
-        if (self.Drift_Correct[self.Name[10]][0].value == 1 and
-            self.Drift_Correct[self.Name[11]][0].value == 1 and
-            self.Drift_Correct[self.Name[12]][0].value == 1 and
-            self.Drift_Correct[self.Name[13]][0].value == 1):
+        if (Run_Script and IPM_Good and Amp_Good and FWHM_Good):
             print('Good Measurement!')
             self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
             self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
-            print(f"TT Edge position {self.Drift_Correct[self.Name[9]][0].value} ps")
+            print(f"TT Edge position {self.Drift_Correct[self.Name[9]][0].value:.3f} ps")
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
             print('Not a Good Measurement')
@@ -176,7 +163,7 @@ class time_tool():
         if (abs(self.Drift_Correct[self.Name[9]][0].value) > 0.05):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-            print(f"Making adjustment to {self.Drift_Correct[self.Name[9]][0].value} ps!")
+            print(f"Making adjustment to {self.Drift_Correct[self.Name[9]][0].value:.3f} ps!")
             # Put average into LXT
             # lxt.mvr(tt_average_seconds)
             # set position of LXT
