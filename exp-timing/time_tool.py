@@ -7,9 +7,9 @@ import sys
 
 class time_tool():
     def __init__ (self, sys='NULL'):
-        
-        self.Amplitude_Threshold = 0.02
+
         self.IPM_Threshold = 10.0 #500.0
+        self.Amplitude_Threshold = 0.02
         self.Drift_Adjustment_Threshold = 0.05
         self.FWHM_Threshold_Low = 30.0
         self.FWHM_Threshold_High = 250.0
@@ -110,7 +110,7 @@ class time_tool():
         self.W = watchdog3.watchdog(self.Drift_Correct[self.Name[0]][0]) # initialize watchdog   
 
     def read_write(self):   
-        
+
         self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
         self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
         self.IPM_PV.get(ctrl=True, timeout=1.0) # get intensity profile
@@ -140,7 +140,7 @@ class time_tool():
             print('Good Measurement!')
             self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
             self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
-            print(f"TT Edge position {self.Drift_Correct[self.Name[9]][0].value:.3f} ps")
+            print(f'TT Edge position {self.Drift_Correct[self.Name[9]][0].value:.3f} ps')
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
             print('Not a Good Measurement')
@@ -153,17 +153,20 @@ class time_tool():
         print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
         print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
         print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
+        
 
         # Is it the Edge value greater than the threshold?
-        if (abs(self.Drift_Correct[self.Name[9]][0].value) > 0.05):            
+        if (abs(self.Drift_Correct[self.Name[9]][0].value) > self.Drift_Adjustment_Threshold):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-            print(f"Making adjustment to {self.Drift_Correct[self.Name[9]][0].value:.3f} ps!")
+            print(f'Making adjustment to {self.Drift_Correct[self.Name[9]][0].value:.3f} ps!')
             # Put average into LXT
             # lxt.mvr(tt_average_seconds)
             # set position of LXT
             # lxt.set_current_position(-float(txt.position))
             #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
+        
+        printf('---------------------------------')
         time.sleep(1)
 
 def run():  # just a loop to keep recording         
