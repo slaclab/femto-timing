@@ -135,15 +135,6 @@ class time_tool():
         for n in range (8, 15):
             self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
-        Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
-        IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
-        Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
-        FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
-        print(f'The Time Tool Script is {Run_Script}')
-        print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
-        print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
-        print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
-
         # Is it a Good Measurement?
         if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(10, 14)):
             print('Good Measurement!')
@@ -153,6 +144,15 @@ class time_tool():
         else:
             self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
             print('Not a Good Measurement')
+
+        Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
+        IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
+        Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
+        FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
+        print(f'The Time Tool Script is {Run_Script}')
+        print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
+        print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
+        print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
         # Is it the Edge value greater than the threshold?
         if (abs(self.Drift_Correct[self.Name[9]][0].value) > 0.05):            
