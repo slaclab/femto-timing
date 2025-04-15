@@ -147,10 +147,9 @@ class time_tool():
         print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
         print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
         print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
-        time.sleep(1)
 
         # Is it a Good Measurement?
-        if (Run_Script and IPM_Good and Amp_Good and FWHM_Good):
+        if (Run_Script * IPM_Good * Amp_Good * FWHM_Good):
             print('Good Measurement!')
             self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
             self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
@@ -169,6 +168,7 @@ class time_tool():
             # set position of LXT
             # lxt.set_current_position(-float(txt.position))
             #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
+        time.sleep(1)
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
