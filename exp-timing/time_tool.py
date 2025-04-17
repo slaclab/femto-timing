@@ -5,6 +5,8 @@ import watchdog3
 from psp.Pv import Pv
 import sys
 
+from cxi.db import *
+
 class time_tool():
     def __init__ (self, sys='NULL'):
 
@@ -24,6 +26,7 @@ class time_tool():
             Dev_Base = 'LAS:FS11:VIT:'  
             Stage_Name = 'XPP:LAS:MMN:16'  # delay stage for time tool
             IPM_Name = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
+
         elif sys == 'FS14':  # set up FS14 system
             print('Starting FS14')
             self.delay = 0.1 # 1 second delay
@@ -31,7 +34,7 @@ class time_tool():
             Dev_Base = 'LAS:FS14:VIT:'
             #Stage_Name = 'LM1K4:COM_MP2_DLY1'  # delay stage for time tool
             #IPM_Name = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
-            
+
             print('Borrow CXI PVs to monitor')
             TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
@@ -69,7 +72,7 @@ class time_tool():
         else:
             print(sys+' not found, exiting')
             exit()
-        
+
         self.TTALL_PV = Pv(TTALL_Name)
         self.TTALL_PV.connect(timeout=1.0) # connect to pv
         self.Stage_PV = Pv(Stage_Name)
@@ -125,7 +128,7 @@ class time_tool():
             self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
             for n in range (1, 11):
                 self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
-            
+
             # Use this TT Script to Correct Drift?
             self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
             # Good signal in Intensity Profile Monitor?
@@ -145,6 +148,7 @@ class time_tool():
                 self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
                 print(f'TT Edge position {self.Drift_Correct[self.Name[9]][0].value:.3f} ps')
 
+                #NEED TO CHANGE TO EDGE VALUE
                 self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[8]][0].value
                 Edge_Count += 1
 
@@ -167,7 +171,7 @@ class time_tool():
 
 
         # Is it the Edge value greater than the threshold?
-        if (abs(self.Drift_Correct[self.Name[9]][0].value) > self.Drift_Adjustment_Threshold):            
+        if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
             print(f'Making adjustment to {self.Drift_Correct[self.Name[9]][0].value:.3f} ps!')
@@ -176,7 +180,7 @@ class time_tool():
             # set position of LXT
             # lxt.set_current_position(-float(txt.position))
             #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
-        
+
         print('---------------------------------')
         time.sleep(1)
 
