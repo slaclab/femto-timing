@@ -118,7 +118,7 @@ class time_tool():
         Run_TT_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
         print(f'The Time Tool Script is {Run_TT_Script}')
 
-        if(TT_Script_EN.value == 1):
+        if self.TT_Script_EN.value == 1:
             while Edge_Count < self.Number_Events:
 
                 self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
