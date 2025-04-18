@@ -5,8 +5,6 @@ import watchdog3
 from psp.Pv import Pv
 import sys
 
-from cxi.db import *
-
 class time_tool():
     def __init__ (self, sys='NULL'):
 
