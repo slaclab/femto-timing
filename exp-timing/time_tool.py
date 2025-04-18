@@ -141,10 +141,10 @@ class time_tool():
 
             # Is it a Good Measurement?
             if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(10, 14)):
-                print('Good Measurement!')
+                #print('Good Measurement!')
                 self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
                 #self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
-                print(f'TT Edge position {self.Drift_Correct[self.Name[2]][0].value:.3f} ps')
+                print(f'Good Measurement! - TT Edge position {self.Drift_Correct[self.Name[2]][0].value:.3f} ps')
 
                 #NEED TO CHANGE TO EDGE VALUE [2]
                 self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[8]][0].value
@@ -181,7 +181,7 @@ class time_tool():
             #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
 
         print('---------------------------------')
-        time.sleep(1)
+        time.sleep(3)
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
