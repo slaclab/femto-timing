@@ -113,8 +113,9 @@ class time_tool():
         Edge_Count: int = 0
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
         # Use this TT Script to Correct Drift?
-        self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
-        Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
+        #self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
+        #Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
+        Run_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
         print(f'The Time Tool Script is {Run_Script}')
 
         while Edge_Count < self.Number_Events and self.TT_Script_EN.value:
@@ -142,7 +143,7 @@ class time_tool():
                 self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
             # Is it a Good Measurement?
-            if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(10, 14)):
+            if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(11, 14)):
                 #print('Good Measurement!')
                 self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
                 #self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
