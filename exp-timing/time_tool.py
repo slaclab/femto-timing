@@ -14,7 +14,7 @@ class time_tool():
         self.FWHM_Threshold_Low = 30.0
         self.FWHM_Threshold_High = 250.0
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
-        self.Number_Events = 61
+        self.Number_Events = 11
         self.TimeTool_Edges = np.zeros([self.Number_Events])
         self.delay = 1
 
@@ -37,6 +37,7 @@ class time_tool():
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
             self.IPM_Threshold = 10.0 #500
+            self.Drift_Adjustment_Threshold = 0.01
 
         elif sys == 'XPP':  # set up xpp system
             print('starting XPP')
