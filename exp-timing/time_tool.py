@@ -16,7 +16,7 @@ class time_tool():
         self.FWHM_Threshold_Low = 30.0
         self.FWHM_Threshold_High = 250.0
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
-        self.Number_Events = 7
+        self.Number_Events = 17
         self.TimeTool_Edges = np.zeros([self.Number_Events])
 
         if sys == 'FS11': # set up for new bay 1 laser
