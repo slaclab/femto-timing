@@ -94,7 +94,7 @@ class time_tool():
         self.Drift_Correct_PV[6] = Dev_Base+'FWHM'
         self.Drift_Correct_PV[7] = Dev_Base+'STAGE'
         self.Drift_Correct_PV[8] = Dev_Base+'IPM'
-        self.Drift_Correct_PV[9] = Dev_Base+'DRIFT_CORRECT_SIG'
+        self.Drift_Correct_PV[9] = Dev_Base+'DRIFT_CORRECT_VAL'
         self.Drift_Correct_PV[10]= Dev_Base+'matlab:10'
         self.Drift_Correct_PV[11]= Dev_Base+'matlab:11'
         self.Drift_Correct_PV[12]= Dev_Base+'matlab:12'
@@ -143,10 +143,10 @@ class time_tool():
             if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(10, 14)):
                 print('Good Measurement!')
                 self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
-                self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
+                #self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
                 print(f'TT Edge position {self.Drift_Correct[self.Name[9]][0].value:.3f} ps')
 
-                #NEED TO CHANGE TO EDGE VALUE
+                #NEED TO CHANGE TO EDGE VALUE [2]
                 self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[8]][0].value
                 Edge_Count += 1
 
@@ -156,7 +156,7 @@ class time_tool():
 
         Edge_Mean = np.mean(self.TimeTool_Edges)
         print(self.TimeTool_Edges)
-        print(f'Mean of Edges = {Edge_Mean:.3f}')
+        #print(f'Mean of Edges = {Edge_Mean:.3f}')
 
         Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
         IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
@@ -172,7 +172,8 @@ class time_tool():
         if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
             # Convert to seconds
             # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-            print(f'Making adjustment to {self.Drift_Correct[self.Name[9]][0].value:.3f} ps!')
+            print(f'Making adjustment to {Edge_Mean:.3f} ps!')
+            self.Drift_Correct[self.Name[9]][0].put(value = Edge_Mean, timeout = 1.0)
             # Put average into LXT
             # lxt.mvr(tt_average_seconds)
             # set position of LXT
