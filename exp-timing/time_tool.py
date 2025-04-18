@@ -114,7 +114,7 @@ class time_tool():
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
         # Use this TT Script to Correct Drift?
         self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
-
+        print(f'Script is enabled? {self.TT_Script_EN.value}')
         while Edge_Count < self.Number_Events and self.TT_Script_EN.value:
 
             self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
