@@ -114,78 +114,79 @@ class time_tool():
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
         # Use this TT Script to Correct Drift?
         #self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
-        #Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
-        Run_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
-        print(f'The Time Tool Script is {Run_Script}')
+        #Run_TT_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
+        Run_TT_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
+        print(f'The Time Tool Script is {Run_TT_Script}')
 
-        while Edge_Count < self.Number_Events and self.TT_Script_EN.value:
+        if(Run_TT_Script == 1):
+            while Edge_Count < self.Number_Events:
 
-            self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
-            self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
-            self.IPM_PV.get(ctrl=True, timeout=1.0) # get intensity profile
-            self.TT_Script_EN.get(ctrl=True, timeout=1.0)
+                self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
+                self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
+                self.IPM_PV.get(ctrl=True, timeout=1.0) # get intensity profile
+                self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
-            for n in range (1,7):
-                self.Drift_Correct[self.Name[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
-            self.Drift_Correct[self.Name[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
-            self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
-            for n in range (1, 11):
-                self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
+                for n in range (1,7):
+                    self.Drift_Correct[self.Name[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
+                self.Drift_Correct[self.Name[7]][0].put(value = self.Stage_PV.value, timeout = 1.0)  # read stage position
+                self.Drift_Correct[self.Name[8]][0].put(value = self.IPM_PV.value, timeout = 1.0) # read/write intensity profile
+                for n in range (1, 11):
+                    self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
-            # Good signal in Intensity Profile Monitor?
-            self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
-            # Good Amplitude in Time Tool?
-            self.Drift_Correct[self.Name[12]][0].put(value=int(self.Drift_Correct[self.Name[3]][0].value > self.Amplitude_Threshold), timeout=1.0)
-            # Is FWHM Within the Range?
-            self.Drift_Correct[self.Name[13]][0].put(value=int(self.FWHM_Threshold_Low < self.Drift_Correct[self.Name[6]][0].value < self.FWHM_Threshold_High), timeout=1.0)
+                # Good signal in Intensity Profile Monitor?
+                self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
+                # Good Amplitude in Time Tool?
+                self.Drift_Correct[self.Name[12]][0].put(value=int(self.Drift_Correct[self.Name[3]][0].value > self.Amplitude_Threshold), timeout=1.0)
+                # Is FWHM Within the Range?
+                self.Drift_Correct[self.Name[13]][0].put(value=int(self.FWHM_Threshold_Low < self.Drift_Correct[self.Name[6]][0].value < self.FWHM_Threshold_High), timeout=1.0)
 
-            for n in range (8, 16):
-                self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
+                for n in range (8, 16):
+                    self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
-            # Is it a Good Measurement?
-            if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(11, 14)):
-                #print('Good Measurement!')
-                self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
-                #self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
-                print(f'Good Measurement! - TT Edge position {self.Drift_Correct[self.Name[2]][0].value:.3f} ps')
+                # Is it a Good Measurement?
+                if all(self.Drift_Correct[self.Name[i]][0].value == 1 for i in range(11, 14)):
+                    #print('Good Measurement!')
+                    self.Drift_Correct[self.Name[14]][0].put(value = 1, timeout = 1.0)            
+                    #self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
+                    print(f'Good Measurement! - TT Edge position {self.Drift_Correct[self.Name[2]][0].value:.3f} ps')
 
-                #NEED TO CHANGE TO EDGE VALUE [2]
-                self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[2]][0].value
-                Edge_Count += 1
+                    #NEED TO CHANGE TO EDGE VALUE [2]
+                    self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[2]][0].value
+                    Edge_Count += 1
 
-            else:
-                self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
-                #print('Not a Good Measurement')
+                else:
+                    self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
+                    #print('Not a Good Measurement')
 
-        Edge_Mean = np.mean(self.TimeTool_Edges)
-        print(self.TimeTool_Edges)
-        print(f'Mean of Edges = {Edge_Mean:.3f}')
+            Edge_Mean = np.mean(self.TimeTool_Edges)
+            print(self.TimeTool_Edges)
+            print(f'Mean of Edges = {Edge_Mean:.3f}')
 
-        IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
-        Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
-        FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
-        print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
-        print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
-        print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
+            IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
+            Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
+            FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
+            print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
+            print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
+            print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
-        # Is it the Edge value greater than the threshold?
-        if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
-            # Convert to seconds
-            # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-            
-            Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
-            print(f'Making adjustment to {Edge_Mean:.3f} ps!')
+            # Is it the Edge value greater than the threshold?
+            if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
+                # Convert to seconds
+                # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
+                
+                Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
+                print(f'Making adjustment to {Edge_Mean:.3f} ps!')
 
-            self.Drift_Correct[self.Name[15]][0].put(value = Edge_Mean, timeout = 1.0)
-            # Put average into LXT
-            # lxt.mvr(tt_average_seconds)
-            # set position of LXT
-            # lxt.set_current_position(-float(txt.position))
-            #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
-            #Do only a single correction for now? 
-            self.TT_Script_EN.put(value=0, timeout=1.0)
-            self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
-        print('---------------------------------')
+                self.Drift_Correct[self.Name[15]][0].put(value = Edge_Mean, timeout = 1.0)
+                # Put average into LXT
+                # lxt.mvr(tt_average_seconds)
+                # set position of LXT
+                # lxt.set_current_position(-float(txt.position))
+                #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
+                #Do only a single correction for now? 
+                self.TT_Script_EN.put(value=0, timeout=1.0)
+                self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
+            print('---------------------------------')
         time.sleep(3)
 
 def run():  # just a loop to keep recording         
