@@ -111,7 +111,11 @@ class time_tool():
     def read_write(self):   
 
         Edge_Count: int = 0
-        while Edge_Count < self.Number_Events:
+        self.TT_Script_EN.get(ctrl=True, timeout=1.0)
+        # Use this TT Script to Correct Drift?
+        self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
+
+        while Edge_Count < self.Number_Events and self.TT_Script_EN.value:
 
             self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
             self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
@@ -125,8 +129,7 @@ class time_tool():
             for n in range (1, 11):
                 self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
-            # Use this TT Script to Correct Drift?
-            self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
+           
             # Good signal in Intensity Profile Monitor?
             self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
             # Good Amplitude in Time Tool?
