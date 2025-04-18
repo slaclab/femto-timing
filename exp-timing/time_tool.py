@@ -8,18 +8,18 @@ import sys
 class time_tool():
     def __init__ (self, sys='NULL'):
 
-        self.IPM_Threshold = 10.0 #500.0
+        self.IPM_Threshold = 500.0
         self.Amplitude_Threshold = 0.02
         self.Drift_Adjustment_Threshold = 0.05
         self.FWHM_Threshold_Low = 30.0
         self.FWHM_Threshold_High = 250.0
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
-        self.Number_Events = 17
+        self.Number_Events = 61
         self.TimeTool_Edges = np.zeros([self.Number_Events])
+        self.delay = 1
 
         if sys == 'FS11': # set up for new bay 1 laser
             print('starting FS11')
-            self.delay = 0.1
             TTALL_Name = 'XPP:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS11:VIT:'  
             Stage_Name = 'XPP:LAS:MMN:16'  # delay stage for time tool
@@ -27,7 +27,6 @@ class time_tool():
 
         elif sys == 'FS14':  # set up FS14 system
             print('Starting FS14')
-            self.delay = 0.1 # 1 second delay
             #TTALL_Name = 'TMO:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS14:VIT:'
             #Stage_Name = 'LM1K4:COM_MP2_DLY1'  # delay stage for time tool
@@ -37,31 +36,28 @@ class time_tool():
             TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
+            self.IPM_Threshold = 10.0 #500
 
         elif sys == 'XPP':  # set up xpp system
             print('starting XPP')
-            self.delay = 0.1 # 1 second delay
             TTALL_Name = 'XPP:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS3:VIT:'
             Stage_Name = 'XPP:LAS:MMN:16'  # delay stage for time tool
             IPM_Name = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'XCS':  # set up xcs system
             print('starting XCS')
-            self.delay = 0.1 # 1 second delay
             TTALL_Name = 'XCS:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS4:VIT:'
             Stage_Name = 'XCS:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'MFX':  # set up xcs system
             print('starting MFX')
-            self.delay = 0.1 # 1 second delay
             TTALL_Name = 'MFX:TT:01:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS45:VIT:'
             Stage_Name = 'MFX:LAS:MMN:06'  # delay stage for time tool
             IPM_Name = 'MFX:DG2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'CXI':  # set up cxi system
             print('starting CXI')
-            self.delay = 0.1 # 1 second delay
             TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
             Dev_Base = 'LAS:FS5:VIT:'
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
@@ -148,7 +144,7 @@ class time_tool():
                 print(f'Good Measurement! - TT Edge position {self.Drift_Correct[self.Name[2]][0].value:.3f} ps')
 
                 #NEED TO CHANGE TO EDGE VALUE [2]
-                self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[8]][0].value
+                self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[2]][0].value
                 Edge_Count += 1
 
             else:
