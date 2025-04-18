@@ -81,7 +81,7 @@ class time_tool():
         #self.old_values = dict() # will hold the old values read from matlab
         self.Drift_Correct = dict()
         self.Drift_Correct_PV = dict()  # will hold list of IOC pvs
-        self.Name = ['Watchdog', 'pix', 'Edge Position', 'Amplitude', 'amp_second', 'ref', 'FWHM', 'Stage', 'IPM', 'Drift Correction P', 'Script Enabled?', 'IPM Good?', 'Amplitude Good?', 'FWHM Good?', 'Good TT Measurement?', 'Drift Correction Value'] #list of internal names
+        self.Name = ['Watchdog', 'pix', 'Edge Position', 'Amplitude', 'amp_second', 'ref', 'FWHM', 'Stage', 'IPM', 'Drift Correction P', 'Drift Correction Value', 'IPM Good?', 'Amplitude Good?', 'FWHM Good?', 'Good TT Measurement?'] #list of internal names
         self.Drift_Correct_PV[0] = Dev_Base+'WATCHDOG'
         self.Drift_Correct_PV[1] = Dev_Base+'PIX'
         self.Drift_Correct_PV[2] = Dev_Base+'FS'
@@ -92,12 +92,11 @@ class time_tool():
         self.Drift_Correct_PV[7] = Dev_Base+'STAGE'
         self.Drift_Correct_PV[8] = Dev_Base+'IPM'
         self.Drift_Correct_PV[9] = Dev_Base+'DRIFT_CORRECT_SIG'
-        self.Drift_Correct_PV[10]= Dev_Base+'matlab:10'
+        self.Drift_Correct_PV[10]= Dev_Base+'DRIFT_CORRECT_VAL'
         self.Drift_Correct_PV[11]= Dev_Base+'matlab:11'
         self.Drift_Correct_PV[12]= Dev_Base+'matlab:12'
         self.Drift_Correct_PV[13]= Dev_Base+'matlab:13'
         self.Drift_Correct_PV[14]= Dev_Base+'matlab:14'
-        self.Drift_Correct_PV[15] = Dev_Base+'DRIFT_CORRECT_VAL'
 
         for n in range(0, len(self.Name)):
             self.Drift_Correct[self.Name[n]] = [Pv(self.Drift_Correct_PV[n]), Pv(self.Drift_Correct_PV[n]+'.LOW'), Pv(self.Drift_Correct_PV[n]+'.HIGH'), Pv(self.Drift_Correct_PV[n]+'.DESC')]
@@ -110,15 +109,13 @@ class time_tool():
 
     def read_write(self):   
 
-        Edge_Count: int = 0
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
-        # Use this TT Script to Correct Drift?
-        #self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
-        #Run_TT_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
         Run_TT_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
         print(f'The Time Tool Script is {Run_TT_Script}')
-
+        
+        # Use this TT Script to Correct Drift?
         if self.TT_Script_EN.value == 1:
+            Edge_Count: int = 0
             while Edge_Count < self.Number_Events:
 
                 self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
@@ -139,7 +136,7 @@ class time_tool():
                 # Is FWHM Within the Range?
                 self.Drift_Correct[self.Name[13]][0].put(value=int(self.FWHM_Threshold_Low < self.Drift_Correct[self.Name[6]][0].value < self.FWHM_Threshold_High), timeout=1.0)
 
-                for n in range (8, 16):
+                for n in range (8, 15):
                     self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
                 # Is it a Good Measurement?
@@ -176,7 +173,7 @@ class time_tool():
                 Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
                 print(f'Making adjustment to {Edge_Mean:.3f} ps!')
 
-                self.Drift_Correct[self.Name[15]][0].put(value = Edge_Mean, timeout = 1.0)
+                self.Drift_Correct[self.Name[10]][0].put(value = Edge_Mean, timeout = 1.0)
                 # Put average into LXT
                 # lxt.mvr(tt_average_seconds)
                 # set position of LXT
