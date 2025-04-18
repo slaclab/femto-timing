@@ -118,13 +118,12 @@ class time_tool():
         Run_TT_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
         print(f'The Time Tool Script is {Run_TT_Script}')
 
-        if(Run_TT_Script == 1):
+        if(TT_Script_EN.value == 1):
             while Edge_Count < self.Number_Events:
 
                 self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
                 self.Stage_PV.get(ctrl=True, timeout=1.0) # get TT stage position
                 self.IPM_PV.get(ctrl=True, timeout=1.0) # get intensity profile
-                self.TT_Script_EN.get(ctrl=True, timeout=1.0)
 
                 for n in range (1,7):
                     self.Drift_Correct[self.Name[n]][0].put(value = self.TTALL_PV.value[n-1], timeout = 1.0)  # write to matlab PVs
