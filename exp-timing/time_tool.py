@@ -114,7 +114,9 @@ class time_tool():
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
         # Use this TT Script to Correct Drift?
         self.Drift_Correct[self.Name[10]][0].put(value=self.TT_Script_EN.value, timeout=1.0)
-        print(f'Script is enabled? {self.TT_Script_EN.value}')
+        Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
+        print(f'The Time Tool Script is {Run_Script}')
+
         while Edge_Count < self.Number_Events and self.TT_Script_EN.value:
 
             self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
@@ -129,7 +131,6 @@ class time_tool():
             for n in range (1, 11):
                 self.Drift_Correct[self.Name[n]][0].get(ctrl=True, timeout = 1.0)
 
-           
             # Good signal in Intensity Profile Monitor?
             self.Drift_Correct[self.Name[11]][0].put(value=int(self.Drift_Correct[self.Name[8]][0].value > self.IPM_Threshold), timeout=1.0)
             # Good Amplitude in Time Tool?
@@ -159,11 +160,9 @@ class time_tool():
         print(self.TimeTool_Edges)
         print(f'Mean of Edges = {Edge_Mean:.3f}')
 
-        Run_Script = 'Enabled' if self.Drift_Correct[self.Name[10]][0].value == 1 else 'Disabled'
         IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
         Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
         FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
-        print(f'The Time Tool Script is {Run_Script}')
         print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
         print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
         print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
