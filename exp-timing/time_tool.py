@@ -155,7 +155,7 @@ class time_tool():
                     #print('Not a Good Measurement')
 
             Edge_Mean = np.mean(self.TimeTool_Edges)
-            print(f'Edges Array: {self.TimeTool_Edges:.3f}')
+            print(f'Edges Array: {" ".join(f"{edge:.3f}" for edge in self.TimeTool_Edges)}')
             print(f'Mean of Edges = {Edge_Mean:.3f}')
 
             IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
