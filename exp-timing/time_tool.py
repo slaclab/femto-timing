@@ -116,6 +116,7 @@ class time_tool():
         # Use this TT Script to Correct Drift?
         if self.TT_Script_EN.value == 1:
             Edge_Count: int = 0
+            time_last_good_val: float = time.time()
             while Edge_Count < self.Number_Events:
 
                 self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
@@ -149,10 +150,15 @@ class time_tool():
                     #NEED TO CHANGE TO EDGE VALUE [2]
                     self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[2]][0].value
                     Edge_Count += 1
+                    time_last_good_val = time.time()
 
                 else:
                     self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
                     #print('Not a Good Measurement')
+
+                if time.time() - time_last_good_val > 30:
+                    write_log(f"No good measurement over one minute. Check thresholds?", logfile)
+                    time_last_good_val = time.time()
 
             Edge_Mean = np.mean(self.TimeTool_Edges)
             print(f'Edges Array: [{" ".join(f"{edge:.3f}" for edge in self.TimeTool_Edges)}]')
