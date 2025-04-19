@@ -159,6 +159,7 @@ class time_tool():
                 if time.time() - time_last_good_val > 10:
                     print(f'No good measurement over one minute. Check thresholds?')
                     time_last_good_val = time.time()
+                    self.TT_Script_EN.put(value=0, timeout=1.0)
                     break
 
             print(f'Edge count = {Edge_Count}')
@@ -190,7 +191,7 @@ class time_tool():
                     #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
                     #Do only a single correction for now? 
                     self.TT_Script_EN.put(value=0, timeout=1.0)
-                    self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
+                    #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
                 print('---------------------------------')
         time.sleep(3)
 
