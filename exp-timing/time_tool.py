@@ -156,39 +156,42 @@ class time_tool():
                     self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
                     #print('Not a Good Measurement')
 
-                if time.time() - time_last_good_val > 30:
-                    write_log(f"No good measurement over one minute. Check thresholds?", logfile)
+                if time.time() - time_last_good_val > 10:
+                    print(f'No good measurement over one minute. Check thresholds?')
                     time_last_good_val = time.time()
+                    break
 
-            Edge_Mean = np.mean(self.TimeTool_Edges)
-            print(f'Edges Array: [{" ".join(f"{edge:.3f}" for edge in self.TimeTool_Edges)}]')
-            print(f'Mean of Edges = {Edge_Mean:.3f}')
+            print(f'Edge count = {Edge_Count}')
+            if Edge_Count == self.Number_Events:
+                Edge_Mean = np.mean(self.TimeTool_Edges)
+                print(f'Edges Array: [{" ".join(f"{edge:.3f}" for edge in self.TimeTool_Edges)}]')
+                print(f'Mean of Edges = {Edge_Mean:.3f}')
 
-            IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
-            Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
-            FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
-            print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
-            print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
-            print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
+                IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
+                Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
+                FWHM_Good = 'Good' if self.Drift_Correct[self.Name[13]][0].value == 1 else 'Bad'
+                print(f'{IPM_Good} Signal in IPM: {self.Drift_Correct[self.Name[8]][0].value:.3f}')
+                print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
+                print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
-            # Is it the Edge value greater than the threshold?
-            if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
-                # Convert to seconds
-                # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-                
-                Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
-                print(f'Making adjustment to {Edge_Mean:.3f} ps!')
+                # Is it the Edge value greater than the threshold?
+                if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
+                    # Convert to seconds
+                    # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
+                    
+                    Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
+                    print(f'Making adjustment to {Edge_Mean:.3f} ps!')
 
-                self.Drift_Correct[self.Name[10]][0].put(value = Edge_Mean, timeout = 1.0)
-                # Put average into LXT
-                # lxt.mvr(tt_average_seconds)
-                # set position of LXT
-                # lxt.set_current_position(-float(txt.position))
-                #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
-                #Do only a single correction for now? 
-                self.TT_Script_EN.put(value=0, timeout=1.0)
-                self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
-            print('---------------------------------')
+                    self.Drift_Correct[self.Name[10]][0].put(value = Edge_Mean, timeout = 1.0)
+                    # Put average into LXT
+                    # lxt.mvr(tt_average_seconds)
+                    # set position of LXT
+                    # lxt.set_current_position(-float(txt.position))
+                    #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
+                    #Do only a single correction for now? 
+                    self.TT_Script_EN.put(value=0, timeout=1.0)
+                    self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
+                print('---------------------------------')
         time.sleep(3)
 
 def run():  # just a loop to keep recording         
