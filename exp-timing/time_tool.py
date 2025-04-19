@@ -14,7 +14,7 @@ class time_tool():
         self.FWHM_Threshold_Low = 30.0
         self.FWHM_Threshold_High = 250.0
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
-        self.Number_Events = 11
+        self.Number_Events = 61
         self.TimeTool_Edges = np.zeros([self.Number_Events])
         self.delay = 1
 
@@ -155,7 +155,7 @@ class time_tool():
                     #print('Not a Good Measurement')
 
             Edge_Mean = np.mean(self.TimeTool_Edges)
-            print(f'Edges Array: {" ".join(f"{edge:.3f}" for edge in self.TimeTool_Edges)}')
+            print(f'Edges Array: [{" ".join(f"{edge:.3f}" for edge in self.TimeTool_Edges)}]')
             print(f'Mean of Edges = {Edge_Mean:.3f}')
 
             IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
