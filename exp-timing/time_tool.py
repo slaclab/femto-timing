@@ -156,11 +156,8 @@ class time_tool():
                     self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
                     #print('Not a Good Measurement')
 
-                if time.time() - time_last_good_val > 10:
+                if time.time() - time_last_good_val > 30:
                     print(f'No good measurement over one minute. Check thresholds?')
-                    time_last_good_val = time.time()
-                    self.TT_Script_EN.put(value=0, timeout=1.0)
-                    self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
                     break
 
             print(f'Edge count = {Edge_Count}')
@@ -191,9 +188,10 @@ class time_tool():
                     # lxt.set_current_position(-float(txt.position))
                     #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
                     #Do only a single correction for now? 
-                    self.TT_Script_EN.put(value=0, timeout=1.0)
-                    self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
                 print('---------------------------------')
+
+        self.TT_Script_EN.put(value=0, timeout=1.0)
+        self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
         time.sleep(3)
 
 def run():  # just a loop to keep recording         
