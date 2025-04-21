@@ -191,7 +191,7 @@ class time_tool():
                 print('---------------------------------')
 
         self.TT_Script_EN.put(value=0, timeout=1.0)
-        self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
+        #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
         time.sleep(3)
 
 def run():  # just a loop to keep recording         
