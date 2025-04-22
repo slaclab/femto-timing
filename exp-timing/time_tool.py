@@ -33,9 +33,9 @@ class time_tool():
             #IPM_Name = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
 
             print('Borrow PVs to monitor')
-            TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
+            TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
-            IPM_Name = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
+            IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
             #self.IPM_Threshold = 10.0 #500
             self.Drift_Adjustment_Threshold = 0.01
 
@@ -107,7 +107,7 @@ class time_tool():
             self.Drift_Correct[self.Name[n]][3].put(value = self.Name[n], timeout = 1.0)
         self.W = watchdog3.watchdog(self.Drift_Correct[self.Name[0]][0]) # initialize watchdog   
 
-    def read_write(self):   
+    def read_write(self):
 
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
         Run_TT_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
@@ -186,8 +186,8 @@ class time_tool():
                     # lxt.mvr(tt_average_seconds)
                     # set position of LXT
                     # lxt.set_current_position(-float(txt.position))
-                    #self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
-                    #Do only a single correction for now? 
+                    # self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
+                    # Do only a single correction for now? 
                 print('---------------------------------')
 
         self.TT_Script_EN.put(value=0, timeout=1.0)
