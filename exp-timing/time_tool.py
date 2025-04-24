@@ -33,7 +33,7 @@ class time_tool():
             #IPM_Name = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
 
             print('Borrow PVs to monitor')
-            TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
+            TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
             #self.IPM_Threshold = 10.0 #500
@@ -61,8 +61,8 @@ class time_tool():
             print('starting CXI')
             TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
             Dev_Base = 'LAS:FS5:VIT:'
-            Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
-            #Stage_Name = 'CXI:USR:MMN:25'  # delay stage for time tool
+            Stage_Name = 'CXI:LAS:MMN:09'  # delay stage for time tool
+            #Stage_Name = 'CXI:USR:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
         else:
             print(sys+' not found, exiting')
@@ -189,6 +189,7 @@ class time_tool():
         # Do only a single correction for now, disable correction script?
         self.TT_Script_EN.put(value=0, timeout=1.0)
         #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
+        print(self.Drift_Correct[self.Name[0]][0].value)
         time.sleep(3)
 
 def run():  # just a loop to keep recording         
