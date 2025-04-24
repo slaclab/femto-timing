@@ -103,12 +103,14 @@ class time_tool():
 
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
         Run_TT_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
-        
+        if self.Drift_Correct[self.Name[0]][0].value % 100 == 0:
+            print(f'{time.strftime("%x %X")} - The Time Tool Script is {Run_TT_Script}')
+
         # Use this TT Script to Correct Drift?
         if self.TT_Script_EN.value == 1:
             Edge_Count: int = 0
             time_last_good_val: float = time.time()
-            print(f'The Time Tool Script is {Run_TT_Script}')
+            print(f'{time.strftime("%x %X")} - The Time Tool Script is {Run_TT_Script}')
 
             while Edge_Count < self.Number_Events:
 
@@ -183,10 +185,7 @@ class time_tool():
         # Do only a single correction for now, disable correction script?
         self.TT_Script_EN.put(value=0, timeout=1.0)
         #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
-        
-        if self.Drift_Correct[self.Name[0]][0].value % 100 == 0:
-            print(f'Value: {self.Drift_Correct[self.Name[0]][0].value} - The time is {time.time()}')
-            print(f'{time.strftime("%X %x")} - The Time Tool Script is {Run_TT_Script}')
+
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
