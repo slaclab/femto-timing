@@ -186,7 +186,7 @@ class time_tool():
         
         if self.Drift_Correct[self.Name[0]][0].value % 100 == 0:
             print(f'Value: {self.Drift_Correct[self.Name[0]][0].value} - The time is {time.time()}')
-            print(f'{time.strftime('%X %x')} - The Time Tool Script is {Run_TT_Script}')
+            print(f'{time.strftime("%X %x")} - The Time Tool Script is {Run_TT_Script}')
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
