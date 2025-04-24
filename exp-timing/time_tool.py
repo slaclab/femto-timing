@@ -36,8 +36,8 @@ class time_tool():
             TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
-            #self.IPM_Threshold = 10.0 #500
-            self.Drift_Adjustment_Threshold = 0.01
+            self.IPM_Threshold = 10.0 #500
+            self.Amplitude_Threshold = 0.01
 
         elif sys == 'XPP':  # set up xpp system
             print('starting XPP')
