@@ -178,9 +178,9 @@ class time_tool():
 
                     # Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
                     print(f'Mean of Edges = {Edge_Mean:.3f} ps')
-                    print(f'Previous Drift Correction value {self.Drift_Correct[self.Name[10]][0].value:.3f} ps')
+                    print(f'Old Drift Correction value = {self.Drift_Correct[self.Name[10]][0].value:.3f} ps')
                     Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value + self.Drift_Correct[self.Name[10]][0].value
-                    print(f'Making adjustment to {Edge_Mean:.3f} ps!')
+                    print(f'New Drift Correction value = {Edge_Mean:.3f} ps')
 
                     self.Drift_Correct[self.Name[10]][0].put(value = Edge_Mean, timeout = 1.0)
                     # set position of LXT?
@@ -193,7 +193,7 @@ class time_tool():
         #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
         
         if self.Drift_Correct[self.Name[0]][0].value % 100 == 0:
-            print(f"Value: {print(self.Drift_Correct[self.Name[0]][0].value)} - The time is {time.time()}")
+            print(f"Value: {self.Drift_Correct[self.Name[0]][0].value} - The time is {time.time()}")
             print(f'The Time Tool Script is {Run_TT_Script}')
 
 def run():  # just a loop to keep recording         
