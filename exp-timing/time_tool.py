@@ -16,7 +16,7 @@ class time_tool():
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
         self.Number_Events = 61
         self.TimeTool_Edges = np.zeros([self.Number_Events])
-        self.delay = 1
+        self.delay = 0.1
 
         if sys == 'FS11': # set up for new bay 1 laser
             print('starting FS11')
@@ -111,12 +111,13 @@ class time_tool():
 
         self.TT_Script_EN.get(ctrl=True, timeout=1.0)
         Run_TT_Script = 'Enabled' if self.TT_Script_EN.value == 1 else 'Disabled'
-        print(f'The Time Tool Script is {Run_TT_Script}')
         
         # Use this TT Script to Correct Drift?
         if self.TT_Script_EN.value == 1:
             Edge_Count: int = 0
             time_last_good_val: float = time.time()
+            print(f'The Time Tool Script is {Run_TT_Script}')
+
             while Edge_Count < self.Number_Events:
 
                 self.TTALL_PV.get(ctrl=True, timeout=1.0) # get TT array data
@@ -189,8 +190,10 @@ class time_tool():
         # Do only a single correction for now, disable correction script?
         self.TT_Script_EN.put(value=0, timeout=1.0)
         #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
-        print(self.Drift_Correct[self.Name[0]][0].value)
-        time.sleep(3)
+        
+        if self.Drift_Correct[self.Name[0]][0] % 100 == 0:
+            print(f"Value: {print(self.Drift_Correct[self.Name[0]][0].value)} - The time is {time.time()}")
+            print(f'The Time Tool Script is {Run_TT_Script}')
 
 def run():  # just a loop to keep recording         
     if len(sys.argv) < 2:
