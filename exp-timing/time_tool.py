@@ -147,7 +147,7 @@ class time_tool():
                     #self.Drift_Correct[self.Name[9]][0].put(value = self.Drift_Correct[self.Name[2]][0].value, timeout = 1.0)
                     print(f'Good Measurement! - TT Edge position {self.Drift_Correct[self.Name[2]][0].value:.3f} ps')
 
-                    #NEED TO CHANGE TO EDGE VALUE [2]
+                    #NEED TO CHANGE TO EDGE VALUE, [2]
                     self.TimeTool_Edges[Edge_Count] = self.Drift_Correct[self.Name[2]][0].value
                     Edge_Count += 1
                     time_last_good_val = time.time()
@@ -175,21 +175,18 @@ class time_tool():
 
                 # Is it the Edge value greater than the threshold?
                 if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
-                    # Convert to seconds
-                    # tt_average_seconds: float = -(tt_edge_average_ps * 1e-12)
-                    
-                    Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
+
+                    # Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
+                    Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value + self.Drift_Correct[self.Name[10]][0].value
                     print(f'Making adjustment to {Edge_Mean:.3f} ps!')
 
                     self.Drift_Correct[self.Name[10]][0].put(value = Edge_Mean, timeout = 1.0)
-                    # Put average into LXT
-                    # lxt.mvr(tt_average_seconds)
-                    # set position of LXT
+                    # set position of LXT?
                     # lxt.set_current_position(-float(txt.position))
-                    # self.Drift_Correct[self.Name[9]][0].put(value = 0, timeout = 1.0)
-                    # Do only a single correction for now? 
+
                 print('---------------------------------')
 
+        # Do only a single correction for now, disable correction script?
         self.TT_Script_EN.put(value=0, timeout=1.0)
         #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
         time.sleep(3)
