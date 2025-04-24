@@ -165,7 +165,6 @@ class time_tool():
             if Edge_Count == self.Number_Events:
                 Edge_Mean = np.mean(self.TimeTool_Edges)
                 print(f'Edges Array: [{" ".join(f"{edge:.3f}" for edge in self.TimeTool_Edges)}]')
-                print(f'Mean of Edges = {Edge_Mean:.3f}')
 
                 IPM_Good = 'Good' if self.Drift_Correct[self.Name[11]][0].value == 1 else 'Low'
                 Amp_Good = 'Good' if self.Drift_Correct[self.Name[12]][0].value == 1 else 'Low'
@@ -178,6 +177,8 @@ class time_tool():
                 if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
 
                     # Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
+                    print(f'Mean of Edges = {Edge_Mean:.3f} ps')
+                    print(f'Previous Drift Correction value {self.Drift_Correct[self.Name[10]][0].value:.3f} ps')
                     Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value + self.Drift_Correct[self.Name[10]][0].value
                     print(f'Making adjustment to {Edge_Mean:.3f} ps!')
 
