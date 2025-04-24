@@ -16,7 +16,7 @@ class time_tool():
         #self.fwhm_threshs: Tuple[float, float] = (30, 130)
         self.Number_Events = 61
         self.TimeTool_Edges = np.zeros([self.Number_Events])
-        self.delay = 0.1
+        self.delay = 0.5
 
         if sys == 'FS11': # set up for new bay 1 laser
             print('starting FS11')
