@@ -191,7 +191,7 @@ class time_tool():
         self.TT_Script_EN.put(value=0, timeout=1.0)
         #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
         
-        if self.Drift_Correct[self.Name[0]][0] % 100 == 0:
+        if self.Drift_Correct[self.Name[0]][0].value % 100 == 0:
             print(f"Value: {print(self.Drift_Correct[self.Name[0]][0].value)} - The time is {time.time()}")
             print(f'The Time Tool Script is {Run_TT_Script}')
 
