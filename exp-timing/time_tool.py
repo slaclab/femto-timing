@@ -18,54 +18,46 @@ class time_tool():
         self.TimeTool_Edges = np.zeros([self.Number_Events])
         self.delay = 0.5
 
+        print(f'Starting {sys} ...')
         if sys == 'FS11': # set up for new bay 1 laser
-            print('starting FS11')
             TTALL_Name = 'XPP:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS11:VIT:'  
             Stage_Name = 'XPP:LAS:MMN:16'  # delay stage for time tool
             IPM_Name = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
-
         elif sys == 'FS14':  # set up FS14 system
-            print('Starting FS14')
             #TTALL_Name = 'TMO:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS14:VIT:'
             #Stage_Name = 'LM1K4:COM_MP2_DLY1'  # delay stage for time tool
             #IPM_Name = 'EM2K0:XGMD:HPS:milliJoulesPerPulse' # intensity profile monitor PV
-
             print('Borrow PVs to monitor')
             TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
             self.IPM_Threshold = 10.0 #500
             self.Amplitude_Threshold = 0.01
-
         elif sys == 'XPP':  # set up xpp system
-            print('starting XPP')
             TTALL_Name = 'XPP:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS3:VIT:'
             Stage_Name = 'XPP:LAS:MMN:16'  # delay stage for time tool
             IPM_Name = 'XPP:SB2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'XCS':  # set up xcs system
-            print('starting XCS')
             TTALL_Name = 'XCS:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS4:VIT:'
             Stage_Name = 'XCS:LAS:MMN:01'  # delay stage for time tool
             IPM_Name = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'MFX':  # set up xcs system
-            print('starting MFX')
             TTALL_Name = 'MFX:TT:01:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS45:VIT:'
             Stage_Name = 'MFX:LAS:MMN:06'  # delay stage for time tool
             IPM_Name = 'MFX:DG2:BMMON:SUM' # intensity profile monitor PV
         elif sys == 'CXI':  # set up cxi system
-            print('starting CXI')
             TTALL_Name = 'CXI:TT:01:TTALL' #time tool array name
             Dev_Base = 'LAS:FS5:VIT:'
             Stage_Name = 'CXI:LAS:MMN:09'  # delay stage for time tool
             #Stage_Name = 'CXI:USR:MMN:01'  # delay stage for time tool
             IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
         else:
-            print(sys+' not found, exiting')
+            print(sys+' Not Found! Exiting')
             exit()
 
         self.TTALL_PV = Pv(TTALL_Name)
@@ -186,14 +178,14 @@ class time_tool():
                     # set position of LXT?
                     # lxt.set_current_position(-float(txt.position))
 
-                print('---------------------------------')
+                print('--------------------------------------')
 
         # Do only a single correction for now, disable correction script?
         self.TT_Script_EN.put(value=0, timeout=1.0)
         #self.TT_Script_EN.get(ctrl=True, timeout = 1.0)
         
         if self.Drift_Correct[self.Name[0]][0].value % 100 == 0:
-            print(f"Value: {self.Drift_Correct[self.Name[0]][0].value} - The time is {time.time()}")
+            print(f'Value: {self.Drift_Correct[self.Name[0]][0].value} - The time is {time.time()}')
             print(f'The Time Tool Script is {Run_TT_Script}')
 
 def run():  # just a loop to keep recording         
