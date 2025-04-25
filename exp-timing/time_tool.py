@@ -32,9 +32,9 @@ class time_tool():
             print('Borrow PVs to monitor')
             TTALL_Name = 'XCS:TT:01:TTALL' #time tool array name
             Stage_Name = 'CXI:LAS:MMN:01'  # delay stage for time tool
-            IPM_Name = 'CXI:DG2:BMMON:SUM' # intensity profile monitor PV
-            self.IPM_Threshold = 10.0 #500
-            self.Amplitude_Threshold = 0.01
+            IPM_Name = 'XCS:SB1:BMMON:SUM' # intensity profile monitor PV
+            #self.IPM_Threshold = 10.0 #500
+            #self.Amplitude_Threshold = 0.01
         elif sys == 'XPP':  # set up xpp system
             TTALL_Name = 'XPP:TIMETOOL:TTALL'  # time tool array name
             Dev_Base = 'LAS:FS3:VIT:'
