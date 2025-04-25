@@ -167,11 +167,12 @@ class time_tool():
                 print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
                 print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
+                print(f'Mean of Edges = {Edge_Mean:.3f} ps')
                 # Is it the Edge value greater than the threshold?
                 if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
 
                     # Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
-                    print(f'Mean of Edges = {Edge_Mean:.3f} ps')
+
                     print(f'Old Drift Correction value = {self.Drift_Correct[self.Name[10]][0].value:.3f} ps')
                     Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value + self.Drift_Correct[self.Name[10]][0].value
                     print(f'New Drift Correction value = {Edge_Mean:.3f} ps')
