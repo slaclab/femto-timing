@@ -1,12 +1,10 @@
 #####################################################################
 # Filename: pcav2cast_hxr.py
 # Author: Chengcheng Xu (charliex@slac.stanford.edu)
-# Date: 03/07/2021
 #####################################################################
-# This script will take the phase cavity value and put throw 
-# an exponential feedback controller, then output its value to the 
+# This script will take the phase cavity value and put throw
+# an exponential feedback controller, then output its value to the
 # phase shifter in the cable stabilizer system
-# NOTE: This is a band-aid, code is probably breaking many rules
 # To ensure right python env sourced
 # source /reg/g/pcds/engineering_tools/xpp/scripts/pcds_conda
 import epics as epics
@@ -14,140 +12,98 @@ import numpy as np
 import time as time
 import datetime
 
-# from matplotlib import pyplot as plt
-HB_PV = 'LAS:UNDH:FLOAT:90'
-HXR_FB_PV = 'LAS:UNDH:FLOAT:05'
-HXR_PCAV_PV0 = 'SIOC:UNDH:PT01:0:TIME0'
-HXR_PCAV_PV1 = 'SIOC:UNDH:PT01:0:TIME1'
-HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'
-HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'
-HXR_CAST2PCAV_Gain = 1.1283 # the slope from plotting cast phase shifter to value read from PCAV
-HXR_CAST2PCAV_Gain = 2 #03/1/2024 cal
-HXR_PCAV_AVG_PV = 'LAS:UNDH:FLOAT:06'
-SXR_FB_PV = 'LAS:UNDS:FLOAT:05'
-SXR_PCAV_PV0 = 'SIOC:UNDS:PT01:0:TIME0'
-SXR_PCAV_PV1 = 'SIOC:UNDS:PT01:0:TIME1'
-SXR_CAST_PS_PV_W = 'LAS:UND:MMS:01'
-SXR_CAST_PS_PV_R = SXR_CAST_PS_PV_W + '.RBV'
-SXR_CAST2PCAV_Gain = 1.1283 # the slow from plotting cast phase shifter to value read from PCAV
-SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'
-# -1727400.6755412123
-
 ######################################
 # HXR PV definition
 ######################################
-HB_PV = 'LAS:UNDH:FLOAT:90'
-HXR_FB_PV = 'LAS:UNDH:FLOAT:05'
-HXR_NaN_alert_PV = 'LAS:UNDH:FLOAT:91'
-HXR_NaN_alert_PVDESC = HXR_NaN_alert_PV + '.DESC'
-HXR_CAST2PCAV_Gain_PV = 'LAS:UNDH:FLOAT:92'
-HXR_pcav2cast_loopKp_PV = 'LAS:UNDH:FLOAT:93'
-HXR_pcav2cast_loopPausetime_PV = 'LAS:UNDH:FLOAT:94'
-HXR_PCAV_PV0 = 'SIOC:UNDH:PT01:0:TIME0'
-HXR_PCAV_PV1 = 'SIOC:UNDH:PT01:0:TIME1'
-HXR_PCAV_AVG_PV = 'LAS:UNDH:FLOAT:06'
-HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'
-HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'
+HB_PV = 'LAS:UNDH:FLOAT:90'  # Heartbeat PV
+HXR_FB_PV = 'LAS:UNDH:FLOAT:05'  # Feedback enable PV
+HXR_NAN_PV = 'LAS:UNDH:FLOAT:91'    # NAN alert PV
+HXR_NAN_PVDESC = HXR_NAN_PV + '.DESC'   # NAN alert PV description
+HXR_GAIN_PV = 'LAS:UNDH:FLOAT:92'  # Gain PV
+HXR_LOOP_GAIN_PV = 'LAS:UNDH:FLOAT:93'  # Loop gain PV
+HXR_LOOP_PAUSE_PV = 'LAS:UNDH:FLOAT:94' # Loop pause time PV
+HXR_PCAV_PV0 = 'SIOC:UNDH:PT01:0:TIME0' # Phase cavity PV0
+HXR_PCAV_PV1 = 'SIOC:UNDH:PT01:0:TIME1' # Phase cavity PV1
+HXR_PCAV_AVG_PV = 'LAS:UNDH:FLOAT:06'   # Phase cavity average PV
+HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02' # Phase shifter PV write
+HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
 
-# HXR_CAST2PCAV_Gain = 1.1283 # the slope from plotting cast phase shifter to value read from PCAV
-HXR_CAST2PCAV_Gain = 2 #03/1/2024 cal
+# default initial values
+HXR_GAIN = 2  # 03/1/2024 cal
+PAUSE_TIME = 5    # Let's give some time for the system to react
 
-######################################
-# SXR PV definition
-######################################
-HB_PV = 'LAS:UNDS:FLOAT:90'
-SXR_NaN_alert_PV = 'LAS:UNDS:FLOAT:91'
-SXR_NaN_alert_PVDESC = SXR_NaN_alert_PV + '.DESC'
-SXR_CAST2PCAV_Gain_PV = 'LAS:UNDS:FLOAT:92'
-SXR_pcav2cast_loopKp_PV = 'LAS:UNDS:FLOAT:93'
-SXR_pcav2cast_loopPausetime_PV = 'LAS:UNDS:FLOAT:94'
-SXR_FB_PV = 'LAS:UNDS:FLOAT:05'
-SXR_PCAV_PV0 = 'SIOC:UNDS:PT01:0:TIME0'
-SXR_PCAV_PV1 = 'SIOC:UNDS:PT01:0:TIME1'
-SXR_CAST_PS_PV_W = 'LAS:UND:MMS:01'
-SXR_CAST_PS_PV_R = SXR_CAST_PS_PV_W + '.RBV'
-SXR_CAST2PCAV_Gain = 1.1283 # the slow from plotting cast phase shifter to value read from PCAV
-SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'
-XPP_Switch_PV = 'LAS:UNDS:FLOAT:95'
-XPP_FeedforwardKp_PV = 'LAS:UNDS:FLOAT:96'
-# -1727400.6755412123
-
-pause_time = 5    # Let's give some time for the system to react
-Cntl_gain = 0.1   # Feed back loop gain
-#We are doing an exponential fb loop, where the output = output[-1] + (-gain * error)
-pcavsp_ary   = np.zeros(2,)
-pcavsp_ary[0,]  = epics.caget(HXR_PCAV_PV0)  # Latch in the value before starting the feedback, this will be value we correct to
-pcavsp_ary[1,]  = epics.caget(HXR_PCAV_PV1)  # Latch in the value before starting the feedback, this will be value we correct to
-Cntl_setpt = np.average(pcavsp_ary)
-Cntl_output = 0
-pcav_avg_n  = 5    # Taking 5 data samples to average and throw out outliers
+# We are doing an exponential fb loop, where the output = output[-1] + (-gain * error)
+pcavsp_ary = np.zeros(2,)
+# Latch in the value before starting the feedback, this will be value we correct to
+pcavsp_ary[0,] = epics.caget(HXR_PCAV_PV0)
+# Latch in the value before starting the feedback, this will be value we correct to
+pcavsp_ary[1,] = epics.caget(HXR_PCAV_PV1)
+CTRL_SETPT = np.average(pcavsp_ary)
+CTRL_OUT = 0
+AVG_N = 5    # Taking 5 data samples to average and throw out outliers
 
 # let's get the current value of the phase shifter
-HXR_CAST_PS_init_Val = epics.caget(HXR_CAST_PS_PV_R)
-Cntl_output = HXR_CAST_PS_init_Val   # once the script runs, that value is the setpoint
-hxr_fb_en = epics.caget(HXR_FB_PV)
+PS_INIT = epics.caget(HXR_CAST_PS_PV_R)
+# once the script runs, that value is the setpoint
+CTRL_OUT = PS_INIT
+HXR_FB_EN = epics.caget(HXR_FB_PV)
 
-time_err_ary = np.zeros((pcav_avg_n,))
+time_err_ary = np.zeros((AVG_N,))
 PCAV_temp_ary = np.zeros(2,)
 
-cntr = 0
-time_err_avg_prev = 0
-epics.caput(HB_PV, cntr)
-#epics.caput(NaN_alert_PV, 0)
-time_err_avg_prev = 0
-epics.caput(HXR_NaN_alert_PV, 0)
-epics.caput(HXR_NaN_alert_PVDESC, 'No NaN read')
+COUNTER = 0
+epics.caput(HB_PV, COUNTER)
+TIME_ERR_AVG_PREV = 0
+epics.caput(HXR_NAN_PV, 0)
+epics.caput(HXR_NAN_PVDESC, 'No NAN read')
 print('Controller running')
 
+# Main loop
 while True:
-    HXR_CAST2PCAV_Gain = epics.caget(HXR_CAST2PCAV_Gain_PV)
-    pcav2cast_loopPausetime = epics.caget(HXR_pcav2cast_loopPausetime_PV)
-    pcav2cast_loopKp = epics.caget(HXR_pcav2cast_loopKp_PV)
-    cntr = epics.caget(HB_PV)
-    print(cntr)
-    for h in range(0,pcav_avg_n):
-        PCAV_temp_ary[0,] = epics.caget(HXR_PCAV_PV0)
-        PCAV_temp_ary[1,] = epics.caget(HXR_PCAV_PV0)
-        HXR_PCAV_Val_tmp = np.average(PCAV_temp_ary)
-        # HXR_PCAV_Val_tmp = epics.caget(HXR_PCAV_PV0)
-        if np.isnan(HXR_PCAV_Val_tmp):
-            HXR_PCAV_Val_tmp = 0
-        time_err = np.around((Cntl_setpt - HXR_PCAV_Val_tmp), decimals=6)
+    HXR_GAIN = epics.caget(HXR_GAIN_PV)
+    PV_PAUSE_TIME = epics.caget(HXR_LOOP_PAUSE_PV)
+    loopKp = epics.caget(HXR_LOOP_GAIN_PV)
+    COUNTER = epics.caget(HB_PV)
+    print(COUNTER)
+    for h in range(0, AVG_N):
+        PCAV_temp_ary[0,] = epics.caget(HXR_PCAV_PV0)   
+        PCAV_temp_ary[1,] = epics.caget(HXR_PCAV_PV0)   # HXR PCAV 1 used for SXR feedback
+        PCAV_VAL = np.average(PCAV_temp_ary)
+        if np.isNAN(PCAV_VAL):
+            PCAV_VAL = 0
+        time_err = np.around((CTRL_SETPT - PCAV_VAL), decimals=6)
         time_err_ary[h] = time_err
         time.sleep(0.1)
     time_err_ary_sort = np.sort(time_err_ary)
-    time_err_ary_sort1 = time_err_ary_sort[1:-1]
-    time_err_avg = np.mean(time_err_ary_sort1)  
-    epics.caput(HXR_PCAV_AVG_PV, time_err_avg)
-    if cntr == 0:
-        time_err_diff = 0.01
+    time_err_ary_sort1 = time_err_ary_sort[1:-1]    # remove the outliers
+    TIME_ERR_AVG = np.mean(time_err_ary_sort1)
+    epics.caput(HXR_PCAV_AVG_PV, TIME_ERR_AVG)
+    if COUNTER == 0:
+        TIME_ERR_DIFF = 0.01
     else:
-        time_err_diff = time_err_avg_prev - time_err_avg  
+        TIME_ERR_DIFF = TIME_ERR_AVG_PREV - TIME_ERR_AVG
     print('average error')
-    print(time_err_avg)
-    #cntl_temp = np.true_divide(time_err_avg, HXR_CAST2PCAV_Gain)
-    cntl_temp = np.multiply(time_err_avg, HXR_CAST2PCAV_Gain)
-    cntl_delta = np.multiply(pcav2cast_loopKp, cntl_temp)
-    #cntl_delta = np.multiply(Cntl_gain, cntl_temp)
+    print(TIME_ERR_AVG)
+    # cntl_temp = np.true_divide(TIME_ERR_AVG, HXR_GAIN)
+    cntl_temp = np.multiply(TIME_ERR_AVG, HXR_GAIN)
+    CTRL_DELTA = np.multiply(loopKp, cntl_temp)
     print('previous error')
-    print(time_err_avg_prev)
-    print('Error diff')
-    print(time_err_diff)
-    hxr_fb_en = epics.caget(HXR_FB_PV)
-    if (time_err_diff == 0) or (time_err_diff >= 100) or (hxr_fb_en == 0):
-        cntl_delta = 0
-    Cntl_output = Cntl_output + cntl_delta
+    print(TIME_ERR_AVG_PREV)
+    print('error difference')
+    print(TIME_ERR_DIFF)
+    HXR_FB_EN = epics.caget(HXR_FB_PV)  # get feedback enable PV
+    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= 100) or (HXR_FB_EN == 0):
+        CTRL_DELTA = 0
+    CTRL_OUT = CTRL_OUT + CTRL_DELTA
     print('feedback value')
-    print(Cntl_output)
+    print(CTRL_OUT)
     print('feedback delta')
-    print(cntl_delta)
-    epics.caput(HXR_CAST_PS_PV_W, Cntl_output)
-    time_err_avg_prev = time_err_avg
-    cntr = cntr + 1
-    epics.caput(HB_PV, cntr)
+    print(CTRL_DELTA)
+    epics.caput(HXR_CAST_PS_PV_W, CTRL_OUT)
+    TIME_ERR_AVG_PREV = TIME_ERR_AVG
+    COUNTER = COUNTER + 1
+    epics.caput(HB_PV, COUNTER)
     now = datetime.datetime.now()
     print(now.strftime('%Y-%m-%d-%H-%M-%S'))
-    print('=============================================')        
-    time.sleep(pause_time)    
-
-# epics.caput(HXR_CAST_PS_PV_W, HXR_CAST_PS_init_Val)
+    print('=============================================')
+    time.sleep(PAUSE_TIME)
