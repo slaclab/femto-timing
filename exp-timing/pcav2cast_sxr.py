@@ -16,49 +16,46 @@ import datetime
 # SXR PV definition
 ######################################
 HB_PV = 'LAS:UNDS:FLOAT:90'  # Heartbeat PV
+SXR_FB_PV = 'LAS:UNDS:FLOAT:05'  # Feedback enable PV
 SXR_NAN_PV = 'LAS:UNDS:FLOAT:91'    # NAN alert PV
 SXR_NAN_PVDESC = SXR_NAN_PV + '.DESC'   # NAN alert PV description
-SXR_GAIN_PV = 'LAS:UNDS:FLOAT:92'
-SXR_LOOP_GAIN_PV = 'LAS:UNDS:FLOAT:93'
-SXR_LOOP_PAUSE_PV = 'LAS:UNDS:FLOAT:94'
-SXR_FB_PV = 'LAS:UNDS:FLOAT:05'
-SXR_PCAV_PV0 = 'SIOC:UNDS:PT01:0:TIME0'
-SXR_PCAV_PV1 = 'SIOC:UNDS:PT01:0:TIME1'
-SXR_CAST_PS_PV_W = 'LAS:UND:MMS:01'
-SXR_CAST_PS_PV_R = SXR_CAST_PS_PV_W + '.RBV'
+SXR_GAIN_PV = 'LAS:UNDS:FLOAT:92'   # Gain PV
+SXR_LOOP_GAIN_PV = 'LAS:UNDS:FLOAT:93'  # Loop gain PV
+SXR_LOOP_PAUSE_PV = 'LAS:UNDS:FLOAT:94' # Loop pause time PV
+SXR_PCAV_PV0 = 'SIOC:UNDS:PT01:0:TIME0' # Phase cavity PV0
+SXR_PCAV_PV1 = 'SIOC:UNDS:PT01:0:TIME1' # Phase cavity PV1
+SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'   # Phase cavity average PV
+SXR_CAST_PS_PV_W = 'LAS:UND:MMS:01' # Phase shifter PV write
+SXR_CAST_PS_PV_R = SXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
+
+# init values
 SXR_GAIN = 1.1283  # the slope from plotting cast phase shifter to value read from PCAV
-SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'
+PAUSE_TIME = 5    # Let's give some time for the system to react
+CTRL_OUT = epics.caget(SXR_CAST_PS_PV_R)    # initial value of the phase shifter
+AVG_N = 5    # Taking 5 data samples to average and throw out outliers
+SXR_FB_EN = epics.caget(SXR_FB_PV)
+COUNTER = 0
+epics.caput(HB_PV, COUNTER)
+TIME_ERR_AVG_PREV = 0
+epics.caput(SXR_NAN_PV, 0)
+epics.caput(SXR_NAN_PVDESC, 'No NaN read')
+NAN_ALERT = 0
+
+# We are doing an exponential fb loop, where the output = output[-1] + (-gain * error)
+# Latch in the value before starting the feedback, this will be value we correct to
+CTRL_SETPT = epics.caget(SXR_PCAV_PV0)
+
+time_err_ary = np.zeros((AVG_N,))
+PCAV_temp_ary = np.zeros(2,)
+
+# SXR specific for XPP
 XPP_SWITCH_PV = 'LAS:UNDS:FLOAT:95'
 XPP_GAIN_PV = 'LAS:UNDS:FLOAT:96'
 # -1727400.6755412123
 HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'  # Phase shifter PV write
 HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
-
-# init values
 XPP_KP = 1.0
-PAUSE_TIME = 5    # Let's give some time for the system to react
-LOOP_KP = 0.1   # Feed back loop gain
-# We are doing an exponential fb loop, where the output = output[-1] + (-gain * error)
-# Latch in the value before starting the feedback, this will be value we correct to
-CTRL_SETPT = epics.caget(SXR_PCAV_PV0)
-CTRL_OUT = 0
-AVG_N = 5    # Taking 5 data samples to average and throw out outliers
 
-# let's get the current value of the phase shifter
-PS_INIT = epics.caget(SXR_CAST_PS_PV_R)
-CTRL_OUT = PS_INIT   # once the script runs, that value is the setpoint
-SXR_FB_EN = epics.caget(SXR_FB_PV)
-
-time_err_ary = np.zeros((AVG_N,))
-PCAV_temp_ary = np.zeros(2,)
-
-COUNTER = 0
-NAN_ALERT = 0
-TIME_ERR_AVG_PREV = 0
-epics.caput(HB_PV, COUNTER)
-epics.caput(SXR_NAN_PV, 0)
-epics.caput(SXR_NAN_PVDESC, 'No NaN read')
-TIME_ERR_AVG_PREV = 0
 print('Controller running')
 
 # Main loop
@@ -70,8 +67,7 @@ while True:
     XPP_KP = epics.caget(XPP_GAIN_PV)
     print(COUNTER)
     for h in range(0, AVG_N):
-        # Changing both to PCAV1 since we only have one cavity information
-        PCAV_temp_ary[0,] = epics.caget(SXR_PCAV_PV1)
+        PCAV_temp_ary[0,] = epics.caget(SXR_PCAV_PV1)   # One PCAV used for SXR feedback
         PCAV_temp_ary[1,] = epics.caget(SXR_PCAV_PV1)
         PCAV_VAL = np.average(PCAV_temp_ary)
         if np.isnan(PCAV_VAL):
@@ -80,12 +76,14 @@ while True:
         time_err = np.around((CTRL_SETPT - PCAV_VAL), decimals=6)
         time_err_ary[h] = time_err
         time.sleep(0.1)
+    # Check for NaN values in the array
     if NAN_ALERT == 1:
         epics.caput(SXR_NAN_PV, NAN_ALERT)
         epics.caput(SXR_NAN_PVDESC, "NaN Detected")
     else:
         epics.caput(SXR_NAN_PV, NAN_ALERT)
         epics.caput(SXR_NAN_PVDESC, "No NaN")
+
     time_err_ary_sort = np.sort(time_err_ary)
     time_err_ary_sort1 = time_err_ary_sort[1:-1]  # remove the outliers
     TIME_ERR_AVG = np.mean(time_err_ary_sort1)
