@@ -33,6 +33,45 @@ SXR_CAST2PCAV_Gain = 1.1283 # the slow from plotting cast phase shifter to value
 SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'
 # -1727400.6755412123
 
+######################################
+# HXR PV definition
+######################################
+HB_PV = 'LAS:UNDH:FLOAT:90'
+HXR_FB_PV = 'LAS:UNDH:FLOAT:05'
+HXR_NaN_alert_PV = 'LAS:UNDH:FLOAT:91'
+HXR_NaN_alert_PVDESC = HXR_NaN_alert_PV + '.DESC'
+HXR_CAST2PCAV_Gain_PV = 'LAS:UNDH:FLOAT:92'
+HXR_pcav2cast_loopKp_PV = 'LAS:UNDH:FLOAT:93'
+HXR_pcav2cast_loopPausetime_PV = 'LAS:UNDH:FLOAT:94'
+HXR_PCAV_PV0 = 'SIOC:UNDH:PT01:0:TIME0'
+HXR_PCAV_PV1 = 'SIOC:UNDH:PT01:0:TIME1'
+HXR_PCAV_AVG_PV = 'LAS:UNDH:FLOAT:06'
+HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'
+HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'
+
+# HXR_CAST2PCAV_Gain = 1.1283 # the slope from plotting cast phase shifter to value read from PCAV
+HXR_CAST2PCAV_Gain = 2 #03/1/2024 cal
+
+######################################
+# SXR PV definition
+######################################
+HB_PV = 'LAS:UNDS:FLOAT:90'
+SXR_NaN_alert_PV = 'LAS:UNDS:FLOAT:91'
+SXR_NaN_alert_PVDESC = SXR_NaN_alert_PV + '.DESC'
+SXR_CAST2PCAV_Gain_PV = 'LAS:UNDS:FLOAT:92'
+SXR_pcav2cast_loopKp_PV = 'LAS:UNDS:FLOAT:93'
+SXR_pcav2cast_loopPausetime_PV = 'LAS:UNDS:FLOAT:94'
+SXR_FB_PV = 'LAS:UNDS:FLOAT:05'
+SXR_PCAV_PV0 = 'SIOC:UNDS:PT01:0:TIME0'
+SXR_PCAV_PV1 = 'SIOC:UNDS:PT01:0:TIME1'
+SXR_CAST_PS_PV_W = 'LAS:UND:MMS:01'
+SXR_CAST_PS_PV_R = SXR_CAST_PS_PV_W + '.RBV'
+SXR_CAST2PCAV_Gain = 1.1283 # the slow from plotting cast phase shifter to value read from PCAV
+SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'
+XPP_Switch_PV = 'LAS:UNDS:FLOAT:95'
+XPP_FeedforwardKp_PV = 'LAS:UNDS:FLOAT:96'
+# -1727400.6755412123
+
 pause_time = 5    # Let's give some time for the system to react
 Cntl_gain = 0.1   # Feed back loop gain
 #We are doing an exponential fb loop, where the output = output[-1] + (-gain * error)
@@ -56,15 +95,19 @@ time_err_avg_prev = 0
 epics.caput(HB_PV, cntr)
 #epics.caput(NaN_alert_PV, 0)
 time_err_avg_prev = 0
-
+epics.caput(HXR_NaN_alert_PV, 0)
+epics.caput(HXR_NaN_alert_PVDESC, 'No NaN read')
 print('Controller running')
 
 while True:
+    HXR_CAST2PCAV_Gain = epics.caget(HXR_CAST2PCAV_Gain_PV)
+    pcav2cast_loopPausetime = epics.caget(HXR_pcav2cast_loopPausetime_PV)
+    pcav2cast_loopKp = epics.caget(HXR_pcav2cast_loopKp_PV)
     cntr = epics.caget(HB_PV)
     print(cntr)
     for h in range(0,pcav_avg_n):
         PCAV_temp_ary[0,] = epics.caget(HXR_PCAV_PV0)
-        PCAV_temp_ary[1,] = epics.caget(HXR_PCAV_PV1)
+        PCAV_temp_ary[1,] = epics.caget(HXR_PCAV_PV0)
         HXR_PCAV_Val_tmp = np.average(PCAV_temp_ary)
         # HXR_PCAV_Val_tmp = epics.caget(HXR_PCAV_PV0)
         if np.isnan(HXR_PCAV_Val_tmp):
@@ -84,7 +127,8 @@ while True:
     print(time_err_avg)
     #cntl_temp = np.true_divide(time_err_avg, HXR_CAST2PCAV_Gain)
     cntl_temp = np.multiply(time_err_avg, HXR_CAST2PCAV_Gain)
-    cntl_delta = np.multiply(Cntl_gain, cntl_temp)
+    cntl_delta = np.multiply(pcav2cast_loopKp, cntl_temp)
+    #cntl_delta = np.multiply(Cntl_gain, cntl_temp)
     print('previous error')
     print(time_err_avg_prev)
     print('Error diff')

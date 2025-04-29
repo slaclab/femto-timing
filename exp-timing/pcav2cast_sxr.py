@@ -101,7 +101,8 @@ while True:
     XPP_feedforwardKp = epics.caget(XPP_FeedforwardKp_PV)
     print(cntr)
     for h in range(0,pcav_avg_n):
-        PCAV_temp_ary[0,] = epics.caget(SXR_PCAV_PV0)
+        # Changing both to PCAV1 since we only have one cavity information
+        PCAV_temp_ary[0,] = epics.caget(SXR_PCAV_PV1)
         PCAV_temp_ary[1,] = epics.caget(SXR_PCAV_PV1)
         SXR_PCAV_Val_tmp = np.average(PCAV_temp_ary)
         # SXR_PCAV_Val_tmp = epics.caget(SXR_PCAV_PV0)
@@ -128,8 +129,11 @@ while True:
         time_err_diff = time_err_avg_prev - time_err_avg  
     print('average error')
     print(time_err_avg)
-    cntl_temp = np.true_divide(time_err_avg, SXR_CAST2PCAV_Gain)    
+    # cntl_temp = np.true_divide(time_err_avg, SXR_CAST2PCAV_Gain)    
+    print(SXR_CAST2PCAV_Gain)
+    # print(cntl_temp)
     cntl_temp = np.multiply(time_err_avg, SXR_CAST2PCAV_Gain)
+    print(cntl_temp)
     cntl_delta = np.multiply(pcav2cast_loopKp, cntl_temp)    
     print('previous error')
     print(time_err_avg_prev)
@@ -138,6 +142,9 @@ while True:
     sxr_fb_en = epics.caget(SXR_FB_PV)
     if (time_err_diff == 0) or (time_err_diff >= 100) or (sxr_fb_en == 0):
         cntl_delta = 0
+        print('feedback set to 0')
+    else:
+        print('feedback normal')
     XPP_Switch_val = epics.caget(XPP_Switch_PV)
     if (XPP_Switch_val != 0):
         hxr_cast_val = epics.caget(HXR_CAST_PS_PV_R)
