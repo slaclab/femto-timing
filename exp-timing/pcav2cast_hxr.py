@@ -95,7 +95,7 @@ while True:
     print('error difference')
     print(TIME_ERR_DIFF)
     HXR_FB_EN = epics.caget(HXR_FB_PV)  # get feedback enable PV
-    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= 100) or (HXR_FB_EN == 0):
+    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= 20) or (HXR_FB_EN == 0):
         CTRL_DELTA = 0
         print('feedback set to 0')
     else:
