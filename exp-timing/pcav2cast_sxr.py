@@ -27,12 +27,14 @@ SXR_PCAV_PV1 = 'SIOC:UNDS:PT01:0:TIME1' # Phase cavity PV1
 SXR_PCAV_AVG_PV = 'LAS:UNDS:FLOAT:06'   # Phase cavity average PV
 SXR_CAST_PS_PV_W = 'LAS:UND:MMS:01' # Phase shifter PV write
 SXR_CAST_PS_PV_R = SXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
+SXR_THRESH_PV = 'LAS:UNDS:FLOAT:50'    # error threshold PV
 
 # init values
 SXR_GAIN = 1.1283  # the slope from plotting cast phase shifter to value read from PCAV
 PAUSE_TIME = 5    # Let's give some time for the system to react
 CTRL_OUT = epics.caget(SXR_CAST_PS_PV_R)    # initial value of the phase shifter
 AVG_N = 5    # Taking 5 data samples to average and throw out outliers
+TIME_ERR_THRESH = 50  # error threshold
 SXR_FB_EN = epics.caget(SXR_FB_PV)
 COUNTER = 0
 epics.caput(HB_PV, COUNTER)
@@ -64,6 +66,7 @@ while True:
     PAUSE_TIME = epics.caget(SXR_LOOP_PAUSE_PV)
     LOOP_KP = epics.caget(SXR_LOOP_GAIN_PV)
     COUNTER = epics.caget(HB_PV)
+    TIME_ERR_THRESH = epics.caget(SXR_THRESH_PV)  # error threshold
     XPP_KP = epics.caget(XPP_GAIN_PV)
     print(COUNTER)
     for h in range(0, AVG_N):
@@ -102,7 +105,7 @@ while True:
     print('error difference')
     print(TIME_ERR_DIFF)
     SXR_FB_EN = epics.caget(SXR_FB_PV)  # get feedback enable PV
-    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= 100) or (SXR_FB_EN == 0):
+    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
         CTRL_DELTA = 0
         print('feedback set to 0')
     else:

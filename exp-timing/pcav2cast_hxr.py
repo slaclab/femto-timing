@@ -27,6 +27,7 @@ HXR_PCAV_PV1 = 'SIOC:UNDH:PT01:0:TIME1' # Phase cavity PV1
 HXR_PCAV_AVG_PV = 'LAS:UNDH:FLOAT:06'   # Phase cavity average PV
 HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02' # Phase shifter PV write
 HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
+HXR_THRESH_PV = 'LAS:UNDH:FLOAT:50'    # error threshold PV
 
 # default initial values
 HXR_GAIN = 2  # 03/1/2024 cal
@@ -56,6 +57,7 @@ while True:
     PV_PAUSE_TIME = epics.caget(HXR_LOOP_PAUSE_PV)
     LOOP_KP = epics.caget(HXR_LOOP_GAIN_PV)
     COUNTER = epics.caget(HB_PV)
+    TIME_ERR_THRESH = epics.caget(HXR_THRESH_PV)  # error threshold
 
     print(COUNTER)
     for h in range(0, AVG_N):
@@ -95,7 +97,7 @@ while True:
     print('error difference')
     print(TIME_ERR_DIFF)
     HXR_FB_EN = epics.caget(HXR_FB_PV)  # get feedback enable PV
-    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= 20) or (HXR_FB_EN == 0):
+    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= TIME_ERR_THRESH) or (HXR_FB_EN == 0):
         CTRL_DELTA = 0
         print('feedback set to 0')
     else:
