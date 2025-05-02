@@ -167,13 +167,13 @@ class time_tool():
                 print(f'{Amp_Good} Amplitude in TT: {self.Drift_Correct[self.Name[3]][0].value:.3f}')
                 print(f'{FWHM_Good} FWHM in TT: {self.Drift_Correct[self.Name[6]][0].value:.3f}')
 
-                print(f'Mean of Edges = {Edge_Mean:.3f} ps')
+                print(f'Mean of Edges = {Edge_Mean:.6f} ps')
                 # Is it the Edge value greater than the threshold?
                 if (abs(Edge_Mean) > self.Drift_Adjustment_Threshold):            
 
                     # Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value
 
-                    print(f'Old Drift Correction value = {self.Drift_Correct[self.Name[10]][0].value:.3f} ps')
+                    print(f'Old Drift Correction value = {self.Drift_Correct[self.Name[10]][0].value:.6f} ps')
                     Edge_Mean = Edge_Mean * self.Drift_Correct[self.Name[9]][0].value + self.Drift_Correct[self.Name[10]][0].value
                     print(f'New Drift Correction value = {Edge_Mean:.3f} ps')
 
@@ -181,7 +181,7 @@ class time_tool():
                     # set position of LXT?
                     # lxt.set_current_position(-float(txt.position))
 
-                print('--------------------------------------')
+                print('-----------------------------------------')
 
         # Do only a single correction for now, disable correction script?
         self.TT_Script_EN.put(value=0, timeout=1.0)
