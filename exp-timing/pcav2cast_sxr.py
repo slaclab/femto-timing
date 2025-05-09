@@ -19,7 +19,7 @@ HB_PV = 'LAS:UNDS:FLOAT:90'  # Heartbeat PV
 SXR_FB_PV = 'LAS:UNDS:FLOAT:05'  # Feedback enable PV
 SXR_NAN_PV = 'LAS:UNDS:FLOAT:91'    # NAN alert PV
 SXR_NAN_PVDESC = SXR_NAN_PV + '.DESC'   # NAN alert PV description
-SXR_GAIN_PV = 'LAS:UNDS:FLOAT:92'   # Gain PV
+SXR_GAIN_PV = 'LAS:UNDS:FLOAT:92'   # conversion factor from pcav to cast
 SXR_LOOP_GAIN_PV = 'LAS:UNDS:FLOAT:93'  # Loop gain PV
 SXR_LOOP_PAUSE_PV = 'LAS:UNDS:FLOAT:94' # Loop pause time PV
 SXR_PCAV_PV0 = 'SIOC:UNDS:PT01:0:TIME0' # Phase cavity PV0
@@ -35,7 +35,7 @@ SXR_GAIN = 1.1283  # the slope from plotting cast phase shifter to value read fr
 PAUSE_TIME = 5    # Let's give some time for the system to react
 CTRL_OUT = epics.caget(SXR_CAST_PS_PV_R)    # initial value of the phase shifter
 AVG_N = 5    # Taking 5 data samples to average and throw out outliers
-epics.caput(SXR_THRESH_PV, 1)  # set the error threshold to 1 
+epics.caput(SXR_THRESH_PV, 1)  # set the error threshold to 1
 SXR_FB_EN = epics.caget(SXR_FB_PV)
 COUNTER = 0
 epics.caput(HB_PV, COUNTER)
@@ -103,12 +103,12 @@ while True:
     CTRL_DELTA = np.multiply(LOOP_KP, cntl_temp)
     print('Previous err')
     print(TIME_ERR_AVG_PREV)
-    # print('Delta err')    # for debug
-    # print(TIME_ERR_DIFF)
+    print('Delta err')    # for debug
+    print(TIME_ERR_DIFF)
     epics.caput(SXR_ERR_DIFF_PV, TIME_ERR_DIFF)  # write the error difference to the PV
     SXR_FB_EN = epics.caget(SXR_FB_PV)  # get feedback enable PV
     # don't do feedback if the error is too large or feedback is disabled
-    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
+    if (TIME_ERR_DIFF == 0) or (abs(TIME_ERR_DIFF) >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
         CTRL_DELTA = 0
         print('feedback set to 0')
     # else:
