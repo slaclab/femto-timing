@@ -46,7 +46,7 @@ NAN_ALERT = 0
 
 # We are doing an exponential fb loop, where the output = output[-1] + (-gain * error)
 # Latch in the value before starting the feedback, this will be value we correct to
-CTRL_SETPT = epics.caget(SXR_PCAV_PV0)
+CTRL_SETPT = epics.caget(SXR_PCAV_PV1)
 
 time_err_ary = np.zeros((AVG_N,))
 PCAV_temp_ary = np.zeros(2,)
