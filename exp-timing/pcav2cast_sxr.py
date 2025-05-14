@@ -126,8 +126,8 @@ while True:
     # print('Phase shifter value to be written')    # for debug
     # print(CTRL_OUT)
     print(f'Feedback delta: {CTRL_DELTA}')
-    print('Feedback delta')
-    print(CTRL_DELTA)
+    # print('Feedback delta')
+    # print(CTRL_DELTA)
     epics.caput(SXR_CAST_PS_PV_W, CTRL_OUT)
     TIME_ERR_AVG_PREV = TIME_ERR_AVG
     COUNTER = COUNTER + 1
