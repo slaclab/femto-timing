@@ -7,10 +7,10 @@
 # phase shifter in the cable stabilizer system
 # To ensure right python env sourced
 # source /reg/g/pcds/engineering_tools/xpp/scripts/pcds_conda
-import epics as epics
-import numpy as np
-import time as time
+import time
 import datetime
+import epics
+import numpy as np
 
 ######################################
 # SXR PV definition
@@ -59,7 +59,7 @@ HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'  # Phase shifter PV write
 HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
 XPP_KP = 1.0
 
-print('pcav2cast_sxr running')
+print('pcav2cast_sxr running test update 5/13/2025')
 
 # Main loop
 while True:
@@ -101,11 +101,13 @@ while True:
     # print(TIME_ERR_AVG)
     cntl_temp = np.multiply(TIME_ERR_AVG, SXR_GAIN)
     CTRL_DELTA = np.multiply(LOOP_KP, cntl_temp)
-    print('Previous err')
-    print(TIME_ERR_AVG_PREV)
-    print('Delta err')    # for debug
-    print(TIME_ERR_DIFF)
-    epics.caput(SXR_ERR_DIFF_PV, TIME_ERR_DIFF)  # write the error difference to the PV
+    print(f'Previous PCAV err: {TIME_ERR_AVG_PREV}')
+    # print('Previous err')
+    # print(TIME_ERR_AVG_PREV)
+    print(f'PCAV err diff: {TIME_ERR_DIFF}')
+    # print('Delta err')    # for debug
+    # print(TIME_ERR_DIFF)
+    # epics.caput(SXR_ERR_DIFF_PV, TIME_ERR_DIFF)  # write the error difference to the PV
     SXR_FB_EN = epics.caget(SXR_FB_PV)  # get feedback enable PV
     # don't do feedback if the error is too large or feedback is disabled
     if (TIME_ERR_DIFF == 0) or (abs(TIME_ERR_DIFF) >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
@@ -113,6 +115,7 @@ while True:
         print('feedback set to 0')
     # else:
     #     print('feedback normal')
+    epics.caput(SXR_ERR_DIFF_PV, CTRL_DELTA)
     XPP_SWITCH_VAL = epics.caget(XPP_SWITCH_PV)
     if (XPP_SWITCH_VAL != 0):
         hxr_cast_val = epics.caget(HXR_CAST_PS_PV_R)
@@ -122,6 +125,7 @@ while True:
         CTRL_OUT = CTRL_OUT + CTRL_DELTA
     # print('Phase shifter value to be written')    # for debug
     # print(CTRL_OUT)
+    print(f'Feedback delta: {CTRL_DELTA}')
     print('Feedback delta')
     print(CTRL_DELTA)
     epics.caput(SXR_CAST_PS_PV_W, CTRL_OUT)
