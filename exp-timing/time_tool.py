@@ -151,7 +151,7 @@ class time_tool():
                     self.Drift_Correct[self.Name[14]][0].put(value = 0, timeout = 1.0)
                     #print('Not a Good Measurement')
 
-                if time.time() - time_last_good_val > 30:
+                if time.time() - time_last_good_val > 60:
                     print(f'No good measurement over one minute. Check thresholds?')
                     break
 
