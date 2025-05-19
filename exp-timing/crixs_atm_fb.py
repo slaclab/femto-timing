@@ -1,57 +1,74 @@
-import os
+import time
 from psp.Pv import Pv
-import json
 
 class drift_correction():
     """Takes the ATM error PV, filters according to known laser/x-rays params, and apply an offset via the laser lockers HLA."""
     def __init__(self):
-        self.name = 'crixs'  # when changing between hutches, this is the only line of code that should need to change
-        self.file_path = os.path.abspath(__file__)  # pull current file path
-        self.path = os.path.dirname(self.file_path)  # pull current directory
-        self.config = self.path+self.name+'_atm_fb.json'  # config file with hutch and locker specific PV names
-        # load JSON file
-        try:
-            with open(self.config, 'r') as file:
-                self.sys_config = json.load(file)  # load PVs for current hutch and laser locker
-        except json.JSONDecodeError as e:  # check that the json file syxtax is correct
-            print('Invalid JSON syntax: '+e)
-        # pull PV names from JSON file
-        atm_err_pv_nm = str(self.sys_config['tt_pv'])
-        atm_fb_pv_nm = str(self.sys_config['atm_fb'])
         # create PV objects
-        self.atm_err_pv = Pv(atm_err_pv_nm)  # timetool waveform PV from the DAQ
-        self.atm_fb_pv = Pv(atm_fb_pv_nm)  # hook for ATM feedback in laser locker HLA
+        self.atm_err_pv = Pv('RIX:TIMETOOL:TTALL')  # timetool waveform PV from the DAQ
+        self.atm_fb_pv = Pv('LAS:LHN:LLG2:02:PHASCTL:ATM_FBK_OFFSET')  # hook for ATM feedback in laser locker HLA
         self.ampl_pv = Pv('LAS:UNDS:FLOAT:60')  # edge amplitude
         self.flt_pos_pv = Pv('LAS:UNDS:FLOAT:61')  # position in pixels?
         self.flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:62')  # position in ps
+        self.ampl_min_pv = Pv('LAS:UNDS:FLOAT:63')  # minimum allowable edge amplitude for correction
+        self.ampl_max_pv = Pv('LAS:UNDS:FLOAT:64')  # maximum allowable edge amplitude for correction
+        self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
+        self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
+        self_on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
         # connect to PVs
         self.atm_err_pv.connect(timeout = 1.0) 
         self.atm_fb_pv.connect(timeout = 1.0)
         self.ampl_pv.connect(timeout = 1.0)
         self.flt_pos_pv.connect(timeout = 1.0)
         self.flt_pos_ps_pv.connect(timeout = 1.0)
+        self.ampl_min_pv.connect(timeout = 1.0)
+        self.ampl_max_pv.connect(timeout = 1.0)
+        self.fb_gain_pv.connect(timeout = 1.0)
+        self.sample_size_pv.connect(timeout = 1.0)
+        self_on_off_pv.connect(timeout = 1.0)
 
-        
-
-    def filter(self):
+    def correct(self):
         """Takes ATM waveform PV data, applies filtering to detemine valid error values, and applies a correction to laser locker HLA."""
-        self.atm_err = self.atm_err_pv.get(ctrl = True, timeout = 1.0)  # get current timetool waveform PV values from the DAQ
-        # unpack useful filtering parameters from waveform
-        self.ampl = self.atm_err[0]
-        self.flt_pos = self.atm_err[1]
-        self.flt_pos_ps = self.atm_err[2]
-        # write useful filtering parameters to individual PVs for easier monitoring
-        self.ampl_pv.put(self.ampl)
-        self.flt_pos_pv.put(self.flt_pos)
-        self.flt_pos_ps_pv.put(self.flt_pos_ps)
+        self.error_vals = dict()  # dictionary to hold error values for averaging
+        self.count = 0  # counter to track number of error values in dict
+        self.sample_size = self.sample_size_pv.get(timeout = 1.0)  # get user-set sample size
+        # loop for adding error values to dictionary if it meets threshold conditions
+        while (self.count < self.sample_size):
+            # get current PV values
+            self.atm_err = self.atm_err_pv.get(timeout = 1.0)
+            self.ampl_min = self.ampl_min_pv.get(timeout = 1.0)
+            self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
+            # unpack filter parameter and error value
+            self.ampl = self.atm_err[0]
+            self.flt_pos = self.atm_err[1]
+            self.flt_pos_ps = self.atm_err[2]
+            # apply filtering and add to dictionary
+            if (self.ampl > self.ampl_min) and (self.ampl < self.ampl_max):
+                self.error_vals[self.count] = self.flt_pos_ps
+                self.count+=1
+        self.avg_error = sum(self.error_vals.values()) / len(self.error_vals) # calculate average value of dictionary
+        # write filter parameter and error value to PVs for easier monitoring
+        self.ampl_pv.put(value = self.ampl, timeout = 1.0)
+        self.flt_pos_pv.put(value = self.flt_pos, timeout = 1.0)
+        self.flt_pos_ps_pv.put(value = self.flt_pos_ps, timeout = 1.0)
+        # apply correction
+        self.fb_gain = self.fb_gain_pv.get(timeout = 1.0)  # pull gain PV value
+        self.on_off = self.on_off_pv.get(timeout = 1.0)
+        if (self.on_off == 1):  # check if drift correction has been turned on
+            self.atm_fb_pv.put(value = (self.avg_error/1000) * self.fb_gain, timeout = 1.0)  # scale, apply gain, and write to correction PV
         
-
 
 def run():
     correction = drift_correction() # initialize
-    error = False
-    while error==False:
+    while True:
         try:
-            correction.filter() # pull data and filter, then apply correction
-        except:
+            correction.correct() # pull data and filter, then apply correction
+        except KeyboardInterrupt:
+            print("Script terminated by user.")
+        time.sleep(2.0)  # keep loop from spinning too fast
+
+
+if __name__ == "__main__":
+    run()
+            
 
