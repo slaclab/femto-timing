@@ -2,7 +2,7 @@ import time
 from psp.Pv import Pv
 
 class drift_correction():
-    """Takes the ATM error PV, filters according to known laser/x-rays params, and apply an offset via the laser lockers HLA."""
+    """Takes the ATM error PV, filters by edge amplitude, and applies an offset via the laser lockers HLA."""
     def __init__(self):
         # create PV objects
         self.atm_err_pv = Pv('RIX:TIMETOOL:TTALL')  # timetool waveform PV from the DAQ
@@ -40,8 +40,8 @@ class drift_correction():
             self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
             # unpack filter parameter and error value
             self.ampl = self.atm_err[0]
-            self.flt_pos = self.atm_err[1]
-            self.flt_pos_ps = self.atm_err[2]
+            self.flt_pos = self.atm_err[3]
+            self.flt_pos_ps = self.atm_err[4]
             # apply filtering and add to dictionary
             if (self.ampl > self.ampl_min) and (self.ampl < self.ampl_max):
                 self.error_vals[self.count] = self.flt_pos_ps
@@ -65,7 +65,7 @@ def run():
             correction.correct() # pull data and filter, then apply correction
         except KeyboardInterrupt:
             print("Script terminated by user.")
-        time.sleep(2.0)  # keep loop from spinning too fast
+        time.sleep(1.0)  # keep loop from spinning too fast
 
 
 if __name__ == "__main__":
