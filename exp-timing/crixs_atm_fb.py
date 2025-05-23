@@ -39,6 +39,7 @@ class drift_correction():
         self.sample_size = self.sample_size_pv.get(timeout = 1.0)  # get user-set sample size
         # loop for adding error values to dictionary if it meets threshold conditions
         while (self.count < self.sample_size):
+            print("Entered correction loop.")
             # get current PV values
             #self.atm_err = self.atm_err_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF TESTING
             self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
@@ -50,11 +51,13 @@ class drift_correction():
             if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err4 != self.flt_pos_ps):  # COMMENT THIS LINE IF NOT TESTING
                 #self.ampl = self.atm_err[0]  # unpack filter parameter - COMMENT THIS LINE IF TESTING
                 #self.flt_pos_ps = self.atm_err[4]  # COMMENT THIS LINE IF TESTING
+                print("Passed correction condition.")
                 self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 self.flt_pos_ps = self.atm_err4  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl_vals[self.count] = self.ampl
                 self.error_vals[self.count] = self.flt_pos_ps
                 self.count+=1
+                print("Count is now: "+self.count)
         # averaging
         self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
         self.avg_error = sum(self.error_vals.values()) / len(self.error_vals)
@@ -65,6 +68,7 @@ class drift_correction():
         self.fb_gain = self.fb_gain_pv.get(timeout = 1.0)  # pull gain PV value
         self.on_off = self.on_off_pv.get(timeout = 1.0)
         if (self.on_off == 1):  # check if drift correction has been turned on
+            print("Correction turned on.")
             self.atm_fb_pv.put(value = (self.avg_error/1000) * self.fb_gain, timeout = 1.0)  # scale from ps to ns, apply gain, and write to correction PV
         
 
