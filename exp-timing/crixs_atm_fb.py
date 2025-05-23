@@ -40,7 +40,7 @@ class drift_correction():
             # get current PV values
             #self.atm_err = self.atm_err_pv.get(timeout = 1.0)
             self.ampl = self.atm_err_ampl_pv.get(timeout = 1.0)
-            self.flt_pos_ps = self.atm_err_flt_pos_ps_pv(timeout = 1.0)
+            self.flt_pos_ps = self.atm_err_flt_pos_ps_pv.get(timeout = 1.0)
             self.ampl_min = self.ampl_min_pv.get(timeout = 1.0)
             self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
             # apply filtering, confirm fresh values, and add to dictionary
