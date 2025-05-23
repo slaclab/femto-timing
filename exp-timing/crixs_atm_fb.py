@@ -43,7 +43,7 @@ class drift_correction():
             #self.atm_err = self.atm_err_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF TESTING
             self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             print("Edge amplitude: ", self.atm_err0)
-            self.atm_err4 = self.flt_pos_ps_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
+            self.atm_err4 = self.atm_err_flt_pos_ps_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             print("Error: ", self.atm_err4, " vs. Last Error: ", self.flt_pos_ps)
             self.ampl_min = self.ampl_min_pv.get(timeout = 1.0)
             self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
@@ -71,7 +71,7 @@ class drift_correction():
         self.correction = (self.avg_error/1000) * self.fb_gain # scale from ps to ns and apply gain
         if (self.on_off == 1) and ((abs(self.correction) < 0.001)):  # check if drift correction has been turned on and limit corrections to 1 ps
             self.atm_fb_pv.put(value = self.correction, timeout = 1.0)  # write to correction PV
-            
+
 
 def run():
     correction = drift_correction() # initialize
