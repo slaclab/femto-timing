@@ -80,7 +80,8 @@ class atm_fb_tester():
             self.comb_err = self.fixed_err + self.rand_err  # new error will be fixed error +/- 20%
             # update dummy timetool PVs
             self.curr_err = self.atm_err_ampl_pv.get(timeout = 1.0)
-            self.atm_err_ampl_pv.put(self.ampl) 
+            self.atm_err_ampl_pv.put(self.ampl)
+            print("Error applied: ", (self.curr_err + self.comb_err))
             self.atm_err_flt_pos_ps_pv.put(self.curr_err + self.comb_err)
             # update error accumulator 
             self.accum_err = self.accum_err + self.comb_err
