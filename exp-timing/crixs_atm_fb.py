@@ -59,12 +59,12 @@ class drift_correction():
 
 def run():
     correction = drift_correction() # initialize
-    while True:
-        try:
+    try:
+        while True:
             correction.correct() # pull data and filter, then apply correction
-        except KeyboardInterrupt:
-            print("Script terminated by user.")
-        time.sleep(1.0)  # keep loop from spinning too fast
+            time.sleep(1.0)  # keep loop from spinning too fast
+    except KeyboardInterrupt:
+        print("Script terminated by user.")
 
 
 if __name__ == "__main__":

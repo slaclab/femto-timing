@@ -47,7 +47,7 @@ Process:
 
 import time
 import random
-from psp.PV import Pv
+from psp.Pv import Pv
 
 class atm_fb_tester():
     def __init__(self):
