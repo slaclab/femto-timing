@@ -101,9 +101,9 @@ class atm_fb_tester():
         self.max_accum_err = max(self.accum_dict.values())
         # print test statistics
         print("Test Statistics: ")
-        print("Programmed Drift Rate", self.drift_rate)
-        print("Average Residual Error: ", self.avg_accum_err)
-        print("Maximum Residual Error: ", self.max_accum_err)
+        print("Programmed Drift Rate: ", self.drift_rate, " ps/min")
+        print("Average Residual Error: ", self.avg_accum_err, " ps")
+        print("Maximum Residual Error: ", self.max_accum_err, " ps")
 
 
 def run():
