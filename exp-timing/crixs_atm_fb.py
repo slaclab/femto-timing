@@ -5,7 +5,9 @@ class drift_correction():
     """Takes the ATM error PV, filters by edge amplitude, and applies an offset via the laser lockers HLA."""
     def __init__(self):
         # create PV objects
-        self.atm_err_pv = Pv('RIX:TIMETOOL:TTALL')  # timetool waveform PV from the DAQ
+        #self.atm_err_pv = Pv('RIX:TIMETOOL:TTALL')  # timetool waveform PV from the DAQ
+        self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing
+        self.atm_err_flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy ps error for testing
         self.atm_fb_pv = Pv('LAS:UNDS:FLOAT:68')  # hook for ATM feedback in laser locker HLA - CURRENTLY DUMMY PV FOR TESTING
         self.ampl_pv = Pv('LAS:UNDS:FLOAT:60')  # edge amplitude
         self.flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:62')  # position in ps
@@ -15,7 +17,9 @@ class drift_correction():
         self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
         self_on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
         # connect to PVs
-        self.atm_err_pv.connect(timeout = 1.0) 
+        #self.atm_err_pv.connect(timeout = 1.0)
+        self.atm_err_ampl_pv.connect(timeout = 1.0)
+        self.atm_err_flt_pos_ps_pv.connect(timeout = 1.0)
         self.atm_fb_pv.connect(timeout = 1.0)
         self.ampl_pv.connect(timeout = 1.0)
         self.flt_pos_ps_pv.connect(timeout = 1.0)
@@ -34,13 +38,15 @@ class drift_correction():
         # loop for adding error values to dictionary if it meets threshold conditions
         while (self.count < self.sample_size):
             # get current PV values
-            self.atm_err = self.atm_err_pv.get(timeout = 1.0)
+            #self.atm_err = self.atm_err_pv.get(timeout = 1.0)
+            self.ampl = self.atm_err_ampl_pv.get(timeout = 1.0)
+            self.flt_pos_ps = self.atm_err_flt_pos_ps_pv(timeout = 1.0)
             self.ampl_min = self.ampl_min_pv.get(timeout = 1.0)
             self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
             # apply filtering, confirm fresh values, and add to dictionary
             if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.flt_pos_ps != self.atm_err[4]):
-                self.ampl = self.atm_err[0]  # unpack filter parameter
-                self.flt_pos_ps = self.atm_err[4]
+                #self.ampl = self.atm_err[0]  # unpack filter parameter
+                #self.flt_pos_ps = self.atm_err[4]
                 self.ampl_vals[self.count] = self.ampl
                 self.error_vals[self.count] = self.flt_pos_ps
                 self.count+=1

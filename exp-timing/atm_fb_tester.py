@@ -43,8 +43,6 @@ Process:
 
 """
 
-# NOTE: THIS SCRIPT WILL NOT WORK IF REAL VALUES ARE ACTIVELY BEING WRITTEN TO THE WAVEFORM PV
-
 import time
 import random
 from psp.Pv import Pv
@@ -52,11 +50,13 @@ from psp.Pv import Pv
 class atm_fb_tester():
     def __init__(self):
        # create PV objects
-       self.atm_err_pv = Pv('RIX:TIMETOOL:TTALL')  # timetool waveform PV from the DAQ
+       self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing
+       self.atm_err_flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy ps error for testing
        self.dummy_fb_pv = Pv('LAS:UNDS:FLOAT:68')  # dummy PV for holding correction values written to by crixs_atm_fb.py
        self.accum_err_pv = Pv('LAS:UNDS:FLOAT:69')  # PV for tracking accumulated error during test
        # connect to PVs
-       self.atm_err_pv.connect(timeout = 1.0)
+       self.atm_err_ampl_pv.connect(timeout = 1.0)
+       self.atm_err_flt_pos_ps_pv.connect(timeout = 1.0)
        self.dummy_fb_pv.connect(timeout = 1.0)
        self.accum_err_pv.connect(timeout = 1.0)
 
@@ -72,18 +72,16 @@ class atm_fb_tester():
         self.start_time = time.time()
         # test loop
         while ((time.time() - self.start_time) < self.test_duration):
-            self.atm_err = list(self.atm_err_pv.get(timeout = 1.0))  # get current waveform PV state
             self.ampl = random.uniform(20, 80)  # generate random amplitude close to or within the acceptable range
             self.time_elapsed = time.time() - self.time_prev  # calculate seconds since previous correction
             self.time_prev = time.time()  # update previous time for next loop iteration
             self.fixed_err = (self.drift_rate / 60) * self.time_elapsed  # convert to ps/s, then calculate amount of drift since last loop iteration
             self.rand_err = random.uniform(-(self.fixed_err * 0.2), (self.fixed_err * 0.2))  # generate a random number less than 20% the magnitude of the fixed error
             self.comb_err = self.fixed_err + self.rand_err  # new error will be fixed error +/- 20%
-            # update waveform PV
-            self.curr_err = self.atm_err[4]
-            self.atm_err[0] = self.ampl
-            self.atm_err[4] = self.curr_err + self.comb_err
-            self.atm_err_pv.put(tuple(self.atm_err))
+            # update dummy timetool PVs
+            self.curr_err = self.atm_err_ampl_pv.get(timeout = 1.0)
+            self.atm_err_ampl_pv.put(self.ampl) 
+            self.atm_err_flt_pos_ps_pv.put(self.curr_err + self.comb_err)
             # update error accumulator 
             self.accum_err = self.accum_err + self.comb_err
             # if new correction applied, subtract from error accumulator
