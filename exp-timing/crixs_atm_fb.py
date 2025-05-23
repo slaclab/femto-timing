@@ -42,9 +42,7 @@ class drift_correction():
             # get current PV values
             #self.atm_err = self.atm_err_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF TESTING
             self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
-            print("Edge amplitude: ", self.atm_err0)
             self.atm_err4 = self.atm_err_flt_pos_ps_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
-            print("Error: ", self.atm_err4, " vs. Last Error: ", self.flt_pos_ps)
             self.ampl_min = self.ampl_min_pv.get(timeout = 1.0)
             self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
             # apply filtering, confirm fresh values, and add to dictionary
@@ -52,13 +50,11 @@ class drift_correction():
             if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err4 != self.flt_pos_ps):  # COMMENT THIS LINE IF NOT TESTING
                 #self.ampl = self.atm_err[0]  # unpack filter parameter - COMMENT THIS LINE IF TESTING
                 #self.flt_pos_ps = self.atm_err[4]  # COMMENT THIS LINE IF TESTING
-                print("Passed correction condition.")
                 self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 self.flt_pos_ps = self.atm_err4  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl_vals[self.count] = self.ampl
                 self.error_vals[self.count] = self.flt_pos_ps
                 self.count+=1
-                print("Count is now: ", self.count)
         # averaging
         self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
         self.avg_error = sum(self.error_vals.values()) / len(self.error_vals)

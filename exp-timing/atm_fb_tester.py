@@ -64,6 +64,8 @@ class atm_fb_tester():
     def advanced_test(self):
         # test set-up
         self.accum_err = 0
+        self.accum_dict = dict()  # dictionary to hold accum error after each loop
+        self.count = 0
         self.accum_err_pv.put(self.accum_err)  # reset the error accumulator to 0 at start of test
         self.drift_rate = 0.2  # drift rate in ps/min
         self.test_duration = 300  # test duration in seconds
@@ -76,16 +78,12 @@ class atm_fb_tester():
             self.time_elapsed = time.time() - self.time_prev  # calculate seconds since previous correction
             self.time_prev = time.time()  # update previous time for next loop iteration
             self.fixed_err = (self.drift_rate / 60) * self.time_elapsed  # convert to ps/s, then calculate amount of drift since last loop iteration
-            print('Fixed error: ', self.fixed_err)
             self.rand_err = random.uniform(-(self.fixed_err * 0.2), (self.fixed_err * 0.2))  # generate a random number less than 20% the magnitude of the fixed error
-            print('Random error: ', self.rand_err)
             self.comb_err = self.fixed_err + self.rand_err  # new error will be fixed error +/- 20%
-            print('Combined new error: ', self.comb_err)
             # update dummy timetool PVs
             self.atm_err_ampl_pv.put(self.ampl)
             self.curr_err = self.accum_err_pv.get(timeout = 1.0)
             self.total_error = self.curr_err + self.comb_err
-            print("Error applied: ", self.total_error)
             self.atm_err_flt_pos_ps_pv.put(self.total_error)
             # update error accumulator 
             self.accum_err = self.accum_err + self.comb_err
@@ -94,8 +92,18 @@ class atm_fb_tester():
             if (self.correct != self.correct_prev):
                 self.accum_err = self.accum_err - self.correct
                 self.correct_prev = self.correct
+            self.accum_dict[self.count] = self.accum_err  # add to dict for end of test stats
             self.accum_err_pv.put(self.accum_err)  # update error accumulator PV
             time.sleep(3.0)
+            self.count += 1
+        # calculate test statistics
+        self.avg_accum_err = sum(self.accum_dict.values()) / len(self.accum_dict)
+        self.max_accum_err = max(self.accum_dict.values())
+        # print test statistics
+        print("Test Statistics: ")
+        print("Programmed Drift Rate", self.drift_rate)
+        print("Average Residual Error: ", self.avg_accum_err)
+        print("Maximum Residual Error: ", self.max_accum_err)
 
 
 def run():
