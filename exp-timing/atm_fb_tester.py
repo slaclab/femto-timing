@@ -76,13 +76,17 @@ class atm_fb_tester():
             self.time_elapsed = time.time() - self.time_prev  # calculate seconds since previous correction
             self.time_prev = time.time()  # update previous time for next loop iteration
             self.fixed_err = (self.drift_rate / 60) * self.time_elapsed  # convert to ps/s, then calculate amount of drift since last loop iteration
+            print('Fixed error: ', self.fixed_err)
             self.rand_err = random.uniform(-(self.fixed_err * 0.2), (self.fixed_err * 0.2))  # generate a random number less than 20% the magnitude of the fixed error
+            print('Random error: ', self.rand_err)
             self.comb_err = self.fixed_err + self.rand_err  # new error will be fixed error +/- 20%
+            print('Combined new error: ', self.comb_err)
             # update dummy timetool PVs
             self.curr_err = self.atm_err_ampl_pv.get(timeout = 1.0)
             self.atm_err_ampl_pv.put(self.ampl)
-            print("Error applied: ", (self.curr_err + self.comb_err))
-            self.atm_err_flt_pos_ps_pv.put(self.curr_err + self.comb_err)
+            self.total_error = self.curr_err + self.comb_err
+            print("Error applied: ", (self.total_error))
+            self.atm_err_flt_pos_ps_pv.put(self.total_error)
             # update error accumulator 
             self.accum_err = self.accum_err + self.comb_err
             # if new correction applied, subtract from error accumulator
