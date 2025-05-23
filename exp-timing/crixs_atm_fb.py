@@ -6,8 +6,8 @@ class drift_correction():
     def __init__(self):
         # create PV objects
         #self.atm_err_pv = Pv('RIX:TIMETOOL:TTALL')  # timetool waveform PV from the DAQ
-        self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing
-        self.atm_err_flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy ps error for testing
+        self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing - COMMENT IF NOT TESTING
+        self.atm_err_flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy ps error for testing - COMMENT IF NOT TESTING
         self.atm_fb_pv = Pv('LAS:UNDS:FLOAT:68')  # hook for ATM feedback in laser locker HLA - CURRENTLY DUMMY PV FOR TESTING
         self.ampl_pv = Pv('LAS:UNDS:FLOAT:60')  # edge amplitude
         self.flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:62')  # position in ps
@@ -18,8 +18,8 @@ class drift_correction():
         self_on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
         # connect to PVs
         #self.atm_err_pv.connect(timeout = 1.0)
-        self.atm_err_ampl_pv.connect(timeout = 1.0)
-        self.atm_err_flt_pos_ps_pv.connect(timeout = 1.0)
+        self.atm_err_ampl_pv.connect(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
+        self.atm_err_flt_pos_ps_pv.connect(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
         self.atm_fb_pv.connect(timeout = 1.0)
         self.ampl_pv.connect(timeout = 1.0)
         self.flt_pos_ps_pv.connect(timeout = 1.0)
@@ -29,24 +29,29 @@ class drift_correction():
         self.sample_size_pv.connect(timeout = 1.0)
         self_on_off_pv.connect(timeout = 1.0)
 
+
     def correct(self):
         """Takes ATM waveform PV data, applies filtering to detemine valid error values, and applies a correction to laser locker HLA."""
         self.ampl_vals = dict()  # dictionary to hold amplitude values for averaging
         self.error_vals = dict()  # dictionary to hold error values for averaging
+        self.flt_pos_ps = self.flt_pos_ps_pv.get(timeout = 1.0)  # initial error
         self.count = 0  # counter to track number of error values in dict
         self.sample_size = self.sample_size_pv.get(timeout = 1.0)  # get user-set sample size
         # loop for adding error values to dictionary if it meets threshold conditions
         while (self.count < self.sample_size):
             # get current PV values
-            #self.atm_err = self.atm_err_pv.get(timeout = 1.0)
-            self.ampl = self.atm_err_ampl_pv.get(timeout = 1.0)
-            self.flt_pos_ps = self.atm_err_flt_pos_ps_pv.get(timeout = 1.0)
+            #self.atm_err = self.atm_err_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF TESTING
+            self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
+            self.atm_err4 = self.flt_pos_ps_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             self.ampl_min = self.ampl_min_pv.get(timeout = 1.0)
             self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
             # apply filtering, confirm fresh values, and add to dictionary
-            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.flt_pos_ps != self.atm_err[4]):
-                #self.ampl = self.atm_err[0]  # unpack filter parameter
-                #self.flt_pos_ps = self.atm_err[4]
+            #if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.flt_pos_ps != self.atm_err[4]):  # COMMENT THIS LINE IF TESTING
+            if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err4 != self.flt_pos_ps):  # COMMENT THIS LINE IF NOT TESTING
+                #self.ampl = self.atm_err[0]  # unpack filter parameter - COMMENT THIS LINE IF TESTING
+                #self.flt_pos_ps = self.atm_err[4]  # COMMENT THIS LINE IF TESTING
+                self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
+                self.flt_pos_ps = self.atm_err4  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl_vals[self.count] = self.ampl
                 self.error_vals[self.count] = self.flt_pos_ps
                 self.count+=1
