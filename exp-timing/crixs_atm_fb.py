@@ -39,7 +39,6 @@ class drift_correction():
         self.sample_size = self.sample_size_pv.get(timeout = 1.0)  # get user-set sample size
         # loop for adding error values to dictionary if it meets threshold conditions
         while (self.count < self.sample_size):
-            print("Entered correction loop.")
             # get current PV values
             #self.atm_err = self.atm_err_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF TESTING
             self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
