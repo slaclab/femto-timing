@@ -72,7 +72,7 @@ class atm_fb_tester():
         self.start_time = time.time()
         # test loop
         while ((time.time() - self.start_time) < self.test_duration):
-            self.atm_err = self.atm_err_pv.get(timeout = 1.0)  # get current waveform PV state
+            self.atm_err = list(self.atm_err_pv.get(timeout = 1.0))  # get current waveform PV state
             self.ampl = random.uniform(20, 80)  # generate random amplitude close to or within the acceptable range
             self.time_elapsed = time.time() - self.time_prev  # calculate seconds since previous correction
             self.time_prev = time.time()  # update previous time for next loop iteration
@@ -83,7 +83,7 @@ class atm_fb_tester():
             self.curr_err = self.atm_err[4]
             self.atm_err[0] = self.ampl
             self.atm_err[4] = self.curr_err + self.comb_err
-            self.atm_err_pv.put(self.atm_err)
+            self.atm_err_pv.put(tuple(self.atm_err))
             # update error accumulator 
             self.accum_err = self.accum_err + self.comb_err
             # if new correction applied, subtract from error accumulator
