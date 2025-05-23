@@ -15,7 +15,7 @@ class drift_correction():
         self.ampl_max_pv = Pv('LAS:UNDS:FLOAT:64')  # maximum allowable edge amplitude for correction
         self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
         self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
-        self_on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
+        self.on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
         # connect to PVs
         #self.atm_err_pv.connect(timeout = 1.0)
         self.atm_err_ampl_pv.connect(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
@@ -27,7 +27,7 @@ class drift_correction():
         self.ampl_max_pv.connect(timeout = 1.0)
         self.fb_gain_pv.connect(timeout = 1.0)
         self.sample_size_pv.connect(timeout = 1.0)
-        self_on_off_pv.connect(timeout = 1.0)
+        self.on_off_pv.connect(timeout = 1.0)
 
 
     def correct(self):
