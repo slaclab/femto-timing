@@ -44,7 +44,7 @@ class drift_correction():
             self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             print("Edge amplitude: ", self.atm_err0)
             self.atm_err4 = self.flt_pos_ps_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
-            print("Error: "+self.atm_err4, " vs. Last Error: ", self.flt_pos_ps)
+            print("Error: ", self.atm_err4, " vs. Last Error: ", self.flt_pos_ps)
             self.ampl_min = self.ampl_min_pv.get(timeout = 1.0)
             self.ampl_max = self.ampl_max_pv.get(timeout = 1.0)
             # apply filtering, confirm fresh values, and add to dictionary
