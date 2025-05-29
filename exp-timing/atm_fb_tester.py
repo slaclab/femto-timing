@@ -41,8 +41,8 @@ class atm_fb_tester():
             # update dummy timetool PVs
             self.atm_err_ampl_pv.put(self.ampl)
             self.curr_err = self.accum_err_pv.get(timeout=1.0)
-            self.total_error = self.curr_err + self.comb_err
-            self.atm_err_flt_pos_fs_pv.put(self.total_error + self.offset)  # add in atm offset and write to dummy error PV
+            self.total_err = self.curr_err + self.comb_err
+            self.atm_err_flt_pos_fs_pv.put(self.total_err + self.offset)  # add in atm offset and write to dummy error PV
             # update error accumulator
             self.accum_err = self.accum_err + self.comb_err
             # if new correction applied, subtract from error accumulator
@@ -86,7 +86,7 @@ class atm_fb_tester():
             self.data_err = (self.data_errs[self.count])  # raw historical error value
             self.correct = (self.dummy_fb_pv.get(timeout=1.0)) * 1000000  # convert to fs
             self.accum_err = self.data_err - self.correct  # total current error is the historical edge position minus the net correction applied
-            self.atm_err_flt_pos_fs_pv.put(value=self.total_error, timeout=1.0)
+            self.atm_err_flt_pos_fs_pv.put(value=self.accum_err, timeout=1.0)
             # record accumulated error
             self.accum_dict[self.count] = self.accum_err  # add to dict for end of test stats
             self.accum_err_pv.put(self.accum_err)  # update error accumulator PV
