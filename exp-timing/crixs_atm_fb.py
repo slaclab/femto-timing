@@ -70,7 +70,7 @@ class drift_correction():
         self.fb_gain = self.fb_gain_pv.get(timeout=1.0)  # pull gain PV value
         self.on_off = self.on_off_pv.get(timeout=1.0)
         self.correction = (self.avg_error / 1000000) * self.fb_gain  # scale from fs to ns and apply gain
-        if (self.on_off == 1) and ((abs(self.correction) < 0.001)):  # check if drift correction has been turned on and limit corrections to 1 ps
+        if (self.on_off == 1) and ((abs(self.correction) < 0.003)):  # check if drift correction has been turned on and limit corrections to 3 ps
             self.atm_fb_pv.put(value=self.correction, timeout=1.0)  # write to correction PV
 
 
