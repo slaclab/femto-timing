@@ -6,7 +6,7 @@ import pandas as pd
 
 class atm_fb_tester():
     def __init__(self):
-        self.data_path = '/cds/home/r/rlodico/scripts/lcls2-atm-fb-test/exp1016923run150.csv'  # path to csv where historical data is saved
+        self.data_path = '/cds/home/r/rlodico/scripts/lcls2-atm-fb-test/exp1016923_run150.csv'  # path to csv where historical data is saved
         # create PV objects
         self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing
         self.atm_err_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy fs error for testing
@@ -41,8 +41,8 @@ class atm_fb_tester():
             # update dummy timetool PVs
             self.atm_err_ampl_pv.put(self.ampl)
             self.curr_err = self.accum_err_pv.get(timeout=1.0)
-            self.total_error = self.curr_err + self.comb_err
-            self.atm_err_flt_pos_fs_pv.put(self.total_error + self.offset)  # add in atm offset and write to dummy error PV
+            self.total_err = self.curr_err + self.comb_err
+            self.atm_err_flt_pos_fs_pv.put(self.total_err + self.offset)  # add in atm offset and write to dummy error PV
             # update error accumulator
             self.accum_err = self.accum_err + self.comb_err
             # if new correction applied, subtract from error accumulator
@@ -55,7 +55,7 @@ class atm_fb_tester():
             time.sleep(3.0)
             self.count += 1
         # calculate test statistics
-        self.avg_accum_err = sum(self.accum_dict.values()) / len(self.accum_dict)
+        self.avg_accum_err = sum(abs(self.accum_dict.values())) / len(self.accum_dict)
         self.max_accum_err = max(self.accum_dict.values())
         # print test statistics
         print("Test Statistics: ")
@@ -81,7 +81,7 @@ class atm_fb_tester():
         while ((time.time() - self.start_time) < self.test_duration):
             # update dummy edge amplitude PV
             self.ampl = self.ampls[self.count]
-            self.atm_err_ampl_pv.put[self.ampl]
+            self.atm_err_ampl_pv.put(value=self.ampl, timeout=1.0)
             # calculate new atm error
             self.data_err = (self.data_errs[self.count])  # raw historical error value
             self.correct = (self.dummy_fb_pv.get(timeout=1.0)) * 1000000  # convert to fs
