@@ -6,7 +6,7 @@ import pandas as pd
 
 class atm_fb_tester():
     def __init__(self):
-        self.data_path = '/cds/home/r/rlodico/scripts/lcls2-atm-fb-test/exp1016923run150.csv'  # path to csv where historical data is saved
+        self.data_path = '/cds/home/r/rlodico/scripts/lcls2-atm-fb-test/exp1016923_run150.csv'  # path to csv where historical data is saved
         # create PV objects
         self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing
         self.atm_err_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy fs error for testing
