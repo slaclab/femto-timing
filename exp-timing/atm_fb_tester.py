@@ -81,7 +81,7 @@ class atm_fb_tester():
         while ((time.time() - self.start_time) < self.test_duration):
             # update dummy edge amplitude PV
             self.ampl = self.ampls[self.count]
-            self.atm_err_ampl_pv.put[self.ampl]
+            self.atm_err_ampl_pv.put(value=self.ampl, timeout=1.0)
             # calculate new atm error
             self.data_err = (self.data_errs[self.count])  # raw historical error value
             self.correct = (self.dummy_fb_pv.get(timeout=1.0)) * 1000000  # convert to fs
