@@ -68,6 +68,7 @@ class atm_fb_tester():
         self.accum_err = 0
         self.accum_dict = dict()  # dictionary to hold accum error after each loop
         self.accum_err_pv.put(self.accum_err)  # reset the error accumulator to 0 at start of test
+        self.offset = 5198  # real chemRIXS ATM offset in fs
         self.test_duration = 300  # test duration in seconds
         self.count = 0
         # import data
@@ -83,10 +84,10 @@ class atm_fb_tester():
             self.ampl = self.ampls[self.count]
             self.atm_err_ampl_pv.put(value=self.ampl, timeout=1.0)
             # calculate new atm error
-            self.data_err = (self.data_errs[self.count])  # raw historical error value
+            self.data_err = (self.data_errs[self.count]) - self.offset  # raw historical error value
             self.correct = (self.dummy_fb_pv.get(timeout=1.0)) * 1000000  # convert to fs
             self.accum_err = self.data_err - self.correct  # total current error is the historical edge position minus the net correction applied
-            self.atm_err_flt_pos_fs_pv.put(value=self.accum_err, timeout=1.0)
+            self.atm_err_flt_pos_fs_pv.put(value=self.accum_err + self.offset, timeout=1.0)
             # record accumulated error
             self.accum_dict[self.count] = self.accum_err  # add to dict for end of test stats
             self.accum_err_pv.put(self.accum_err)  # update error accumulator PV
