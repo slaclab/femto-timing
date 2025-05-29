@@ -94,7 +94,7 @@ class atm_fb_tester():
             time.sleep(3.0)
             self.count += 1
         # calculate average residual error
-        self.avg_accum_err = sum(self.accum_dict.values()) / len(self.accum_dict)
+        self.avg_accum_err = sum(abs(self.accum_dict.values())) / len(self.accum_dict)
         print("Average Residual Error: ", self.avg_accum_err, " fs")
 
 
