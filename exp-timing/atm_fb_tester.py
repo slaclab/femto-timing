@@ -93,9 +93,10 @@ class atm_fb_tester():
             self.data_err = (self.data_errs[self.count]) - self.offset  # raw historical error value
             self.correct = (self.dummy_fb_pv.get(timeout=1.0)) * 1000000  # convert to fs
             self.total_err = self.data_err - self.correct  # total current error is the historical edge position minus the net correction applied
-            self.atm_err_flt_pos_fs_pv.put(value=self.total_err + self.offset, timeout=1.0)
+            self.applied_err = self.total_err + self.offset
+            self.atm_err_flt_pos_fs_pv.put(value=self.applied_err, timeout=1.0)
             # record accumulated error
-            if (self.ampl > self.ampl_min) and (self.ampl < self.ampl_max) and (self.data_err > 3000) and (self.data_err < 4250):  # only add to error accumulator if error signal is valid
+            if (self.ampl > self.ampl_min) and (self.ampl < self.ampl_max) and (self.applied_err > 3000) and (self.applied_err < 4250):  # only add to error accumulator if error signal is valid
                 self.accum_err = self.total_err
                 self.accum_dict[self.count] = abs(self.accum_err)  # add to dict for end of test stats
                 self.accum_err_pv.put(self.accum_err)  # update error accumulator PV
