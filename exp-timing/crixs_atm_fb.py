@@ -52,7 +52,7 @@ class drift_correction():
             self.ampl_max = self.ampl_max_pv.get(timeout=1.0)
             # apply filtering, confirm fresh values, and add to dictionary
             #if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.flt_pos_fs != self.atm_err[4]):  # COMMENT THIS LINE IF TESTING
-            if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err4 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
+            if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err4 > 3000) and (self.atm_err4 < 4250) and (self.atm_err4 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 #self.ampl = self.atm_err[0]  # unpack filter parameter - COMMENT THIS LINE IF TESTING
                 #self.flt_pos_fs = self.atm_err[4] - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
                 self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
