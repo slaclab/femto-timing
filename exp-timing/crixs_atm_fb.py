@@ -55,7 +55,6 @@ class drift_correction():
             if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err4 > 3000) and (self.atm_err4 < 4250) and (self.atm_err4 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 #self.ampl = self.atm_err[0]  # unpack filter parameter - COMMENT THIS LINE IF TESTING
                 #self.flt_pos_fs = self.atm_err[4] - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
-                print('Passed filtering')
                 self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 self.flt_pos_fs = self.atm_err4 - self.flt_pos_offset  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl_vals[self.count] = self.ampl
