@@ -54,12 +54,12 @@ class atm_fb_tester():
             if (self.correct != self.correct_prev):
                 self.accum_err = self.accum_err - self.correct
                 self.correct_prev = self.correct
-            self.accum_dict[self.count] = self.accum_err  # add to dict for end of test stats
+            self.accum_dict[self.count] = abs(self.accum_err)  # add to dict for end of test stats
             self.accum_err_pv.put(self.accum_err)  # update error accumulator PV
             time.sleep(3.0)
             self.count += 1
         # calculate test statistics
-        self.avg_accum_err = sum(abs(self.accum_dict.values())) / len(self.accum_dict)
+        self.avg_accum_err = sum(self.accum_dict.values()) / len(self.accum_dict)
         self.max_accum_err = max(self.accum_dict.values())
         # print test statistics
         print("Test Statistics: ")
