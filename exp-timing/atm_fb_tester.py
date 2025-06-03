@@ -72,7 +72,7 @@ class atm_fb_tester():
         self.accum_err = 0
         self.accum_dict = dict()  # dictionary to hold accum error after each loop
         self.accum_err_pv.put(self.accum_err)  # reset the error accumulator to 0 at start of test
-        self.offset = 5198  # real chemRIXS ATM offset in fs
+        self.offset = 3722.38  # real chemRIXS ATM offset in fs
         self.test_duration = 300  # test duration in seconds
         self.count = 0
         self.ampl_min = self.ampl_min_pv.get(timeout=1.0)
