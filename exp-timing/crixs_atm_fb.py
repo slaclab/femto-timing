@@ -17,6 +17,7 @@ class drift_correction():
         self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
         self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
         self.on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
+        self.debug_mode_pv = Pv('LAS:UNDS:FLOAT:56')  # PV to turn debug mode on/off
         # connect to PVs
         #self.atm_err_pv.connect(timeout=1.0)  # COMMENT THIS LINE IF TESTING
         self.atm_err_ampl_pv.connect(timeout=1.0)  # COMMENT THIS LINE IF NOT TESTING
@@ -30,6 +31,7 @@ class drift_correction():
         self.fb_gain_pv.connect(timeout=1.0)
         self.sample_size_pv.connect(timeout=1.0)
         self.on_off_pv.connect(timeout=1.0)
+        self.debug_mode_pv.connect(timeout=1.0)
 
 
     def correct(self):
@@ -74,6 +76,12 @@ class drift_correction():
             self.atm_fb_pv.put(value=self.correction, timeout=1.0)  # write to correction PV
         else:
             self.atm_fb_pv.put(value=0, timeout=1.0)  # if drift correction is turned off, zero out correction value
+        # additional print statements for rapid debugging
+        self.debug_mode = self.debug_mode_pv.get(timeout=1.0)
+        if (self.debug_mode == 1):  # keep debug mode turned off when using tester script
+            print('Current amplitude: ', self.atm_err[0])
+            print('Current edge position in fs: ', self.atm_err[0])
+            print('Most recent correction value in fs: ', self.correction * 1000000)
 
 
 def run():
