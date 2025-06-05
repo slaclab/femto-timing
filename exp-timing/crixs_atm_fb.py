@@ -82,13 +82,13 @@ class drift_correction():
         self.avg_error = sum(self.error_vals.values()) / len(self.error_vals)
         # write average filter parameter and error value to PVs for easier monitoring
         self.ampl_pv.put(value=self.avg_ampl, timeout=1.0)
-        self.flt_pos_fs_pv.put(value=self.avg_error, timeout=1.0)
+        self.flt_pos_fs_pv.put(value=self.avg_error + self.flt_pos_offset, timeout=1.0)
         # apply correction
         self.fb_gain = self.fb_gain_pv.get(timeout=1.0)  # pull gain PV value
         self.on_off = self.on_off_pv.get(timeout=1.0)
         self.correction = (self.avg_error / 1000000) * self.fb_gain  # scale from fs to ns and apply gain
         if (self.on_off == 1) and ((abs(self.correction) < 0.003)):  # check if drift correction has been turned on and limit corrections to 3 ps
-            self.atm_fb_pv.put(value=self.correction, timeout=1.0)  # write to correction PV
+            self.atm_fb_pv.put(value=self.correction + self.flt_pos_offset, timeout=1.0)  # write to correction PV
         else:
             self.atm_fb_pv.put(value=0, timeout=1.0)  # if drift correction is turned off, zero out correction value
         # additional print statement for rapid debugging
