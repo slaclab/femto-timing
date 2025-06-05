@@ -46,7 +46,7 @@ class drift_correction():
         """Takes ATM waveform PV data, applies filtering to detemine valid error values, and applies a correction to laser locker HLA."""
         self.ampl_vals = dict()  # dictionary to hold amplitude values for averaging
         self.error_vals = dict()  # dictionary to hold error values for averaging
-        self.atm_err = self.atm_err_pv.get(timeout=1.0)  # COMMENT THIS LINE IF TESTING
+        self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
         self.flt_pos_fs = self.atm_err[2] * 1000  # COMMENT THIS LINE IF TESTING
         #self.flt_pos_fs = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # initial error - COMMENT THIS LINE IF NOT TESTING
         self.count = 0  # counter to track number of error values in dict
@@ -60,7 +60,7 @@ class drift_correction():
         # loop for adding error values to dictionary if it meets threshold conditions
         while (self.count < self.sample_size):
             # get current PV values
-            self.atm_err = self.atm_err_pv.get(timeout=1.0)  # COMMENT THIS LINE IF TESTING
+            self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
             #self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             #self.atm_err2 = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             # update tracking PVs
