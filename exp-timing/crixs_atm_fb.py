@@ -40,10 +40,16 @@ class drift_correction():
         self.sample_size_pv.connect(timeout=1.0)
         self.on_off_pv.connect(timeout=1.0)
         self.debug_mode_pv.connect(timeout=1.0)
+        # initialization checks
+        self.on_off = self.on_off_pv.get(timeout=1.0)
+
+        # initialization announcements
+        if (self.on_off == 1):
+            
 
 
     def correct(self):
-        """Takes ATM waveform PV data, applies filtering to detemine valid error values, and applies a correction to laser locker HLA."""
+        """Takes ATM waveform PV data, applies filtering to determine valid error values, and applies a correction to laser locker HLA."""
         self.ampl_vals = dict()  # dictionary to hold amplitude values for averaging
         self.error_vals = dict()  # dictionary to hold error values for averaging
         self.atm_err = self.atm_err_pv.get(timeout=1.0)  # COMMENT THIS LINE IF TESTING
