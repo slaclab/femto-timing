@@ -47,7 +47,7 @@ class drift_correction():
         self.ampl_vals = dict()  # dictionary to hold amplitude values for averaging
         self.error_vals = dict()  # dictionary to hold error values for averaging
         self.atm_err = self.atm_err_pv.get(timeout=1.0)  # COMMENT THIS LINE IF TESTING
-        self.flt_pos_fs = self.atm_err[2]  # COMMENT THIS LINE IF TESTING
+        self.flt_pos_fs = self.atm_err[2] * 1000  # COMMENT THIS LINE IF TESTING
         #self.flt_pos_fs = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # initial error - COMMENT THIS LINE IF NOT TESTING
         self.count = 0  # counter to track number of error values in dict
         self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)
@@ -65,12 +65,12 @@ class drift_correction():
             #self.atm_err2 = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             # update tracking PVs
             self.curr_ampl_pv.put(value=self.atm_err[0], timeout=1.0)
-            self.curr_flt_pos_ps_pv.put(value=self.atm_err[2] - self.flt_pos_offset, timeout=1.0)
+            self.curr_flt_pos_ps_pv.put(value=(self.atm_err[2] * 1000) - self.flt_pos_offset, timeout=1.0)
             # apply filtering, confirm fresh values, and add to dictionary
-            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[2] > self.pos_fs_min) and (self.atm_err[2] < self.pos_fs_max) and (self.flt_pos_fs != self.atm_err[2]):  # COMMENT THIS LINE IF TESTING
+            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[2] * 1000 > self.pos_fs_min) and (self.atm_err[2] * 1000 < self.pos_fs_max) and (self.flt_pos_fs != self.atm_err[2] * 1000):  # COMMENT THIS LINE IF TESTING
             #if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err2 > self.pos_fs_min) and (self.atm_err2 < self.pos_fs_max) and (self.atm_err2 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl = self.atm_err[0]  # unpack filter parameter - COMMENT THIS LINE IF TESTING
-                self.flt_pos_fs = self.atm_err[2] - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
+                self.flt_pos_fs = (self.atm_err[2] * 1000) - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
                 #self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 #self.flt_pos_fs = self.atm_err2 - self.flt_pos_offset  # COMMENT THIS LINE IF NOT TESTING
                 # add valid amplitudes and edges to dictionary
