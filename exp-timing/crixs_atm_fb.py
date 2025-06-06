@@ -15,7 +15,7 @@ class drift_correction():
         self.ampl_pv = Pv('LAS:UNDS:FLOAT:60')  # average edge amplitude over sample period
         self.pos_fs_min_pv = Pv('LAS:UNDS:FLOAT:53')  # minimum allowable edge position in fs
         self.pos_fs_max_pv = Pv('LAS:UNDS:FLOAT:52')  # maximum allowable edge position in fs
-        self.curr_flt_pos_ps_pv = Pv('LAS:UNDS:FLOAT:54')  # position in fs of current edge
+        self.curr_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:54')  # position in fs of current edge
         self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
         self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in (fs ?) - based on real ATM data
         self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
@@ -33,7 +33,7 @@ class drift_correction():
         self.ampl_pv.connect(timeout=1.0)
         self.pos_fs_min_pv.connect(timeout=1.0)
         self.pos_fs_max_pv.connect(timeout=1.0)
-        self.curr_flt_pos_ps_pv.connect(timeout=1.0)
+        self.curr_flt_pos_fs_pv.connect(timeout=1.0)
         self.flt_pos_fs_pv.connect(timeout=1.0)
         self.flt_pos_offset_pv.connect(timeout=1.0)
         self.fb_gain_pv.connect(timeout=1.0)
@@ -47,10 +47,9 @@ class drift_correction():
         self.ampl_vals = dict()  # dictionary to hold amplitude values for averaging
         self.error_vals = dict()  # dictionary to hold error values for averaging
         self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
-        self.flt_pos_fs = self.atm_err[2] * 1000  # COMMENT THIS LINE IF TESTING
+        self.flt_pos_fs = (self.atm_err[2] * 1000) - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
         #self.flt_pos_fs = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # initial error - COMMENT THIS LINE IF NOT TESTING
         self.count = 0  # counter to track number of error values in dict
-        self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)
         self.sample_size = self.sample_size_pv.get(timeout=1.0)  # get user-set sample size
         # pull current filtering thresholds
         self.ampl_min = self.ampl_min_pv.get(timeout=1.0)
@@ -63,14 +62,16 @@ class drift_correction():
             self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
             #self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
             #self.atm_err2 = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
+            self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset 
+            self.curr_flt_pos_fs = (self.atm_err[2] * 1000) - self.flt_pos_offset  # calcuated current offset adjusted edge position in fs
             # update tracking PVs
             self.curr_ampl_pv.put(value=self.atm_err[0], timeout=1.0)
-            self.curr_flt_pos_ps_pv.put(value=(self.atm_err[2] * 1000) - self.flt_pos_offset, timeout=1.0)
+            self.curr_flt_pos_fs_pv.put(value=self.curr_flt_pos_fs, timeout=1.0)
             # apply filtering, confirm fresh values, and add to dictionary
-            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[2] * 1000 > self.pos_fs_min) and (self.atm_err[2] * 1000 < self.pos_fs_max) and (self.flt_pos_fs != self.atm_err[2] * 1000):  # COMMENT THIS LINE IF TESTING
+            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs):  # COMMENT THIS LINE IF TESTING
             #if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err2 > self.pos_fs_min) and (self.atm_err2 < self.pos_fs_max) and (self.atm_err2 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl = self.atm_err[0]  # unpack filter parameter - COMMENT THIS LINE IF TESTING
-                self.flt_pos_fs = (self.atm_err[2] * 1000) - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
+                self.flt_pos_fs = self.curr_flt_pos_fs  # COMMENT THIS LINE IF TESTING
                 #self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 #self.flt_pos_fs = self.atm_err2 - self.flt_pos_offset  # COMMENT THIS LINE IF NOT TESTING
                 # add valid amplitudes and edges to dictionary
@@ -82,13 +83,13 @@ class drift_correction():
         self.avg_error = sum(self.error_vals.values()) / len(self.error_vals)
         # write average filter parameter and error value to PVs for easier monitoring
         self.ampl_pv.put(value=self.avg_ampl, timeout=1.0)
-        self.flt_pos_fs_pv.put(value=self.avg_error + self.flt_pos_offset, timeout=1.0)
+        self.flt_pos_fs_pv.put(value=self.avg_error, timeout=1.0)
         # apply correction
         self.fb_gain = self.fb_gain_pv.get(timeout=1.0)  # pull gain PV value
         self.on_off = self.on_off_pv.get(timeout=1.0)
         self.correction = (self.avg_error / 1000000) * self.fb_gain  # scale from fs to ns and apply gain
         if (self.on_off == 1) and ((abs(self.correction) < 0.003)):  # check if drift correction has been turned on and limit corrections to 3 ps
-            self.atm_fb_pv.put(value=self.correction - (self.flt_pos_offset/1000000), timeout=1.0)  # write to correction PV
+            self.atm_fb_pv.put(value=self.correction, timeout=1.0)  # write to correction PV
         else:
             self.atm_fb_pv.put(value=0, timeout=1.0)  # if drift correction is turned off, zero out correction value
         # additional print statement for rapid debugging
