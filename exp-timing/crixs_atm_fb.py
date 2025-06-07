@@ -22,6 +22,7 @@ class drift_correction():
         self.curr_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:54')  # position in fs of current edge
         self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
         self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in (fs ?) - based on real ATM data
+        self.txt_pv = Pv('LM2K2:MCS2:03:m10.RBV')  # TXT stage position PV for filtering
         self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
         self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
         self.on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
@@ -43,6 +44,7 @@ class drift_correction():
         self.pos_fs_max_pv.connect(timeout=1.0)
         self.curr_flt_pos_fs_pv.connect(timeout=1.0)
         self.flt_pos_fs_pv.connect(timeout=1.0)
+        self.txt_pv.connect(timeout=1.0)
         self.flt_pos_offset_pv.connect(timeout=1.0)
         self.fb_gain_pv.connect(timeout=1.0)
         self.sample_size_pv.connect(timeout=1.0)
@@ -65,6 +67,7 @@ class drift_correction():
         self.fwhm_max = self.fwhm_max_pv.get(timeout=1.0)
         self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
         self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
+        self.txt_prev = self.txt_pv.get(timeout=1.0)
         self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
         self.good_count = 0  # counter to track number of error values in dict
         self.bad_count = 0  # counter to track how many times filter thresholds have not been met
@@ -92,7 +95,7 @@ class drift_correction():
             self.curr_fwhm_pv.put(value=self.atm_err[3], timeout=1.0)
             self.curr_flt_pos_fs_pv.put(value=self.curr_flt_pos_fs, timeout=1.0)
             # apply filtering, confirm fresh values, and add to dictionary
-            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[3] > self.fwhm_min) and (self.atm_err[3] < self.fwhm_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs):  # COMMENT THIS LINE IF TESTING
+            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[3] > self.fwhm_min) and (self.atm_err[3] < self.fwhm_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs) and (self.txt_pv.get(timeout=1.0) != self.txt_prev):  # COMMENT THIS LINE IF TESTING
             #if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err2 > self.pos_fs_min) and (self.atm_err2 < self.pos_fs_max) and (self.atm_err2 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl = self.atm_err[0]  # unpack ampl filter parameter - COMMENT THIS LINE IF TESTING
                 self.fwhm = self.atm_err[3]  # unpack fwhm filter parametet - COMMENT THIS LINE IF TESTING
@@ -107,6 +110,7 @@ class drift_correction():
                 self.bad_count = 0
             else:
                 self.bad_count += 1
+            self.txt_prev = self.txt_pv.get(timeout=1.0)  # update previous txt position for filtering
         # averaging
         self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
         self.avg_fwhm = sum(self.fwhm_vals.values()) / len(self.fwhm_vals)
