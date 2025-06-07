@@ -67,7 +67,7 @@ class drift_correction():
         self.fwhm_max = self.fwhm_max_pv.get(timeout=1.0)
         self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
         self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
-        self.txt_prev = self.txt_pv.get(timeout=1.0)
+        self.txt_prev = round(self.txt_pv.get(timeout=1.0), 1)
         self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
         self.good_count = 0  # counter to track number of error values in dict
         self.bad_count = 0  # counter to track how many times filter thresholds have not been met
@@ -95,7 +95,7 @@ class drift_correction():
             self.curr_fwhm_pv.put(value=self.atm_err[3], timeout=1.0)
             self.curr_flt_pos_fs_pv.put(value=self.curr_flt_pos_fs, timeout=1.0)
             # apply filtering, confirm fresh values, and add to dictionary
-            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[3] > self.fwhm_min) and (self.atm_err[3] < self.fwhm_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs) and (self.txt_pv.get(timeout=1.0) != self.txt_prev):  # COMMENT THIS LINE IF TESTING
+            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[3] > self.fwhm_min) and (self.atm_err[3] < self.fwhm_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs) and (round(self.txt_pv.get(timeout=1.0), 1) != self.txt_prev):  # COMMENT THIS LINE IF TESTING
             #if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err2 > self.pos_fs_min) and (self.atm_err2 < self.pos_fs_max) and (self.atm_err2 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl = self.atm_err[0]  # unpack ampl filter parameter - COMMENT THIS LINE IF TESTING
                 self.fwhm = self.atm_err[3]  # unpack fwhm filter parametet - COMMENT THIS LINE IF TESTING
@@ -110,7 +110,7 @@ class drift_correction():
                 self.bad_count = 0
             else:
                 self.bad_count += 1
-            self.txt_prev = self.txt_pv.get(timeout=1.0)  # update previous txt position for filtering
+            self.txt_prev = round(self.txt_pv.get(timeout=1.0), 1)  # update previous txt position for filtering
         # averaging
         self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
         self.avg_fwhm = sum(self.fwhm_vals.values()) / len(self.fwhm_vals)
