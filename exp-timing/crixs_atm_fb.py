@@ -125,6 +125,8 @@ class drift_correction():
         self.correction = (self.avg_error / 1000000) * self.fb_gain  # scale from fs to ns and apply gain
         if (self.on_off == 1) and ((abs(self.correction) < 0.0015)):  # check if drift correction has been turned on and limit corrections to 1.5 ps
             self.atm_fb_pv.put(value=self.correction, timeout=1.0)  # write to correction PV
+        elif ((self.on_off == 1) and ((abs(self.correction) >= 0.0015))):
+            pass
         else:
             self.atm_fb_pv.put(value=0, timeout=1.0)  # if drift correction is turned off, zero out correction value
         # additional print statement for rapid debugging
