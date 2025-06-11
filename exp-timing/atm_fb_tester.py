@@ -10,27 +10,33 @@ class atm_fb_tester():
         # create PV objects
         self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing
         self.atm_err_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy fs error for testing
-        self.dummy_fb_pv = Pv('LAS:UNDS:FLOAT:68')  # dummy PV for holding correction values written to by crixs_atm_fb.py
+        self.fb_pv = Pv('LAS:LHN:LLG2:02:PHASCTL:ATM_FBK_OFFSET')  # PV for holding correction values written to by crixs_atm_fb.py
         self.accum_err_pv = Pv('LAS:UNDS:FLOAT:69')  # PV for tracking accumulated error during test
         self.ampl_min_pv = Pv('LAS:UNDS:FLOAT:63')  # minimum allowable edge amplitude for correction
         self.ampl_max_pv = Pv('LAS:UNDS:FLOAT:64')  # maximum allowable edge amplitude for correction
+        self.pos_fs_min_pv = Pv('LAS:UNDS:FLOAT:53')  # minimum allowable edge position in fs
+        self.pos_fs_max_pv = Pv('LAS:UNDS:FLOAT:52')  # maximum allowable edge position in fs
+        self.fex_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # average edge position offset of the TTFEX
         # connect to PVs
         self.atm_err_ampl_pv.connect(timeout=1.0)
         self.atm_err_flt_pos_fs_pv.connect(timeout=1.0)
-        self.dummy_fb_pv.connect(timeout=1.0)
+        self.fb_pv.connect(timeout=1.0)
         self.accum_err_pv.connect(timeout=1.0)
         self.ampl_min_pv.connect(timeout=1.0)
         self.ampl_max_pv.connect(timeout=1.0)
-
+        self.pos_fs_min_pv.connect(timeout=1.0)
+        self.pos_fs_max_pv.connect(timeout=1.0)
+        self.fex_offset_pv.connect(timeout=1.0)
     def arbitrary_test(self):
         # test set-up
         self.accum_err = 0
         self.accum_dict = dict()  # dictionary to hold accum error after each loop
         self.accum_err_pv.put(self.accum_err)  # reset the error accumulator to 0 at start of test
         self.drift_rate = 200  # drift rate in fs/min
-        self.offset = 3722.38  # real chemRIXS ATM offset in fs
+        self.hist_offset = 3722.38  # real chemRIXS ATM offset in fs
+        self.fex_offset = self.fex_offset_pv.get(timeout=1.0)
         self.test_duration = 300  # test duration in seconds
-        self.correct_prev = (self.dummy_fb_pv.get(timeout=1.0)) * 1000000  # get initial correction value and convert to fs
+        self.correct_prev = (self.fb_pv.get(timeout=1.0)) * 1000000  # get initial correction value and convert to fs
         self.count = 0
         self.time_prev = time.time()
         self.start_time = time.time()
@@ -46,11 +52,11 @@ class atm_fb_tester():
             self.atm_err_ampl_pv.put(self.ampl)
             self.curr_err = self.accum_err_pv.get(timeout=1.0)
             self.total_err = self.curr_err + self.comb_err
-            self.atm_err_flt_pos_fs_pv.put(self.total_err + self.offset)  # add in atm offset and write to dummy error PV
+            self.atm_err_flt_pos_fs_pv.put(self.total_err + self.fex_offset)  # add in atm offset and write to dummy error PV
             # update error accumulator
             self.accum_err = self.accum_err + self.comb_err
             # if new correction applied, subtract from error accumulator
-            self.correct = (self.dummy_fb_pv.get(timeout=1.0)) * 1000000  # convert to fs
+            self.correct = (self.fb_pv.get(timeout=1.0)) * 1000000  # convert to fs
             if (self.correct != self.correct_prev):
                 self.accum_err = self.accum_err - self.correct
                 self.correct_prev = self.correct
@@ -72,11 +78,14 @@ class atm_fb_tester():
         self.accum_err = 0
         self.accum_dict = dict()  # dictionary to hold accum error after each loop
         self.accum_err_pv.put(self.accum_err)  # reset the error accumulator to 0 at start of test
-        self.offset = 3722.38  # real chemRIXS ATM offset in fs
+        self.hist_offset = 3722.38  # real chemRIXS ATM offset in fs
+        self.fex_offset = self.fex_offset_pv.get(timeout=1.0)
         self.test_duration = 300  # test duration in seconds
         self.count = 0
         self.ampl_min = self.ampl_min_pv.get(timeout=1.0)
         self.ampl_max = self.ampl_max_pv.get(timeout=1.0)
+        self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
+        self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
         # import data
         self.df = pd.read_csv(self.data_path)
         self.ampls = self.df['Amplitude']
@@ -96,7 +105,7 @@ class atm_fb_tester():
             self.applied_err = self.total_err + self.offset
             self.atm_err_flt_pos_fs_pv.put(value=self.applied_err, timeout=1.0)
             # record accumulated error
-            if (self.ampl > self.ampl_min) and (self.ampl < self.ampl_max) and (self.applied_err > 3000) and (self.applied_err < 4250):  # only add to error accumulator if error signal is valid
+            if (self.ampl > self.ampl_min) and (self.ampl < self.ampl_max) and (self.applied_err > self.pos_fs_min) and (self.applied_err < self.pos_fs_max):  # only add to error accumulator if error signal is valid
                 self.accum_err = self.total_err
                 self.accum_dict[self.count] = abs(self.accum_err)  # add to dict for end of test stats
                 self.accum_err_pv.put(self.accum_err)  # update error accumulator PV
