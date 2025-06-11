@@ -77,7 +77,7 @@ class drift_correction():
             # get current PV values
             #self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
             self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
-            self.atm_err2 = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0) - self.flt_pos_offset  # COMMENT THIS LINE IF NOT TESTING
+            self.atm_err2 = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0) + self.flt_pos_offset  # COMMENT THIS LINE IF NOT TESTING
             #self.curr_flt_pos_fs = (self.atm_err[2] * 1000) - self.flt_pos_offset  # calcuated current offset adjusted edge position in fs - COMMENT THIS LINE IF TESTING
             # every ten shots, check if filtering thresholds have been updated
             if (self.bad_count > 9):
