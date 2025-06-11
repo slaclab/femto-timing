@@ -102,6 +102,7 @@ class drift_correction():
                 #self.ampl = self.atm_err[0]  # unpack ampl filter parameter - COMMENT THIS LINE IF TESTING
                 #self.fwhm = self.atm_err[3]  # unpack fwhm filter parametet - COMMENT THIS LINE IF TESTING
                 #self.flt_pos_fs = self.curr_flt_pos_fs  # COMMENT THIS LINE IF TESTING
+                print('Entered corr loop')
                 self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 self.flt_pos_fs = self.atm_err2 - self.flt_pos_offset  # COMMENT THIS LINE IF NOT TESTING
                 # add valid amplitudes and edges to dictionary
