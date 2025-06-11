@@ -106,7 +106,7 @@ class drift_correction():
                 #self.flt_pos_fs = self.curr_flt_pos_fs  # COMMENT THIS LINE IF TESTING
                 print('Entered corr loop')
                 self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
-                self.flt_pos_fs = self.atm_err2 - self.flt_pos_offset  # COMMENT THIS LINE IF NOT TESTING
+                self.flt_pos_fs = self.atm_err2  # COMMENT THIS LINE IF NOT TESTING
                 # add valid amplitudes and edges to dictionary
                 self.ampl_vals[self.good_count] = self.ampl
                 #self.fwhm_vals[self.good_count] = self.fwhm  # COMMENT THIS LINE IF TESTING
