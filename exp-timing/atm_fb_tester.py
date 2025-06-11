@@ -42,7 +42,7 @@ class atm_fb_tester():
         self.start_time = time.time()
         # test loop
         while ((time.time() - self.start_time) < self.test_duration):
-            self.ampl = random.uniform(20, 80)  # generate random amplitude close to or within the acceptable range
+            self.ampl = random.uniform(0, 2)  # generate random amplitude close to or within the acceptable range
             self.time_elapsed = time.time() - self.time_prev  # calculate seconds since previous correction
             self.time_prev = time.time()  # update previous time for next loop iteration
             self.fixed_err = (self.drift_rate / 60) * self.time_elapsed  # convert to fs/s, then calculate amount of drift since last loop iteration
