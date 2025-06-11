@@ -98,13 +98,10 @@ class drift_correction():
             #self.curr_flt_pos_fs_pv.put(value=self.curr_flt_pos_fs, timeout=1.0)  # COMMENT THIS LINE IF TESTING
             # apply filtering, confirm fresh values, and add to dictionary
             #if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[3] > self.fwhm_min) and (self.atm_err[3] < self.fwhm_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs) and (round(self.txt_pv.get(timeout=1.0), 1) == self.txt_prev):  # COMMENT THIS LINE IF TESTING
-            print(self.atm_err0)
-            print(self.atm_err2)
             if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err2 > self.pos_fs_min) and (self.atm_err2 < self.pos_fs_max) and (self.atm_err2 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 #self.ampl = self.atm_err[0]  # unpack ampl filter parameter - COMMENT THIS LINE IF TESTING
                 #self.fwhm = self.atm_err[3]  # unpack fwhm filter parametet - COMMENT THIS LINE IF TESTING
                 #self.flt_pos_fs = self.curr_flt_pos_fs  # COMMENT THIS LINE IF TESTING
-                print('Entered corr loop')
                 self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 self.flt_pos_fs = self.atm_err2  # COMMENT THIS LINE IF NOT TESTING
                 # add valid amplitudes and edges to dictionary
