@@ -52,7 +52,7 @@ class atm_fb_tester():
             self.atm_err_ampl_pv.put(self.ampl)
             self.curr_err = self.accum_err_pv.get(timeout=1.0)
             self.total_err = self.curr_err + self.comb_err
-            self.atm_err_flt_pos_fs_pv.put(self.total_err + self.fex_offset)  # add in atm offset and write to dummy error PV
+            self.atm_err_flt_pos_fs_pv.put(self.total_err - self.fex_offset)  # add in atm offset and write to dummy error PV
             # update error accumulator
             self.accum_err = self.accum_err + self.comb_err
             # if new correction applied, subtract from error accumulator
