@@ -438,7 +438,8 @@ class locker():
         else:
             self.stale_cnt = 0 # Reset the stale counter if there is new TIC data
         print('Made it just before new logic.')
-        self.tgt_elapsed_time = time.time() - self.move_start()  # time elapsed in seconds since last target time move
+        self.check_time = time.time()  # check current time
+        self.tgt_elapsed_time = self.check_time() - self.move_start()  # time elapsed in seconds since last target time move
         print('Target elapsed time: ', self.tgt_elapsed_time, ' s')
         if (self.C.range > (2 * self.max_jump_error)) or (self.C.range == 0) or (self.tgt_elapsed_time < 5):  # Too wide a range of measurements
             print('Made it inside new logic.')
