@@ -257,6 +257,7 @@ class locker():
          self.move_flag = 0
          self.bucket_flag = 0
          self.stale_cnt = 0 # Counter to determine if TIC is updating
+         self.move_start = 0  # initialize to 0 for check jump logic
 
     def locker_status(self):
         """Checks if core locker parameters are within optimal range and updates 'OK' flags accordingly."""
