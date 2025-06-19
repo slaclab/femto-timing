@@ -58,6 +58,7 @@ class drift_correction():
         self.fwhm_vals = dict()  # dictionary to hold fwhm values for averaging
         self.error_vals = dict()  # dictionary to hold error values for averaging
         self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
+        self.atm_fb = self.atm_fb_pv.get(timeout=60.0)  # get current ATM FB offset
         self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
         self.flt_pos_fs = (self.atm_err[2] * 1000) - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
         #self.flt_pos_fs = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # initial error - COMMENT THIS LINE IF NOT TESTING
@@ -125,12 +126,11 @@ class drift_correction():
         self.fb_gain = self.fb_gain_pv.get(timeout=1.0)  # pull gain PV value
         self.on_off = self.on_off_pv.get(timeout=1.0)
         self.correction = (self.avg_error / 1000000) * self.fb_gain  # scale from fs to ns and apply gain
+        self.atm_fb = self.atm_fb + self.correction  # ATM FB offset is a steady state offset (in other words, target time is not updated), so the feedback offset must be updated progressively
         if (self.on_off == 1) and ((abs(self.correction) < 0.0015)):  # check if drift correction has been turned on and limit corrections to 1.5 ps
-            self.atm_fb_pv.put(value=self.correction, timeout=1.0)  # write to correction PV
-        elif ((self.on_off == 1) and ((abs(self.correction) >= 0.0015))):
-            pass
+            self.atm_fb_pv.put(value=self.atm_fb, timeout=1.0)  # write to correction PV
         else:
-            self.atm_fb_pv.put(value=0, timeout=1.0)  # if drift correction is turned off, zero out correction value
+            pass
         # additional print statement for rapid debugging
         self.debug_mode = self.debug_mode_pv.get(timeout=1.0)
         if (self.debug_mode == 1):  # keep debug mode turned off when using tester script
