@@ -65,7 +65,7 @@ while True:
         PCAV_temp_ary[0,] = epics.caget(HXR_PCAV_PV0)
         PCAV_temp_ary[1,] = epics.caget(HXR_PCAV_PV0)   # HXR PCAV 1 used for SXR feedback
         PCAV_VAL = np.average(PCAV_temp_ary)
-        if np.isNAN(PCAV_VAL):
+        if np.isnan(PCAV_VAL):
             PCAV_VAL = 0
             NAN_ALERT = 1
         else:
