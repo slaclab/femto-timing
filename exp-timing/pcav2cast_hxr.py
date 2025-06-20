@@ -7,10 +7,10 @@
 # phase shifter in the cable stabilizer system
 # To ensure right python env sourced
 # source /reg/g/pcds/engineering_tools/xpp/scripts/pcds_conda
-import epics as epics
-import numpy as np
-import time as time
+import time
 import datetime
+import epics
+import numpy as np
 
 ######################################
 # HXR PV definition
@@ -28,6 +28,7 @@ HXR_PCAV_AVG_PV = 'LAS:UNDH:FLOAT:06'   # Phase cavity average PV
 HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02' # Phase shifter PV write
 HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
 HXR_THRESH_PV = 'LAS:UNDH:FLOAT:50'    # error threshold PV
+HXR_ERR_DIFF_PV = 'LAS:UNDH:FLOAT:51'  # error difference PV
 
 # default initial values
 HXR_GAIN = 2  # 03/1/2024 cal
@@ -49,7 +50,7 @@ CTRL_SETPT = epics.caget(HXR_PCAV_PV0)
 time_err_ary = np.zeros((AVG_N,))
 PCAV_temp_ary = np.zeros(2,)
 
-print('Controller running')
+print('pcav2cast_sxr running test update 6/19/2025')
 
 # Main loop
 while True:
@@ -67,6 +68,8 @@ while True:
         if np.isNAN(PCAV_VAL):
             PCAV_VAL = 0
             NAN_ALERT = 1
+        else:
+            NAN_ALERT = 0
         time_err = np.around((CTRL_SETPT - PCAV_VAL), decimals=6)
         time_err_ary[h] = time_err
         time.sleep(0.1)
@@ -82,31 +85,31 @@ while True:
     time_err_ary_sort1 = time_err_ary_sort[1:-1]    # remove the outliers
     TIME_ERR_AVG = np.mean(time_err_ary_sort1)
     epics.caput(HXR_PCAV_AVG_PV, TIME_ERR_AVG)
-    
+
     if COUNTER == 0:
         TIME_ERR_DIFF = 0.01
     else:
         TIME_ERR_DIFF = TIME_ERR_AVG_PREV - TIME_ERR_AVG
-    print('average error')
-    print(TIME_ERR_AVG)
+    # print('average error')
+    # print(TIME_ERR_AVG)
     # cntl_temp = np.true_divide(TIME_ERR_AVG, HXR_GAIN)
     cntl_temp = np.multiply(TIME_ERR_AVG, HXR_GAIN)
     CTRL_DELTA = np.multiply(LOOP_KP, cntl_temp)
-    print('previous error')
-    print(TIME_ERR_AVG_PREV)
-    print('error difference')
-    print(TIME_ERR_DIFF)
+    print(f'Previous PCAV err: {TIME_ERR_AVG_PREV}')
+    # print('previous error')
+    # print(TIME_ERR_AVG_PREV)
+    print(f'PCAV err diff: {TIME_ERR_DIFF}')
+    # print('error difference')
+    # print(TIME_ERR_DIFF)
     HXR_FB_EN = epics.caget(HXR_FB_PV)  # get feedback enable PV
-    if (TIME_ERR_DIFF == 0) or (TIME_ERR_DIFF >= TIME_ERR_THRESH) or (HXR_FB_EN == 0):
+    if (TIME_ERR_DIFF == 0) or (abs(TIME_ERR_DIFF) >= TIME_ERR_THRESH) or (HXR_FB_EN == 0):
         CTRL_DELTA = 0
         print('feedback set to 0')
-    else:
-        print('feedback normal')
+    # else:
+    #     print('feedback normal')
     CTRL_OUT = CTRL_OUT + CTRL_DELTA
-    print('feedback value')
-    print(CTRL_OUT)
-    print('feedback delta')
-    print(CTRL_DELTA)
+    epics.caput(HXR_ERR_DIFF_PV, CTRL_DELTA)
+    print(f'Feedback delta: {CTRL_DELTA}')
     epics.caput(HXR_CAST_PS_PV_W, CTRL_OUT)
     TIME_ERR_AVG_PREV = TIME_ERR_AVG
     COUNTER = COUNTER + 1
