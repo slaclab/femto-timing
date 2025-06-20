@@ -35,7 +35,7 @@ SXR_GAIN = 1.1283  # the slope from plotting cast phase shifter to value read fr
 PAUSE_TIME = 5    # Let's give some time for the system to react
 CTRL_OUT = epics.caget(SXR_CAST_PS_PV_R)    # initial value of the phase shifter
 AVG_N = 5    # Taking 5 data samples to average and throw out outliers
-epics.caput(SXR_THRESH_PV, 1)  # set the error threshold to 1
+# epics.caput(SXR_THRESH_PV, 1)  # set the error threshold to 1
 SXR_FB_EN = epics.caget(SXR_FB_PV)
 COUNTER = 0
 epics.caput(HB_PV, COUNTER)
@@ -77,6 +77,8 @@ while True:
         if np.isnan(PCAV_VAL):
             PCAV_VAL = 0
             NAN_ALERT = 1
+        else:
+            NAN_ALERT = 0
         time_err = np.around((CTRL_SETPT - PCAV_VAL), decimals=6)
         time_err_ary[h] = time_err
         time.sleep(0.1)
