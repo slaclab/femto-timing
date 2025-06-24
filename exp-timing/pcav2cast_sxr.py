@@ -58,7 +58,7 @@ HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'  # Phase shifter PV write
 HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
 XPP_KP = 1.0
 
-print('pcav2cast_sxr running test update 5/13/2025')
+print('pcav2cast_sxr running test update 6/24/2025')
 
 # Main loop
 while True:
