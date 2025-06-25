@@ -69,7 +69,6 @@ class drift_correction():
         self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
         self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
         self.txt_prev = round(self.txt_pv.get(timeout=1.0), 1)
-        self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
         self.good_count = 0  # counter to track number of error values in dict
         self.bad_count = 0  # counter to track how many times filter thresholds have not been met
         self.sample_size = self.sample_size_pv.get(timeout=1.0)  # get user-set sample size
