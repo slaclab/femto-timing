@@ -23,6 +23,7 @@ class drift_correction():
         self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
         self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in (fs ?) - based on real ATM data
         self.txt_pv = Pv('LM2K2:MCS2:03:m10.RBV')  # TXT stage position PV for filtering
+        self.fb_direction_pv = Pv('LAS:UNDS:FLOAT:45')  # direction of the feedback correction
         self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
         self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
         self.on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
@@ -46,6 +47,7 @@ class drift_correction():
         self.flt_pos_fs_pv.connect(timeout=1.0)
         self.txt_pv.connect(timeout=1.0)
         self.flt_pos_offset_pv.connect(timeout=1.0)
+        self.fb_direction_pv.connect(timeout=1.0)
         self.fb_gain_pv.connect(timeout=1.0)
         self.sample_size_pv.connect(timeout=1.0)
         self.on_off_pv.connect(timeout=1.0)
@@ -122,9 +124,10 @@ class drift_correction():
         self.fwhm_pv.put(value=self.avg_fwhm, timeout=1.0)  # COMMENT THIS LINE IF TESTING
         self.flt_pos_fs_pv.put(value=self.avg_error, timeout=1.0)
         # apply correction
+        self.fb_direction = self.fb_direction_pv.get(timeout=1.0)  # pull correction direction
         self.fb_gain = self.fb_gain_pv.get(timeout=1.0)  # pull gain PV value
         self.on_off = self.on_off_pv.get(timeout=1.0)
-        self.correction = (self.avg_error / 1000000) * self.fb_gain  # scale from fs to ns and apply gain
+        self.correction = (self.avg_error / 1000000) * self.fb_direction * self.fb_gain  # scale from fs to ns and apply direction and gain
         self.atm_fb = self.atm_fb + self.correction  # ATM FB offset is a steady state offset (in other words, target time is not updated), so the feedback offset must be updated progressively
         if (self.on_off == 1) and ((abs(self.correction) < 0.0015)):  # check if drift correction has been turned on and limit corrections to 1.5 ps
             self.atm_fb_pv.put(value=self.atm_fb, timeout=1.0)  # write to correction PV
