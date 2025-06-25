@@ -21,7 +21,7 @@ class drift_correction():
         self.pos_fs_max_pv = Pv('LAS:UNDS:FLOAT:52')  # maximum allowable edge position in fs
         self.curr_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:54')  # position in fs of current edge
         self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
-        self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in (fs ?) - based on real ATM data
+        self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in fs - based on real ATM data
         self.txt_pv = Pv('LM2K2:MCS2:03:m10.RBV')  # TXT stage position PV for filtering
         self.fb_direction_pv = Pv('LAS:UNDS:FLOAT:45')  # direction of the feedback correction
         self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
