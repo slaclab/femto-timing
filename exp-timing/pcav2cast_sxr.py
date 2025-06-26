@@ -31,7 +31,7 @@ SXR_THRESH_PV = 'LAS:UNDS:FLOAT:50'    # error threshold PV
 SXR_CTRL_DELTA_PV = 'LAS:UNDS:FLOAT:51'  # error difference PV
 
 # init values
-SXR_GAIN = 1.1283  # the slope from plotting cast phase shifter to value read from PCAV
+SXR_GAIN = 1.1283  # slope from plotting cast phase shifter v. PCAV value 
 PAUSE_TIME = 5    # Let's give some time for the system to react
 CTRL_OUT = epics.caget(SXR_CAST_PS_PV_R)    # initial value of the phase shifter
 AVG_N = 5    # Taking 5 data samples to average and throw out outliers
@@ -39,6 +39,7 @@ AVG_N = 5    # Taking 5 data samples to average and throw out outliers
 SXR_FB_EN = epics.caget(SXR_FB_PV)
 COUNTER = 0
 epics.caput(HB_PV, COUNTER)
+TIME_ERR_AVG_PREV = 0
 epics.caput(SXR_NAN_PV, 0)
 epics.caput(SXR_NAN_PVDESC, 'No NaN read')
 NAN_ALERT = 0
@@ -58,7 +59,7 @@ HXR_CAST_PS_PV_W = 'LAS:UND:MMS:02'  # Phase shifter PV write
 HXR_CAST_PS_PV_R = HXR_CAST_PS_PV_W + '.RBV'    # Phase shifter PV readback
 XPP_KP = 1.0
 
-print('pcav2cast_sxr running test update 6/24/2025')
+print('pcav2cast_sxr running test update 6/25/2025')
 
 # Main loop
 while True:
@@ -68,6 +69,7 @@ while True:
     COUNTER = epics.caget(HB_PV)
     TIME_ERR_THRESH = epics.caget(SXR_THRESH_PV)  # error difference threshold
     XPP_KP = epics.caget(XPP_GAIN_PV)
+
     print(COUNTER)
     for h in range(0, AVG_N):
         PCAV_temp_ary[0,] = epics.caget(SXR_PCAV_PV1)   # One PCAV used for SXR feedback
@@ -88,22 +90,29 @@ while True:
     else:
         epics.caput(SXR_NAN_PV, NAN_ALERT)
         epics.caput(SXR_NAN_PVDESC, "No NaN")
-    # Calculate the average error 
+
+    # Calculate the average error
     time_err_ary_sort = np.sort(time_err_ary)
     time_err_ary_sort1 = time_err_ary_sort[1:-1]  # remove the outliers
     TIME_ERR_AVG = np.mean(time_err_ary_sort1)
     epics.caput(SXR_PCAV_AVG_PV, TIME_ERR_AVG)
+
+    if COUNTER == 0:
+        TIME_ERR_DIFF = 0.01
+    else:
+        TIME_ERR_DIFF = TIME_ERR_AVG_PREV - TIME_ERR_AVG
+
     # apply the feedback control
     cntl_temp = np.multiply(TIME_ERR_AVG, SXR_GAIN)
     CTRL_DELTA = np.multiply(LOOP_KP, cntl_temp)
     SXR_FB_EN = epics.caget(SXR_FB_PV)  # get feedback enable PV
     # don't do feedback if the error is too large or feedback is disabled
-    if (abs(TIME_ERR_AVG) >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
+    if (abs(TIME_ERR_DIFF) >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
         CTRL_DELTA = 0
         print('feedback set to 0')
     # else:
     #     print('feedback normal')
-    epics.caput(SXR_CTRL_DELTA_PV, CTRL_DELTA)
+    # If the XPP switch is on, we will use the HXR PCAV value to control the SXR CAST
     XPP_SWITCH_VAL = epics.caget(XPP_SWITCH_PV)
     if XPP_SWITCH_VAL != 0:
         hxr_cast_val = epics.caget(HXR_CAST_PS_PV_R)
@@ -111,10 +120,13 @@ while True:
         CTRL_OUT = np.multiply(hxr_cast_val, XPP_KP)
     else:
         CTRL_OUT = CTRL_OUT + CTRL_DELTA
-    print(f'TIME_ERR_AVG: {TIME_ERR_AVG}')  # for debug
+    epics.caput(SXR_CTRL_DELTA_PV, CTRL_DELTA)
+    # print debug values
+    print(f'TIME_ERR_AVG: {TIME_ERR_AVG}')
     print(f'CTRL_DELTA: {CTRL_DELTA}')
     print(f'CTRL_OUT: {CTRL_OUT}')
     epics.caput(SXR_CAST_PS_PV_W, CTRL_OUT)
+    TIME_ERR_AVG_PREV = TIME_ERR_AVG
     COUNTER = COUNTER + 1
     epics.caput(HB_PV, COUNTER)
     now = datetime.datetime.now()
