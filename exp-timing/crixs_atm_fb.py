@@ -1,4 +1,6 @@
 import time
+from collections import deque
+import numpy as np
 from psp.Pv import Pv
 
 class drift_correction():
@@ -23,6 +25,8 @@ class drift_correction():
         self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
         self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in fs - based on real ATM data
         self.txt_pv = Pv('LM2K2:MCS2:03:m10.RBV')  # TXT stage position PV for filtering
+        self.avg_mode_pv = Pv('LAS:UNDS:FLOAT:44')  # PV so user can select desired averaging mode
+        self.decay_factor_pv = Pv('LAS:UNDS:FLOAT:43')  # decay factor for decaying median filter
         self.fb_direction_pv = Pv('LAS:UNDS:FLOAT:45')  # direction of the feedback correction
         self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
         self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
@@ -46,19 +50,22 @@ class drift_correction():
         self.curr_flt_pos_fs_pv.connect(timeout=1.0)
         self.flt_pos_fs_pv.connect(timeout=1.0)
         self.txt_pv.connect(timeout=1.0)
+        self.avg_mode_pv.connect(timeout=1.0)
+        self.decay_factor_pv.connect(timeout=1.0)
         self.flt_pos_offset_pv.connect(timeout=1.0)
         self.fb_direction_pv.connect(timeout=1.0)
         self.fb_gain_pv.connect(timeout=1.0)
         self.sample_size_pv.connect(timeout=1.0)
         self.on_off_pv.connect(timeout=1.0)
         self.debug_mode_pv.connect(timeout=1.0)
+        # parameter and container initialization
+        self.ampl_vals = deque()  # dictionary to hold amplitude values for averaging
+        self.fwhm_vals = deque()  # dictionary to hold fwhm values for averaging
+        self.error_vals = deque()  # dictionary to hold error values for averaging
 
-
+    
     def correct(self):
         """Takes ATM waveform PV data, applies filtering to detemine valid error values, and applies a correction to laser locker HLA."""
-        self.ampl_vals = dict()  # dictionary to hold amplitude values for averaging
-        self.fwhm_vals = dict()  # dictionary to hold fwhm values for averaging
-        self.error_vals = dict()  # dictionary to hold error values for averaging
         self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
         self.atm_fb = self.atm_fb_pv.get(timeout=60.0)  # get current ATM FB offset
         self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
@@ -71,11 +78,10 @@ class drift_correction():
         self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
         self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
         self.txt_prev = round(self.txt_pv.get(timeout=1.0), 1)
-        self.good_count = 0  # counter to track number of error values in dict
         self.bad_count = 0  # counter to track how many times filter thresholds have not been met
         self.sample_size = self.sample_size_pv.get(timeout=1.0)  # get user-set sample size
-        # loop for adding error values to dictionary if it meets threshold conditions
-        while (self.good_count < self.sample_size):
+        # ============== loop for filling buffer ======================
+        while (len(self.error_vals) < self.sample_size):
             # get current PV values
             self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
             #self.atm_err0 = self.atm_err_ampl_pv.get(timeout = 1.0)  # COMMENT THIS LINE IF NOT TESTING
@@ -98,7 +104,7 @@ class drift_correction():
             self.curr_ampl_pv.put(value=self.atm_err[0], timeout=1.0)  # COMMENT THIS LINE IF TESTING
             self.curr_fwhm_pv.put(value=self.atm_err[3], timeout=1.0)  # COMMENT THIS LINE IF TESTING
             self.curr_flt_pos_fs_pv.put(value=self.curr_flt_pos_fs, timeout=1.0)  # COMMENT THIS LINE IF TESTING
-            # apply filtering, confirm fresh values, and add to dictionary
+            # ============= filtering ==============
             if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[3] > self.fwhm_min) and (self.atm_err[3] < self.fwhm_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs) and (round(self.txt_pv.get(timeout=1.0), 1) == self.txt_prev):  # COMMENT THIS LINE IF TESTING
             #if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err2 > self.pos_fs_min) and (self.atm_err2 < self.pos_fs_max) and (self.atm_err2 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl = self.atm_err[0]  # unpack ampl filter parameter - COMMENT THIS LINE IF TESTING
@@ -107,18 +113,51 @@ class drift_correction():
                 #self.ampl = self.atm_err0  # COMMENT THIS LINE IF NOT TESTING
                 #self.flt_pos_fs = self.atm_err2  # COMMENT THIS LINE IF NOT TESTING
                 # add valid amplitudes and edges to dictionary
-                self.ampl_vals[self.good_count] = self.ampl
-                self.fwhm_vals[self.good_count] = self.fwhm  # COMMENT THIS LINE IF TESTING
-                self.error_vals[self.good_count] = self.flt_pos_fs
-                self.good_count += 1
+                self.ampl_vals.append(self.ampl)
+                self.fwhm_vals.append(self.fwhm)  # COMMENT THIS LINE IF TESTING
+                self.error_vals.append(self.flt_pos_fs)
                 self.bad_count = 0
             else:
                 self.bad_count += 1
             self.txt_prev = round(self.txt_pv.get(timeout=1.0), 1)  # update previous txt position for filtering
-        # averaging
-        self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
-        self.avg_fwhm = sum(self.fwhm_vals.values()) / len(self.fwhm_vals)  # COMMENT THIS LINE IF TESTING
-        self.avg_error = sum(self.error_vals.values()) / len(self.error_vals)
+        # ============= averaging ===============
+        self.avg_mode = self.avg_mode_pv.get(timeout=1.0)
+        if (self.avg_mode == 1):  # block averaging
+            self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
+            self.avg_fwhm = sum(self.fwhm_vals.values()) / len(self.fwhm_vals)  # COMMENT THIS LINE IF TESTING
+            self.avg_error = sum(self.error_vals.values()) / len(self.error_vals)
+            # reset deques completely for next iteration
+            self.ampl_vals.clear()
+            self.fwhm_vals.clear()
+            self.error_vals.clear()
+        elif (self.avg_mode == 2):  # moving average
+            self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
+            self.avg_fwhm = sum(self.fwhm_vals.values()) / len(self.fwhm_vals)  # COMMENT THIS LINE IF TESTING
+            self.avg_error = sum(self.error_vals.values()) / len(self.error_vals)
+            # remove oldest element from deques
+            self.ampl_vals.popleft()
+            self.fwhm_vals.popleft()
+            self.error_vals.popleft()
+        else:  # decaying median filter
+            # first, calculate moving average for amplitude and FWHM
+            self.avg_ampl = sum(self.ampl_vals.values()) / len(self.ampl_vals)
+            self.avg_fwhm = sum(self.fwhm_vals.values()) / len(self.fwhm_vals)  # COMMENT THIS LINE IF TESTING
+            # then calculate decaying median edge position
+            self.decay_factor = self.decay_factor_pv.get(timeout=1.0)
+            self.weights = [self.decay_factor ** (self.sample_size - i - 1) for i in range(self.sample_size)]  # calculate weight of each element in deque
+            self.weighted_values = [(self.error_vals[i], self.weights[i]) for i in range(self.sample_size)]  # elements are paired with weights
+            self.sorted_values = sorted(self.weighted_values, key=lambda x: x[0])  # sort element/weight pairs by element value
+            self.cumulative_weights = np.cumsum([val[1] for val in self.sorted_values])  # calculate the cumulative weight
+            self.total_weight = self.cumulative_weights[-1]
+            self.target_weight = self.total_weight / 2
+            for value, cum_weight in zip([val[0] for val in self.sorted_values], self.cumulative_weights):  # loop through element/weight pairs until target weight reached
+                if cum_weight >= self.target_weight:
+                    self.avg_error = value
+            # remove oldest element from deques
+            self.ampl_vals.popleft()
+            self.fwhm_vals.popleft()
+            self.error_vals.popleft()
+        # ======= updates PVs & apply correction =================
         # write average filter parameter and error value to PVs for easier monitoring
         self.ampl_pv.put(value=self.avg_ampl, timeout=1.0)
         self.fwhm_pv.put(value=self.avg_fwhm, timeout=1.0)  # COMMENT THIS LINE IF TESTING
@@ -144,7 +183,7 @@ def run():
     try:
         while True:
             correction.correct()  # pull data and filter, then apply correction
-            time.sleep(1.0)  # keep loop from spinning too fast
+            time.sleep(0.1)  # keep loop from spinning too fast
     except KeyboardInterrupt:
         print("Script terminated by user.")
 
