@@ -25,6 +25,7 @@ class drift_correction():
         self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
         self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in fs - based on real ATM data
         self.txt_pv = Pv('LM2K2:MCS2:03:m10.RBV')  # TXT stage position PV for filtering
+        self.filter_state_pv = Pv('LAS:UNDS:FLOAT:42')  # indicates which filtering conditions are not met 
         self.avg_mode_pv = Pv('LAS:UNDS:FLOAT:44')  # PV so user can select desired averaging mode
         self.decay_factor_pv = Pv('LAS:UNDS:FLOAT:43')  # decay factor for decaying median filter
         self.fb_direction_pv = Pv('LAS:UNDS:FLOAT:45')  # direction of the feedback correction
@@ -50,6 +51,7 @@ class drift_correction():
         self.curr_flt_pos_fs_pv.connect(timeout=1.0)
         self.flt_pos_fs_pv.connect(timeout=1.0)
         self.txt_pv.connect(timeout=1.0)
+        self.filter_state_pv.connect(timeout=1.0)
         self.avg_mode_pv.connect(timeout=1.0)
         self.decay_factor_pv.connect(timeout=1.0)
         self.flt_pos_offset_pv.connect(timeout=1.0)
@@ -105,7 +107,17 @@ class drift_correction():
             self.curr_fwhm_pv.put(value=self.atm_err[3], timeout=1.0)  # COMMENT THIS LINE IF TESTING
             self.curr_flt_pos_fs_pv.put(value=self.curr_flt_pos_fs, timeout=1.0)  # COMMENT THIS LINE IF TESTING
             # ============= filtering ==============
-            if (self.atm_err[0] > self.ampl_min) and (self.atm_err[0] < self.ampl_max) and (self.atm_err[3] > self.fwhm_min) and (self.atm_err[3] < self.fwhm_max) and (self.curr_flt_pos_fs > self.pos_fs_min) and (self.curr_flt_pos_fs < self.pos_fs_max) and (self.flt_pos_fs != self.curr_flt_pos_fs) and (round(self.txt_pv.get(timeout=1.0), 1) == self.txt_prev):  # COMMENT THIS LINE IF TESTING
+            self.filter_state = 0  # 0: passes all filter conditions
+            if not (self.atm_err[0] > self.ampl_min): self.filter_state = 1  # edge amplitude too low
+            if not (self.atm_err[0] < self.ampl_max): self.filter_state = 2  # edge amplitude too high
+            if not (self.atm_err[3] > self.fwhm_min): self.filter_state = 3  # edge FWHM too low
+            if not (self.atm_err[3] < self.fwhm_max): self.filter_state = 4  # edge FWHM too
+            if not (self.curr_flt_pos_fs > self.pos_fs_min): self.filter_state = 5  # edge position too low
+            if not (self.curr_flt_pos_fs < self.pos_fs_max): self.filter_state = 6  # edge position too high
+            if not (self.flt_pos_fs != self.curr_flt_pos_fs): self.filter_state = 7  # edge position the same as last time
+            if not (round(self.txt_pv.get(timeout=1.0), 1) == self.txt_prev): self.filter_state = 8  # txt stage is moving
+            self.filter_state_pv.put(value=self.filter_state, timeout=1.0)  # update filter state monitoring PV
+            if (self.filter_state == 0):  # COMMENT THIS LINE IF TESTING
             #if (self.atm_err0 > self.ampl_min) and (self.atm_err0 < self.ampl_max) and (self.atm_err2 > self.pos_fs_min) and (self.atm_err2 < self.pos_fs_max) and (self.atm_err2 != self.flt_pos_fs):  # COMMENT THIS LINE IF NOT TESTING
                 self.ampl = self.atm_err[0]  # unpack ampl filter parameter - COMMENT THIS LINE IF TESTING
                 self.fwhm = self.atm_err[3]  # unpack fwhm filter parametet - COMMENT THIS LINE IF TESTING
