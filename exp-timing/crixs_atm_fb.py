@@ -25,6 +25,7 @@ class drift_correction():
         self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
         self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in fs - based on real ATM data
         self.txt_pv = Pv('LM2K2:MCS2:03:m10.RBV')  # TXT stage position PV for filtering
+        self.heartbeat_pv = Pv('LAS:UNDS:FLOAT:41')  # heartbeat to show script is running
         self.filter_state_pv = Pv('LAS:UNDS:FLOAT:42')  # indicates which filtering conditions are not met 
         self.avg_mode_pv = Pv('LAS:UNDS:FLOAT:44')  # PV so user can select desired averaging mode
         self.decay_factor_pv = Pv('LAS:UNDS:FLOAT:43')  # decay factor for decaying median filter
@@ -51,6 +52,7 @@ class drift_correction():
         self.curr_flt_pos_fs_pv.connect(timeout=1.0)
         self.flt_pos_fs_pv.connect(timeout=1.0)
         self.txt_pv.connect(timeout=1.0)
+        self.heartbeat_pv.connect(timeout=1.0)
         self.filter_state_pv.connect(timeout=1.0)
         self.avg_mode_pv.connect(timeout=1.0)
         self.decay_factor_pv.connect(timeout=1.0)
@@ -64,6 +66,7 @@ class drift_correction():
         self.ampl_vals = deque()  # dictionary to hold amplitude values for averaging
         self.fwhm_vals = deque()  # dictionary to hold fwhm values for averaging
         self.error_vals = deque()  # dictionary to hold error values for averaging
+        self.heartbeat_counter = 0 # init counter to update heartbeat PV
 
     
     def correct(self):
@@ -188,6 +191,9 @@ class drift_correction():
         self.debug_mode = self.debug_mode_pv.get(timeout=1.0)
         if (self.debug_mode == 1):  # keep debug mode turned off when using tester script
             print('Most recent correction value in fs: ', self.correction * 1000000)
+        # Update heartbeat
+        self.heartbeat_counter += 1
+        self.heartbeat_pv.put(value=self.heartbeat_counter, timeout=1.0)
 
 
 def run():
@@ -202,5 +208,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-            
-
