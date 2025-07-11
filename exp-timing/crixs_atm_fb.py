@@ -191,15 +191,15 @@ class drift_correction():
         self.debug_mode = self.debug_mode_pv.get(timeout=1.0)
         if (self.debug_mode == 1):  # keep debug mode turned off when using tester script
             print('Most recent correction value in fs: ', self.correction * 1000000)
-        # Update heartbeat
-        self.heartbeat_counter += 1
-        self.heartbeat_pv.put(value=self.heartbeat_counter, timeout=1.0)
-
 
 def run():
     correction = drift_correction()  # initialize
     try:
         while True:
+            # Update heartbeat
+            self.heartbeat_counter += 1
+            self.heartbeat_pv.put(value=self.heartbeat_counter, timeout=1.0)
+
             correction.correct()  # pull data and filter, then apply correction
             time.sleep(0.1)  # keep loop from spinning too fast
     except KeyboardInterrupt:
