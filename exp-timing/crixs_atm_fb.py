@@ -194,11 +194,12 @@ class drift_correction():
 
 def run():
     correction = drift_correction()  # initialize
+    heartbeat_counter = 0
     try:
         while True:
             # Update heartbeat
-            self.heartbeat_counter += 1
-            self.heartbeat_pv.put(value=self.heartbeat_counter, timeout=1.0)
+            heartbeat_counter += 1
+            correction.heartbeat_pv.put(value=heartbeat_counter, timeout=1.0)
 
             correction.correct()  # pull data and filter, then apply correction
             time.sleep(0.1)  # keep loop from spinning too fast
