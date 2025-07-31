@@ -34,34 +34,6 @@ class drift_correction():
         self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
         self.on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
         self.debug_mode_pv = Pv('LAS:UNDS:FLOAT:56')  # PV to turn debug mode on/off
-        # connect to PVs
-        self.atm_err_pv.connect(timeout=1.0)  # COMMENT THIS LINE IF TESTING
-        #self.atm_err_ampl_pv.connect(timeout=1.0)  # COMMENT THIS LINE IF NOT TESTING
-        #self.atm_err_flt_pos_fs_pv.connect(timeout=1.0)  # COMMENT THIS LINE IF NOT TESTING
-        self.atm_fb_pv.connect(timeout=1.0)
-        self.ampl_min_pv.connect(timeout=1.0)
-        self.ampl_max_pv.connect(timeout=1.0)
-        self.curr_ampl_pv.connect(timeout=1.0)
-        self.ampl_pv.connect(timeout=1.0)
-        self.fwhm_min_pv.connect(timeout=1.0)
-        self.fwhm_max_pv.connect(timeout=1.0)
-        self.curr_fwhm_pv.connect(timeout=1.0)
-        self.fwhm_pv.connect(timeout=1.0)
-        self.pos_fs_min_pv.connect(timeout=1.0)
-        self.pos_fs_max_pv.connect(timeout=1.0)
-        self.curr_flt_pos_fs_pv.connect(timeout=1.0)
-        self.flt_pos_fs_pv.connect(timeout=1.0)
-        self.txt_pv.connect(timeout=1.0)
-        self.heartbeat_pv.connect(timeout=1.0)
-        self.filter_state_pv.connect(timeout=1.0)
-        self.avg_mode_pv.connect(timeout=1.0)
-        self.decay_factor_pv.connect(timeout=1.0)
-        self.flt_pos_offset_pv.connect(timeout=1.0)
-        self.fb_direction_pv.connect(timeout=1.0)
-        self.fb_gain_pv.connect(timeout=1.0)
-        self.sample_size_pv.connect(timeout=1.0)
-        self.on_off_pv.connect(timeout=1.0)
-        self.debug_mode_pv.connect(timeout=1.0)
         # parameter and container initialization
         self.ampl_vals = deque()  # dictionary to hold amplitude values for averaging
         self.fwhm_vals = deque()  # dictionary to hold fwhm values for averaging
