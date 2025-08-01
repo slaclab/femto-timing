@@ -57,7 +57,14 @@ class drift_correction():
         self.fwhm_vals = deque()  # dictionary to hold fwhm values for averaging
         self.error_vals = deque()  # dictionary to hold error values for averaging
         self.heartbeat_counter = 0 # init counter to update heartbeat PV
-
+    
+    def pull_filter_limits(self):
+        self.ampl_min = self.ampl_min_pv.get(timeout=1.0)
+        self.ampl_max = self.ampl_max_pv.get(timeout=1.0)
+        self.fwhm_min = self.fwhm_min_pv.get(timeout=1.0)
+        self.fwhm_max = self.fwhm_max_pv.get(timeout=1.0)
+        self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
+        self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
     
     def correct(self):
         """Takes ATM waveform PV data, applies filtering to detemine valid error values, and applies a correction to laser locker HLA."""
@@ -69,12 +76,7 @@ class drift_correction():
         self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
         self.flt_pos_fs = (self.atm_err[2] * 1000) - self.flt_pos_offset  # COMMENT THIS LINE IF TESTING
         #self.flt_pos_fs = self.atm_err_flt_pos_fs_pv.get(timeout = 1.0)  # initial error - COMMENT THIS LINE IF NOT TESTING
-        self.ampl_min = self.ampl_min_pv.get(timeout=1.0)
-        self.ampl_max = self.ampl_max_pv.get(timeout=1.0)
-        self.fwhm_min = self.fwhm_min_pv.get(timeout=1.0)
-        self.fwhm_max = self.fwhm_max_pv.get(timeout=1.0)
-        self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
-        self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
+        self.pull_filter_limits()
         self.txt_prev = round(self.txt_pv.get(timeout=1.0), 1)
         self.bad_count = 0  # counter to track how many times filter thresholds have not been met
         self.sample_size = self.sample_size_pv.get(timeout=1.0)  # get user-set sample size
@@ -88,12 +90,7 @@ class drift_correction():
             # every ten shots, check if filtering thresholds have been updated
             if (self.bad_count > 9):
                 # pull current filtering thresholds
-                self.ampl_min = self.ampl_min_pv.get(timeout=1.0)
-                self.ampl_max = self.ampl_max_pv.get(timeout=1.0)
-                self.fwhm_min = self.fwhm_min_pv.get(timeout=1.0)
-                self.fwhm_max = self.fwhm_max_pv.get(timeout=1.0)
-                self.pos_fs_min = self.pos_fs_min_pv.get(timeout=1.0)
-                self.pos_fs_max = self.pos_fs_max_pv.get(timeout=1.0)
+                self.pull_filter_limits()
                 self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
                 self.bad_count = 0
             # update tracking PVs
