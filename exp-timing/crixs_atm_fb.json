@@ -1,4 +1,22 @@
 {
-    "tt_pv": "RIX:TIMETOOL:TTALL",
-    "atm_fb": "LAS:LHN:LLG2:02:PHASCTL:ATM_FBK_OFFSET"
+    "ampl_min_pv": "LAS:UNDS:FLOAT:63",
+    "ampl_max_pv": "LAS:UNDS:FLOAT:64",
+    "curr_ampl_pv": "LAS:UNDS:FLOAT:55",
+    "ampl_pv": "LAS:UNDS:FLOAT:60",
+    "fwhm_min_pv": "LAS:UNDS:FLOAT:49",
+    "fwhm_max_pv": "LAS:UNDS:FLOAT:48",
+    "curr_fwhm_pv": "LAS:UNDS:FLOAT:47",
+    "fwhm_pv": "LAS:UNDS:FLOAT:46",
+    "pos_fs_min_pv": "LAS:UNDS:FLOAT:53",
+    "pos_fs_max_pv": "LAS:UNDS:FLOAT:52",
+    "curr_flt_pos_fs_pv": "LAS:UNDS:FLOAT:54:",
+    "flt_pos_fs_pv": "LAS:UNDS:FLOAT:62",
+    "flt_pos_offset_pv": "LAS:UNDS:FLOAT:57",
+    "txt_pv": "LM2K2:MCS2:03:m10.RBV",
+    "filter_state_pv": "LAS:UNDS:FLOAT:42",
+    "avg_mode_pv": "LAS:UNDS:FLOAT:44",
+    "decay_factor_pv": "LAS:UNDS:FLOAT:43",
+    "fb_direction_pv": "LAS:UNDS:FLOAT:45",
+    "fb_gain_pv": "LAS:UNDS:FLOAT:65",
+    "sample_size_pv": "LAS:UNDS:FLOAT:66"
 }

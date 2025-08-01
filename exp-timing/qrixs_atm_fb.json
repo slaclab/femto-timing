@@ -1,0 +1,22 @@
+{
+    "ampl_min_pv": "LAS:UNDS:FLOAT:39",
+    "ampl_max_pv": "LAS:UNDS:FLOAT:38",
+    "curr_ampl_pv": "LAS:UNDS:FLOAT:37",
+    "ampl_pv": "LAS:UNDS:FLOAT:36",
+    "fwhm_min_pv": "LAS:UNDS:FLOAT:35",
+    "fwhm_max_pv": "LAS:UNDS:FLOAT:34",
+    "curr_fwhm_pv": "LAS:UNDS:FLOAT:33",
+    "fwhm_pv": "LAS:UNDS:FLOAT:32",
+    "pos_fs_min_pv": "LAS:UNDS:FLOAT:31",
+    "pos_fs_max_pv": "LAS:UNDS:FLOAT:30",
+    "curr_flt_pos_fs_pv": "LAS:UNDS:FLOAT:29",
+    "flt_pos_fs_pv": "LAS:UNDS:FLOAT:28",
+    "flt_pos_offset_pv": "LAS:UNDS:FLOAT:27",
+    "txt_pv": "LAS:UNDS:FLOAT:26",
+    "filter_state_pv": "LAS:UNDS:FLOAT:25",
+    "avg_mode_pv": "LAS:UNDS:FLOAT:24",
+    "decay_factor_pv": "LAS:UNDS:FLOAT:23",
+    "fb_direction_pv": "LAS:UNDS:FLOAT:22",
+    "fb_gain_pv": "LAS:UNDS:FLOAT:21",
+    "sample_size_pv": "LAS:UNDS:FLOAT:19"
+}   

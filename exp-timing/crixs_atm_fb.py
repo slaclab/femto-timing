@@ -1,37 +1,55 @@
 import time
 from collections import deque
 import numpy as np
+import json
 from psp.Pv import Pv
+
+class hutch_selection_changed(Exception):
+    """Exception to catch changes to the hutch selected by the user."""
+    pass
+
 
 class drift_correction():
     """Takes the ATM error PV, filters by edge amplitude, and applies an offset via the laser lockers HLA."""
     def __init__(self):
+        # load correction hutch config file
+        self.hutch_selector_pv = Pv('LAS:UNDS:FLOAT:40')  # value of 0 selects cRIXS, 1 selects qRIXS (any other value will default to cRIXS)
+        self.hutch_selector = self.hutch_selector_pv.get(timeout=1.0)
+        if (self.hutch_selector == 1):  # qRIXS
+            self.config = '/cds/group/laser/timing/femto-timing/dev/exp-timing/qrixs_atm_fb.json'
+        else:  # cRIXS
+            self.config = '/cds/group/laser/timing/femto-timing/dev/exp-timing/crixs_atm_fb.json'
+        try:
+            with open(self.config, 'r') as file:
+                self.hutch_config = json.load(file) # Load parameters of current locker from json file
+        except json.JSONDecodeError as e: # Check that json file syntax is correct
+            print('Invalid JSON syntax: '+e)
         # create PV objects
         self.atm_err_pv = Pv('RIX:TIMETOOL:TTALL')  # timetool waveform PV from the DAQ - COMMENT IF TESTING
         #self.atm_err_ampl_pv = Pv('LAS:UNDS:FLOAT:59')  # PV to hold dummy edge amplitude for testing - COMMENT IF NOT TESTING
         #self.atm_err_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:58')  # PV to hold dummy fs error for testing - COMMENT IF NOT TESTING
         self.atm_fb_pv = Pv('LAS:LHN:LLG2:02:PHASCTL:ATM_FBK_OFFSET')  # hook for ATM feedback in laser locker HLA
-        self.ampl_min_pv = Pv('LAS:UNDS:FLOAT:63')  # minimum allowable edge amplitude for correction
-        self.ampl_max_pv = Pv('LAS:UNDS:FLOAT:64')  # maximum allowable edge amplitude for correction
-        self.curr_ampl_pv = Pv('LAS:UNDS:FLOAT:55')  # edge amplitude for the current shot
-        self.ampl_pv = Pv('LAS:UNDS:FLOAT:60')  # average edge amplitude over sample period
-        self.fwhm_min_pv = Pv('LAS:UNDS:FLOAT:49')  # minimum allowable edge FWHM for correction
-        self.fwhm_max_pv = Pv('LAS:UNDS:FLOAT:48')  # maximum allowable edge FWHM for correction
-        self.curr_fwhm_pv = Pv('LAS:UNDS:FLOAT:47')  # edge FWHM for the current shot
-        self.fwhm_pv = Pv('LAS:UNDS:FLOAT:46')  # average edge FWHM over sample period
-        self.pos_fs_min_pv = Pv('LAS:UNDS:FLOAT:53')  # minimum allowable edge position in fs
-        self.pos_fs_max_pv = Pv('LAS:UNDS:FLOAT:52')  # maximum allowable edge position in fs
-        self.curr_flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:54')  # position in fs of current edge
-        self.flt_pos_fs_pv = Pv('LAS:UNDS:FLOAT:62')  # average position in fs over sample period
-        self.flt_pos_offset_pv = Pv('LAS:UNDS:FLOAT:57')  # offset in fs - based on real ATM data
-        self.txt_pv = Pv('LM2K2:MCS2:03:m10.RBV')  # TXT stage position PV for filtering
+        self.ampl_min_pv = str(self.hutch_config['ampl_min_pv'])  # minimum allowable edge amplitude for correction
+        self.ampl_max_pv = str(self.hutch_config['ampl_max_pv']) # maximum allowable edge amplitude for correction
+        self.curr_ampl_pv = str(self.hutch_config['curr_ampl_pv'])  # edge amplitude for the current shot
+        self.ampl_pv = str(self.hutch_config['ampl_ov'])  # average edge amplitude over sample period
+        self.fwhm_min_pv = str(self.hutch_config['fwhm_min_pv'])  # minimum allowable edge FWHM for correction
+        self.fwhm_max_pv = str(self.hutch_config['fwhm_max_pv'])  # maximum allowable edge FWHM for correction
+        self.curr_fwhm_pv = str(self.hutch_config['curr_fwhm_pv'])  # edge FWHM for the current shot
+        self.fwhm_pv = str(self.hutch_config['fwhm_pv'])  # average edge FWHM over sample period
+        self.pos_fs_min_pv = str(self.hutch_config['pos_fs_min_pv'])  # minimum allowable edge position in fs
+        self.pos_fs_max_pv = str(self.hutch_config['pos_fs_max_pv'])  # maximum allowable edge position in fs
+        self.curr_flt_pos_fs_pv = str(self.hutch_config['curr_flt_pos_fs_pv'])  # position in fs of current edge
+        self.flt_pos_fs_pv = str(self.hutch_config['flt_pos_fs_pv'])  # average position in fs over sample period
+        self.flt_pos_offset_pv = str(self.hutch_config['flt_pos_offset_pv'])  # offset in fs - based on real ATM data
+        self.txt_pv = str(self.hutch_config['txt_pv'])  # TXT stage position PV for filtering
         self.heartbeat_pv = Pv('LAS:UNDS:FLOAT:41')  # heartbeat to show script is running
-        self.filter_state_pv = Pv('LAS:UNDS:FLOAT:42')  # indicates which filtering conditions are not met 
-        self.avg_mode_pv = Pv('LAS:UNDS:FLOAT:44')  # PV so user can select desired averaging mode
-        self.decay_factor_pv = Pv('LAS:UNDS:FLOAT:43')  # decay factor for decaying median filter
-        self.fb_direction_pv = Pv('LAS:UNDS:FLOAT:45')  # direction of the feedback correction
-        self.fb_gain_pv = Pv('LAS:UNDS:FLOAT:65')  # gain of feedback loop
-        self.sample_size_pv = Pv('LAS:UNDS:FLOAT:66')  # number of edges to average over
+        self.filter_state_pv = str(self.hutch_config['filter_state_pv'])  # indicates which filtering conditions are not met 
+        self.avg_mode_pv = str(self.hutch_config['avg_mode_pv'])  # PV so user can select desired averaging mode
+        self.decay_factor_pv = str(self.hutch_config['decay_factor_pv'])  # decay factor for decaying median filter
+        self.fb_direction_pv = str(self.hutch_config['fb_direction_pv'])  # direction of the feedback correction
+        self.fb_gain_pv = str(self.hutch_config['fb_gain_pv'])  # gain of feedback loop
+        self.sample_size_pv = str(self.hutch_config['sample_size_pv'])  # number of edges to average over
         self.on_off_pv = Pv('LAS:UNDS:FLOAT:67')  # PV to turn drift correction on/off
         self.debug_mode_pv = Pv('LAS:UNDS:FLOAT:56')  # PV to turn debug mode on/off
         # parameter and container initialization
@@ -43,6 +61,9 @@ class drift_correction():
     
     def correct(self):
         """Takes ATM waveform PV data, applies filtering to detemine valid error values, and applies a correction to laser locker HLA."""
+        self.hutch_selector_new = self.hutch_selector_pv.get(timeout=1.0)
+        if (self.hutch_selector_new != self.hutch_selector):  # if a different hutch has been selected, re-initialize
+            raise hutch_selection_changed
         self.atm_err = self.atm_err_pv.get(timeout=60.0)  # COMMENT THIS LINE IF TESTING
         self.atm_fb = self.atm_fb_pv.get(timeout=60.0)  # get current ATM FB offset
         self.flt_pos_offset = self.flt_pos_offset_pv.get(timeout=1.0)  # pull current offset
@@ -169,12 +190,15 @@ def run():
     heartbeat_counter = 0
     try:
         while True:
-            # Update heartbeat
-            heartbeat_counter += 1
-            correction.heartbeat_pv.put(value=heartbeat_counter, timeout=1.0)
-
-            correction.correct()  # pull data and filter, then apply correction
-            time.sleep(0.1)  # keep loop from spinning too fast
+            try:
+                # Update heartbeat
+                heartbeat_counter += 1
+                correction.heartbeat_pv.put(value=heartbeat_counter, timeout=1.0)
+                correction.correct()  # pull data and filter, then apply correction
+                time.sleep(0.1)  # keep loop from spinning too fast
+            except hutch_selection_changed:
+                correction = drift_correction()  # re-initialize
+                correction.atm_fb_pv.put(value=0, timeout=1.0)  # zero out correction when changing hutches
     except KeyboardInterrupt:
         print("Script terminated by user.")
 
