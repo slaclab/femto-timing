@@ -9,7 +9,7 @@
     "fwhm_pv": "LAS:UNDS:FLOAT:46",
     "pos_fs_min_pv": "LAS:UNDS:FLOAT:53",
     "pos_fs_max_pv": "LAS:UNDS:FLOAT:52",
-    "curr_flt_pos_fs_pv": "LAS:UNDS:FLOAT:54:",
+    "curr_flt_pos_fs_pv": "LAS:UNDS:FLOAT:54",
     "flt_pos_fs_pv": "LAS:UNDS:FLOAT:62",
     "flt_pos_offset_pv": "LAS:UNDS:FLOAT:57",
     "txt_pv": "LM2K2:MCS2:03:m10.RBV",
