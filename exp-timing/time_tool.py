@@ -158,10 +158,10 @@ class time_tool():
             if abs(edge_mean) > self.Drift_Adjustment_Threshold:
                 old_val = float(self.Drift_Correct['Drift Correction Value'].get(timeout=1.0))
                 p_gain  = float(self.Drift_Correct['Drift Correction Signal'].get(timeout=1.0))
-                print(f'Old Drift Correction value = {old_val:.6f} ps')
                 edge_mean = edge_mean / 1000  # ps -> ns
                 new_val = p_gain * edge_mean + old_val
-                print(f'# New Drift Correction value = {new_val:.3f} ps')
+                print(f'Old Drift Correction value = {old_val:.6f} ns')
+                print(f'New Drift Correction value = {new_val:.6f} ns')
                 # new_val = new_val / 1000  # ps -> ns
                 self.Drift_Correct['Drift Correction Value'].put(new_val, wait=True, timeout=1.0)
                 time.sleep(1)
