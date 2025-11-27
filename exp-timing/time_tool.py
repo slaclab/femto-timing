@@ -16,10 +16,7 @@ SYSTEMS = {
     'CXI':  {'TTALL': 'CXI:TT:01:TTALL', 'DEV': 'LAS:FS5:VIT:',  'STAGE': 'CXI:LAS:MMN:09.MOVN', 'IPM': 'CXI:DG2:BMMON:SUM'},
 }
 
-TTALL_FIELDS: List[Tuple[int, str]] = [
-    (0, 'Pixel Pos'), (1, 'Edge Position'), (2, 'Amplitude'),
-    (3, '2nd Amplitude'), (4, 'Background ref'), (5, 'FWHM')
-]
+TTALL_FIELDS: List[Tuple[int, str]] = [ (0, 'Pixel Pos'), (1, 'Edge Position'), (2, 'Amplitude'), (3, '2nd Amplitude'), (4, 'Background ref'), (5, 'FWHM')]
 
 PARAM_DEFAULTS = {
     'IPM_Threshold': 500.0,
