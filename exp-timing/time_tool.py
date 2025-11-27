@@ -1,13 +1,12 @@
-# 251110 - Time tool code, try to make it more readable switch to epics library and tested with this code.
+# 251112 - Time tool code from epic.py, try to make it more readable switch to epics library and change parameters live.
 # time_tool.py
+import sys
 import time
 import numpy as np
-from epics import PV
-import sys
-from typing import Dict, Tuple, List
 import watchdog3
+from epics import PV
+from typing import Dict, Tuple, List
 
-# Configuration
 SYSTEMS = {
     'FS11': {'TTALL': 'XCS:TT:01:TTALL', 'DEV': 'LAS:FS11:VIT:', 'STAGE': 'XCS:LAS:MMN:01.MOVN', 'IPM': 'XCS:SB1:BMMON:SUM'},
     'FS14': {'TTALL': 'CXI:TT:01:TTALL', 'DEV': 'LAS:FS14:VIT:', 'STAGE': 'CXI:LAS:MMN:09.MOVN', 'IPM': 'CXI:DG2:BMMON:SUM'},
@@ -17,99 +16,132 @@ SYSTEMS = {
     'CXI':  {'TTALL': 'CXI:TT:01:TTALL', 'DEV': 'LAS:FS5:VIT:',  'STAGE': 'CXI:LAS:MMN:09.MOVN', 'IPM': 'CXI:DG2:BMMON:SUM'},
 }
 
-TTALL_FIELDS: List[Tuple[int, str]] = [(0, 'Pixel Pos'), (1, 'Edge Position'), (2, 'Amplitude'),
-    (3, '2nd Amplitude'), (4, 'Background ref'), (5, 'FWHM')]
+TTALL_FIELDS: List[Tuple[int, str]] = [
+    (0, 'Pixel Pos'), (1, 'Edge Position'), (2, 'Amplitude'),
+    (3, '2nd Amplitude'), (4, 'Background ref'), (5, 'FWHM')
+]
 
-# TimeTool Class
+PARAM_DEFAULTS = {
+    'IPM_Threshold': 500.0,
+    'Amplitude_Threshold': 0.02,
+    'Drift_Adjust_Threshold': 0.05,
+    'FWHM_Low': 30.0,
+    'FWHM_High': 250.0,
+    'Num_Events': 61.0,
+}
+PARAM_IDS = {
+    'IPM_Threshold':          14,
+    'Amplitude_Threshold':    15,
+    'Drift_Adjust_Threshold': 16,
+    'FWHM_Low':               17,
+    'FWHM_High':              18,
+    'Num_Events':             19,
+}
+
+def _f(v, d):  # safe float
+    try:
+        x = float(v)
+        return x if np.isfinite(x) else d
+    except Exception:
+        return d
+
 class TimeTool:
-    """Handles Time Tool operations for drift correction and measurement validation."""
+    """Time Tool with PV-driven thresholds (compact), Num_Events as float."""
 
     def __init__(self, system: str = 'FS14'):
-        # Thresholds
-        self.IPM_Threshold = 500.0
-        self.Amplitude_Threshold = 0.02
-        self.Drift_Adjust_Threshold = 0.05
-        self.FWHM_Low = 30.0
-        self.FWHM_High = 250.0
-        self.Num_Events = 61
-        self.Delay = 0.5
-        self.Time_Tool_Edges = np.zeros(self.Num_Events, dtype=float)
-
         cfg = SYSTEMS.get(system)
         if not cfg:
             raise ValueError(f'Unknown system: {system}')
         print(f'Starting {system} ...')
 
-        self._connect_pvs(cfg)
-        self.W = watchdog3.watchdog(self.drift_correct['Watchdog'])
+        self.cfg = cfg
+        self.Delay = 0.5
 
-    def _connect_pvs(self, cfg: Dict[str, str]):
-        """Connect to all required PVs."""
-        self.TTALL_PV = PV(cfg['TTALL']); self.TTALL_PV.wait_for_connection(timeout=1.0)
-        self.Stage_PV = PV(cfg['STAGE']); self.Stage_PV.wait_for_connection(timeout=1.0)
-        self.IPM_PV = PV(cfg['IPM']); self.IPM_PV.wait_for_connection(timeout=1.0)
-        self.TT_Script_EN = PV(cfg['DEV'] + 'matlab:31'); self.TT_Script_EN.wait_for_connection(timeout=1.0)
+        # Core PVs
+        self.TTALL_PV   = PV(cfg['TTALL']); self.TTALL_PV.wait_for_connection(1.0)
+        self.Stage_PV   = PV(cfg['STAGE']); self.Stage_PV.wait_for_connection(1.0)
+        self.IPM_PV     = PV(cfg['IPM']);   self.IPM_PV.wait_for_connection(1.0)
+        self.TT_Drift_EN = PV(cfg['DEV'] + 'TT_DRIFT_ENABLE'); self.TT_Drift_EN.wait_for_connection(1.0)
+        self.TT_Script_EN = PV(cfg['DEV'] + 'matlab:31'); self.TT_Script_EN.wait_for_connection(1.0)
 
-        # Drift correction PVs
+        # Status & control PVs
+        dev = cfg['DEV']
         bases = {
-            'Watchdog': cfg['DEV']+'WATCHDOG',
-            'Pixel Pos': cfg['DEV']+'PIX',
-            'Edge Position': cfg['DEV']+'FS',
-            'Amplitude': cfg['DEV']+'AMP',
-            '2nd Amplitude': cfg['DEV']+'AMP_SEC',
-            'Background ref': cfg['DEV']+'REF',
-            'FWHM': cfg['DEV']+'FWHM',
-            'Stage Moving?': cfg['DEV']+'STAGE',
-            'IPM': cfg['DEV']+'IPM',
-            'Drift Correction Signal': cfg['DEV']+'DRIFT_CORRECT_SIG',
-            'Drift Correction Value': cfg['DEV']+'DRIFT_CORRECT_VAL',
-            'IPM Good?': cfg['DEV']+'matlab:11',
-            'Amplitude Good?': cfg['DEV']+'matlab:12',
-            'FWHM Good?': cfg['DEV']+'matlab:13',
-            'Good TT Measurement?': cfg['DEV']+'matlab:14',
+            'Watchdog': dev+'WATCHDOG', 'Pixel Pos': dev+'PIX', 'Edge Position': dev+'FS',
+            'Amplitude': dev+'AMP', '2nd Amplitude': dev+'AMP_SEC', 'Background ref': dev+'REF',
+            'FWHM': dev+'FWHM', 'Stage Moving?': dev+'STAGE', 'IPM': dev+'IPM',
+            'Drift Correction Signal': dev+'DRIFT_CORRECT_SIG',
+            'Drift Correction Value': dev+'DRIFT_CORRECT_VAL',
+            'IPM Good?': dev+'matlab:10', 'Amplitude Good?': dev+'matlab:11',
+            'FWHM Good?': dev+'matlab:12', 'Good Measurement?': dev+'matlab:13',
         }
+        self.drift: Dict[str, PV] = {k: PV(v) for k, v in bases.items()}
+        for pv in self.drift.values(): pv.wait_for_connection(1.0)
 
-        self.drift_correct: Dict[str, PV] = {}
-        for name, base in bases.items():
-            pv = PV(base); pv.wait_for_connection(timeout=1.0)
-            self.drift_correct[name] = pv
+        # Parameter PVs (push defaults if unset)
+        self.param_pvs: Dict[str, PV] = {}
+        for name, idx in PARAM_IDS.items():
+            pv = PV(f"{dev}matlab:{idx}")
+            pv.wait_for_connection(1.0)
+            self.param_pvs[name] = pv
+            if pv.get(timeout=0.2) == 0:
+                pv.put(PARAM_DEFAULTS[name], wait=False)
+
+        # Load parameters and init buffers / watchdog
+        self._read_params()
+        num_events_i = max(1, int(round(self.Num_Events)))  # <- cast here
+        self.Time_Tool_Edges = np.zeros(num_events_i, float)
+        self.W = watchdog3.watchdog(self.drift['Watchdog'])
+
+    def _read_params(self):
+        """Refresh parameters from PVs (with safe float fallbacks); Num_Events stays float."""
+        g = lambda k: self.param_pvs[k].get(timeout=0.5)
+        self.IPM_Threshold          = _f(g('IPM_Threshold'),          PARAM_DEFAULTS['IPM_Threshold'])
+        self.Amplitude_Threshold    = _f(g('Amplitude_Threshold'),    PARAM_DEFAULTS['Amplitude_Threshold'])
+        self.Drift_Adjust_Threshold = _f(g('Drift_Adjust_Threshold'), PARAM_DEFAULTS['Drift_Adjust_Threshold'])
+        self.FWHM_Low               = _f(g('FWHM_Low'),               PARAM_DEFAULTS['FWHM_Low'])
+        self.FWHM_High              = _f(g('FWHM_High'),              PARAM_DEFAULTS['FWHM_High'])
+        self.Num_Events             = _f(g('Num_Events'),             PARAM_DEFAULTS['Num_Events'])  # <- float
 
     def read_write(self):
-        """Main loop for reading PVs and applying drift correction."""
-        self.TT_Script_EN.get(timeout=1.0)
-        if self.TT_Script_EN.value != 1:
+        """Main loop: read PVs, validate, accumulate, correct drift."""
+        if self.TT_Script_EN.get(timeout=1.0) != 1:
             return
 
-        print(f'{time.strftime("%x %X")} - Time Tool Script Enabled \n')
-        edge_count = 0
-        prev_pix_val = 0
-        last_good = time.monotonic()
-        wd_times = last_good
+        # allow live tuning
+        self._read_params()
+        num_events_i = max(1, int(round(self.Num_Events)))  # <- cast when using
+        if self.Time_Tool_Edges.size != num_events_i:
+            self.Time_Tool_Edges = np.zeros(num_events_i, float)
 
-        while edge_count < self.Num_Events:
+        print(f'{time.strftime("%x %X")} - Time Tool Script Enabled \n')
+        edge_count, prev_pix_val = 0, 0
+        last_good = wd_t = time.monotonic()
+
+        while edge_count < num_events_i:  # <- integer loop bound
             ttall = self.TTALL_PV.get(timeout=1.0)
             stage = self.Stage_PV.get(timeout=1.0)
-            ipm = self.IPM_PV.get(timeout=1.0)
+            ipm   = self.IPM_PV.get(timeout=1.0)
 
-            # Update PVs
+            # publish raw values
             for idx, name in TTALL_FIELDS:
-                self.drift_correct[name].put(float(ttall[idx]), wait=True, timeout=1.0)
-            self.drift_correct['Stage Moving?'].put(float(stage), wait=True, timeout=1.0)
-            self.drift_correct['IPM'].put(float(ipm), wait=True, timeout=1.0)
+                self.drift[name].put(float(ttall[idx]), wait=True, timeout=1.0)
+            self.drift['Stage Moving?'].put(float(stage), wait=True, timeout=1.0)
+            self.drift['IPM'].put(float(ipm), wait=True, timeout=1.0)
 
-            # Validate
-            ipm_ok = ipm > self.IPM_Threshold
-            amp_ok = ttall[2] > self.Amplitude_Threshold
-            pix_ok = ttall[0] != prev_pix_val and ttall[0] != 0
+            # quality checks
+            ipm_ok  = ipm > self.IPM_Threshold
+            amp_ok  = ttall[2] > self.Amplitude_Threshold
+            pix_ok  = ttall[0] != prev_pix_val and ttall[0] != 0
             fwhm_ok = self.FWHM_Low < ttall[5] < self.FWHM_High
             stage_ok = not bool(stage)
-            good = all([ipm_ok, amp_ok, pix_ok, fwhm_ok, stage_ok])
+            good = ipm_ok and amp_ok and pix_ok and fwhm_ok and stage_ok
 
-            # Update flags
-            self.drift_correct['IPM Good?'].put(int(ipm_ok), wait=True, timeout=1.0)
-            self.drift_correct['Amplitude Good?'].put(int(amp_ok), wait=True, timeout=1.0)
-            self.drift_correct['FWHM Good?'].put(int(fwhm_ok), wait=True, timeout=1.0)
-            self.drift_correct['Good TT Measurement?'].put(int(good), wait=True, timeout=1.0)
+            # flags
+            self.drift['IPM Good?'].put(int(ipm_ok), wait=True, timeout=1.0)
+            self.drift['Amplitude Good?'].put(int(amp_ok), wait=True, timeout=1.0)
+            self.drift['FWHM Good?'].put(int(fwhm_ok), wait=True, timeout=1.0)
+            self.drift['Good Measurement?'].put(int(good), wait=True, timeout=1.0)
 
             if good:
                 edge = float(ttall[1])
@@ -120,33 +152,33 @@ class TimeTool:
                 last_good = time.monotonic()
 
             if time.monotonic() - last_good > 60:
-                print(f"\033[FNo Good Measurement Over One Minute. Status -> IPM:{ipm_ok}, Amp:{amp_ok}, FWHM:{fwhm_ok}, Pix:{pix_ok}, Stage:{stage_ok}")
+                print(f"\033[FNo Good Measurement Over One Minute. "
+                      f"Status -> IPM:{ipm_ok}, Amp:{amp_ok}, FWHM:{fwhm_ok}, Pix:{pix_ok}, Stage:{stage_ok}")
                 break
 
-            if time.monotonic() - wd_times > 0.5:
+            if time.monotonic() - wd_t > 0.5:
                 self.W.check()
-                wd_times += 0.5
+                wd_t += 0.5
             time.sleep(0.01)
 
-        if edge_count == self.Num_Events:
+        if edge_count == num_events_i:  # <- compare with int
             self._apply_drift_correction()
 
     def _apply_drift_correction(self):
-        """Apply drift correction if needed."""
-        edge_mean = np.mean(self.Time_Tool_Edges)
-        print(f'Mean of Edges = {edge_mean:.6f} ps')
-
-        if abs(edge_mean) > self.Drift_Adjust_Threshold:
-            old_val = self.drift_correct['Drift Correction Value'].get(timeout=1.0)
-            p_gain = self.drift_correct['Drift Correction Signal'].get(timeout=1.0)
-            new_val = -p_gain * (edge_mean / 1000)  # ps -> ns
-            # new_val = old_val - p_gain * (edge_mean / 1000)
-            print(f'Old Drift Correction = {old_val:.6f} ns, New = {new_val:.6f} ns')
-            self.drift_correct['Drift Correction Value'].put(new_val, wait=True, timeout=1.0)
+        mean_ps = float(np.mean(self.Time_Tool_Edges))# - 0.5 # Middle of the time tool is 0.5?
+        print(f'Mean of Edges = {mean_ps:.6f} ps')
+        if self.TT_Drift_EN.get(timeout=1.0) != 1:
+            return
+        if abs(mean_ps) > self.Drift_Adjust_Threshold:
+            old_ns = self.drift['Drift Correction Value'].get(timeout=1.0)
+            p_gain = self.drift['Drift Correction Signal'].get(timeout=1.0)
+            # new_ns = -p_gain * (mean_ps / 1000.0)  # ps -> ns
+            new_ns = old_ns + p_gain * (mean_ps / 1000.0)
+            print(f'Old Drift Correction = {old_ns:.6f} ns, New = {new_ns:.6f} ns')
+            self.drift['Drift Correction Value'].put(new_ns, wait=True, timeout=1.0)
         else:
-            print(f'Mean of Edges ({abs(edge_mean):.4f}) < Adjustment Threshold ({self.Drift_Adjust_Threshold}). No Correction Applied.')
+            print(f'Mean of Edges ({abs(mean_ps):.4f}) < Adjustment Threshold ({self.Drift_Adjust_Threshold}). No Correction Applied.')
 
-# Main Entry
 def run():
     system = sys.argv[1] if len(sys.argv) > 1 else 'FS14'
     tool = TimeTool(system)
