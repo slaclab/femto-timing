@@ -170,7 +170,7 @@ class TimeTool:
             old_ns = self.drift['Drift Correction Value'].get(timeout=1.0)
             p_gain = self.drift['Drift Correction Signal'].get(timeout=1.0)
             # new_ns = -p_gain * (mean_ps / 1000.0)  # ps -> ns
-            new_ns = old_ns + p_gain * (mean_ps / 1000.0)
+            new_ns = old_ns - p_gain * (mean_ps / 1000.0)
             print(f'Old Drift Correction = {old_ns:.6f} ns, New = {new_ns:.6f} ns')
             self.drift['Drift Correction Value'].put(new_ns, wait=True, timeout=1.0)
         else:
