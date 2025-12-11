@@ -2,7 +2,7 @@
     "nm": "MFX",
     "base": "LAS:FS45:",
     "laser_trigger": "EVR:LAS:MFX:01:TRIG0:TDES",
-    "drift_correction_dir": -1,
+    "drift_correction_dir": 1,
     "use_drift_correction": true,
     "use_dither": false,
     "bucket_correction_delay": "LAS:FS45:VIT:BUCKET_CORRECT_DLY"
