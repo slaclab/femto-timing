@@ -29,6 +29,7 @@ case $base in
    py-fstiming-tt)
       source /reg/g/pcds/setup/epicsenv-3.14.12.sh
       source /cds/group/pcds/pyps/conda/pcds_conda
+      python -V
       script=time_tool.py
       export MPLCONFIGDIR=/reg/d/iocData/fstiming-tt
       ;;
