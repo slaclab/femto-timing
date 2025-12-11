@@ -186,6 +186,7 @@ def run():
             tool.read_write()
         except Exception as e:
             print(f'Crashed: {e}, restarting')
+            time.sleep(90)
             tool = TimeTool(system)
             if tool.W.error:
                 return
