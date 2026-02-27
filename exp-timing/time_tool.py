@@ -1,4 +1,4 @@
-# 2602 - time_tool.py
+# 2602 - Drift Correction Script for LCLS-I
 import sys
 import time
 import numpy as np
