@@ -1,4 +1,4 @@
-# 2602 - Drift Correction Script for LCLS-I
+# 2602 - time_tool.py
 import sys
 import time
 import numpy as np
@@ -99,8 +99,6 @@ class TimeTool:
         print(f'{time.strftime("%x %X")} - Time Tool for {system} Started ... \n')
 
     def read_write(self):
-        #if self.TT_Script_EN.get(timeout=1.0) != 1:
-        #    return
 
         # Tunables inline (no defaults dict)
         self.Drift_Adjust_Threshold = _f(self.drift['Drift_Adjust_Threshold'].get(timeout=0.5), 0.0)
@@ -181,9 +179,10 @@ class TimeTool:
         print(f'Mean of Edges = {mean:.6f}, Mean of Edges - Offset = {mean_ps:.6f} ps, Standard Deviation = {1000*std_dev_ps:.1f} fs \n')
         self.drift['Drift_Ave_Edge_Position'].put(mean, wait=True, timeout=1.0)                # write mean edge position (ps)
         self.drift['Drift_Std_Dev_Edge_Position'].put(std_dev_ps, wait=True, timeout=1.0)            # write std dev edge position (ps)
-        # if self.TT_Drift_EN.get(timeout=1.0) != 1:
-        if self.TT_Script_EN.get(timeout=1.0) != 1:
-                return
+        # if self.TT_Drift_EN.get(timeout=1.0)  != 1:
+        # if self.TT_Script_EN.get(timeout=1.0) != 1:
+        if self.TT_Drift_EN.get(timeout=1.0) != 1 or self.TT_Script_EN.get(timeout=1.0) != 1:
+            return
 
         if abs(mean_ps) > self.Drift_Adjust_Threshold:
             old_ns = self.drift['Drift Correction Value'].get(timeout=1.0)
