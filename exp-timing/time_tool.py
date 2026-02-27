@@ -1,4 +1,4 @@
-# time_tool.py
+# 2602 - time_tool.py
 import sys
 import time
 import numpy as np
@@ -7,12 +7,14 @@ from epics import PV
 from typing import Dict, Tuple, List
 
 SYSTEMS = {
-    'FS11': {'TTALL': 'XCS:TT:01:TTALL', 'DEV': 'LAS:FS11:VIT:', 'STAGE': 'XCS:LAS:MMN:01.MOVN', 'IPM': 'XCS:SB1:BMMON:SUM'},
-    'FS14': {'TTALL': 'XCS:TT:01:TTALL', 'DEV': 'LAS:FS14:VIT:', 'STAGE': 'XCS:LAS:MMN:01.MOVN', 'IPM': 'XCS:SB1:BMMON:SUM'},
-    'XPP':  {'TTALL': 'XCS:TT:01:TTALL', 'DEV': 'LAS:FS3:VIT:',  'STAGE': 'XPP:LAS:MMN:16.MOVN', 'IPM': 'XPP:SB2:BMMON:SUM'},
-    'XCS':  {'TTALL': 'XCS:TT:01:TTALL', 'DEV': 'LAS:FS4:VIT:',  'STAGE': 'XCS:LAS:MMN:01.MOVN', 'IPM': 'XCS:SB1:BMMON:SUM'},
-    'MFX':  {'TTALL': 'MFX:TT:01:TTALL', 'DEV': 'LAS:FS45:VIT:', 'STAGE': 'MFX:LAS:MMN:06.MOVN', 'IPM': 'MFX:DG2:BMMON:SUM'},
-    'CXI':  {'TTALL': 'CXI:TT:01:TTALL', 'DEV': 'LAS:FS5:VIT:',  'STAGE': 'CXI:LAS:MMN:09.MOVN', 'IPM': 'CXI:DG2:BMMON:SUM'},
+    'FS11': {'TTALL': 'XCS:TT:01:TTALL',     'DEV': 'LAS:FS11:VIT:', 'STAGE': 'XCS:LAS:MMN:01.MOVN', 'IPM': 'XCS:SB1:BMMON:SUM', 'SHUTTER': 'PPS:FEH1:5:S5STPRSUM'},
+    'FS14': {'TTALL': 'XCS:TT:01:TTALL',     'DEV': 'LAS:FS14:VIT:', 'STAGE': 'XCS:LAS:MMN:01.MOVN', 'IPM': 'XCS:SB1:BMMON:SUM', 'SHUTTER': 'PPS:FEH1:4:S4STPRSUM'},
+    'FS45': {'TTALL': 'MFX:ALV:04:TT:TTALL', 'DEV': 'LAS:FS14:VIT:', 'STAGE': 'MFX:LAS:MMN:06.MOVN', 'IPM': 'MFX:DG2:BMMON:SUM', 'SHUTTER': 'MFX:DIA:MMS:07:DF'},
+    'FS15': {'TTALL': 'CXI:TT:01:TTALL',     'DEV': 'LAS:FS14:VIT:', 'STAGE': 'CXI:LAS:MMN:09.MOVN', 'IPM': 'CXI:DG2:BMMON:SUM', 'SHUTTER': 'PPS:FEH1:5:S5STPRSUM'},
+    'XPP':  {'TTALL': 'XCS:TT:01:TTALL',     'DEV': 'LAS:FS3:VIT:',  'STAGE': 'XPP:LAS:MMN:16.MOVN', 'IPM': 'XPP:SB2:BMMON:SUM', 'SHUTTER': 'PPS:FEH1:5:S5STPRSUM'},
+    'XCS':  {'TTALL': 'XCS:TT:01:TTALL',     'DEV': 'LAS:FS4:VIT:',  'STAGE': 'XCS:LAS:MMN:01.MOVN', 'IPM': 'XCS:SB1:BMMON:SUM', 'SHUTTER': 'PPS:FEH1:4:S4STPRSUM'},
+    'MFX':  {'TTALL': 'MFX:ALV:04:TT:TTALL', 'DEV': 'LAS:FS45:VIT:', 'STAGE': 'MFX:LAS:MMN:06.MOVN', 'IPM': 'MFX:DG2:BMMON:SUM', 'SHUTTER': 'MFX:DIA:MMS:07:DF'},
+    'CXI':  {'TTALL': 'CXI:TT:01:TTALL',     'DEV': 'LAS:FS5:VIT:',  'STAGE': 'CXI:LAS:MMN:09.MOVN', 'IPM': 'CXI:DG2:BMMON:SUM', 'SHUTTER': 'PPS:FEH1:5:S5STPRSUM'},
 }
 
 TTALL_FIELDS: List[Tuple[int, str]] = [
@@ -28,8 +30,7 @@ def _f(v, d):
         return d
 
 class TimeTool:
-    """Time Tool using EPICS '.LOW' / '.HIGH' limits embedded in bases; PID drift compensation; Num_Events as float."""
-
+    """Time Tool using EPICS '.LOW' / '.HIGH' limits embedded in bases; PID drift compensation."""
     def __init__(self, system: str = 'FS14'):
         cfg = SYSTEMS.get(system)
         if not cfg:
@@ -41,10 +42,11 @@ class TimeTool:
         self.Wait = 60
 
         # Core PVs
-        self.TTALL_PV    = PV(cfg['TTALL']); self.TTALL_PV.wait_for_connection(1.0)
-        self.Stage_PV    = PV(cfg['STAGE']); self.Stage_PV.wait_for_connection(1.0)
-        self.IPM_PV      = PV(cfg['IPM']);   self.IPM_PV.wait_for_connection(1.0)
-        self.TT_Drift_EN = PV(cfg['DEV'] + 'TT_DRIFT_ENABLE'); self.TT_Drift_EN.wait_for_connection(1.0)
+        self.TTALL_PV     = PV(cfg['TTALL']); self.TTALL_PV.wait_for_connection(1.0)
+        self.Stage_PV     = PV(cfg['STAGE']); self.Stage_PV.wait_for_connection(1.0)
+        self.IPM_PV       = PV(cfg['IPM']);   self.IPM_PV.wait_for_connection(1.0)
+        self.Shutter_PV   = PV(cfg['SHUTTER']); self.Shutter_PV.wait_for_connection(1.0)
+        self.TT_Drift_EN  = PV(cfg['DEV'] + 'TT_DRIFT_ENABLE'); self.TT_Drift_EN.wait_for_connection(1.0)
         self.TT_Script_EN = PV(cfg['DEV'] + 'matlab:31'); self.TT_Script_EN.wait_for_connection(1.0)
 
         # Status, flags, tunables, limits, and PID gains embedded in bases
@@ -55,7 +57,6 @@ class TimeTool:
             'Edge Position': dev+'FS',
             'Edge_LOW': dev+'FS.LOW',
             'Edge_HIGH': dev+'FS.HIGH',
-            'Ave_Edge_Position':      dev+'matlab:30',  # NEW: publish mean edge position (ps)
             'Amplitude': dev+'AMP',
             'Amplitude_LOW': dev+'AMP.LOW',
             'Amplitude_HIGH': dev+'AMP.HIGH',
@@ -74,19 +75,18 @@ class TimeTool:
             'D Gain': dev+'matlab:03',
             # Drift correction value (actuator)
             'Drift Correction Value': dev+'DRIFT_CORRECT_VAL',
-            # Flags
-            'IPM Good?': dev+'matlab:10',
-            'Amplitude Good?': dev+'matlab:11',
-            'FWHM Good?': dev+'matlab:12',
-            'Good Measurement?': dev+'matlab:13',
             # Tunables
-            'Drift_Adjust_Threshold': dev+'matlab:16',
-            'Num_Events':             dev+'matlab:19',
+            'Drift_Edge_Offset':            dev+'matlab:15',
+            'Drift_Adjust_Threshold':       dev+'matlab:16',
+            'Drift_Std_Dev_Edge_Position':  dev+'matlab:17',
+            'Drift_Ave_Edge_Position':      dev+'matlab:18',
+            'Drift_Number_Events':          dev+'matlab:19',
             # (legacy) 'Drift Correction Signal' no longer used
             'Drift Correction Signal': dev+'DRIFT_CORRECT_SIG',
         }
         self.drift: Dict[str, PV] = {k: PV(v) for k, v in bases.items()}
         for pv in self.drift.values(): pv.wait_for_connection(1.0)
+        self.drift['Watchdog'].put(0, timeout=1.0, wait=True)         # Restart Watchdog counts
 
         # Buffers / watchdog / PID states
         self.Time_Tool_Edges = np.zeros(1, float)  # will resize on first read
@@ -96,16 +96,17 @@ class TimeTool:
         self.prev_error_ns = 0.0
         self._last_pid_t = time.monotonic()
         self.prev_pix_val = 0.0
+        print(f'{time.strftime("%x %X")} - Time Tool for {system} Started ... \n')
 
     def read_write(self):
-        """Main loop with .LOW/.HIGH limits from bases, accumulate edges, then PID drift-correct."""
-        if self.TT_Script_EN.get(timeout=1.0) != 1:
-            return
+        #if self.TT_Script_EN.get(timeout=1.0) != 1:
+        #    return
 
         # Tunables inline (no defaults dict)
         self.Drift_Adjust_Threshold = _f(self.drift['Drift_Adjust_Threshold'].get(timeout=0.5), 0.0)
-        self.Num_Events             = _f(self.drift['Num_Events'].get(timeout=0.5), 1.0)
-        num_events_i = max(1, int(round(self.Num_Events)))
+        self.Drift_Edge_Offset      = _f(self.drift['Drift_Edge_Offset'].get(timeout=0.5), 0.0)
+        self.Drift_Num_Events       = _f(self.drift['Drift_Number_Events'].get(timeout=0.5), 1.0)
+        num_events_i = max(1, int(round(self.Drift_Num_Events)))
         if self.Time_Tool_Edges.size != num_events_i:
             self.Time_Tool_Edges = np.zeros(num_events_i, float)
 
@@ -121,15 +122,15 @@ class TimeTool:
 
         edge_count = 0
         last_good = wd_t = time.monotonic()
-        print(f'{time.strftime("%x %X")} - Time Tool Script Enabled \n')
+        #print(f'{time.strftime("%x %X")} - Time Tool Script Enabled \n')
 
         while edge_count < num_events_i:
-            ttall = self.TTALL_PV.get(timeout=1.0)
-            stage = self.Stage_PV.get(timeout=1.0)
-            ipm   = self.IPM_PV.get(timeout=1.0)
+            ttall   = self.TTALL_PV.get(timeout=1.0)
+            stage   = self.Stage_PV.get(timeout=1.0)
+            ipm     = self.IPM_PV.get(timeout=1.0)
+            shutter = self.Shutter_PV.get(timeout=1.0)
 
-            # unpack TTALL
-            pix, edge_pos, amp, amp2, bkg, fwhm = map(float, (ttall[0], ttall[1], ttall[2], ttall[3], ttall[4], ttall[5]))
+            pix, edge_pos, amp, amp2, bkg, fwhm = map(float, (ttall[0], ttall[1], ttall[2], ttall[3], ttall[4], ttall[5]))  # Unpack TTALL
 
             # publish raw values
             self.drift['Pixel Pos'].put(pix, wait=True, timeout=1.0)
@@ -142,31 +143,27 @@ class TimeTool:
             self.drift['IPM'].put(float(ipm), wait=True, timeout=1.0)
 
             # quality checks (exclusive bounds)
-            pix_ok   = pix != self.prev_pix_val and pix != 0
-            ipm_ok   = (ipm_lo   < ipm      < ipm_hi)
-            edge_ok  = (edge_lo  < edge_pos < edge_hi)
-            amp_ok   = (amp_lo   < amp      < amp_hi)
-            fwhm_ok  = (fwhm_lo  < fwhm     < fwhm_hi)
-            stage_ok = not bool(stage)
-            good = ipm_ok and edge_ok and amp_ok and pix_ok and fwhm_ok and stage_ok
+            pix_ok     = pix != self.prev_pix_val and pix != 0
+            ipm_ok     = (ipm_lo   < ipm      < ipm_hi)
+            edge_ok    = (edge_lo  < edge_pos < edge_hi)
+            amp_ok     = (amp_lo   < amp      < amp_hi)
+            fwhm_ok    = (fwhm_lo  < fwhm     < fwhm_hi)
+            stage_ok   = not bool(stage)     # stage must be zero to be OK (not moving)
+            shutter_ok = not bool(shutter)   # shutter must be zero to be OK (shutter out)
 
-            # flags
-            self.drift['IPM Good?'].put(int(ipm_ok), wait=True, timeout=1.0)
-            self.drift['Amplitude Good?'].put(int(amp_ok), wait=True, timeout=1.0)
-            self.drift['FWHM Good?'].put(int(fwhm_ok), wait=True, timeout=1.0)
-            self.drift['Good Measurement?'].put(int(good), wait=True, timeout=1.0)
+            good = ipm_ok and edge_ok and amp_ok and pix_ok and fwhm_ok and stage_ok and shutter_ok
 
             if good:
-                print(f'\033[FGood Measurement! - TT Edge Position {edge_pos:.3f} ps    ')
                 self.Time_Tool_Edges[edge_count] = edge_pos
                 edge_count += 1
                 self.prev_pix_val = pix
                 last_good = time.monotonic()
+                print(f'\033[FMeasurement {edge_count} of {num_events_i} - TT Edge Position {edge_pos:.3f} ps    ')
 
             if time.monotonic() - last_good > self.Wait:
                 self.prev_pix_val = pix
-                print(f"\033[FNo Good Measurement Over {self.Wait} Seconds. "
-                      f"Status -> IPM:{ipm_ok}, Edge:{edge_ok}, Amp:{amp_ok}, FWHM:{fwhm_ok}, Pix:{pix_ok}, Stage:{stage_ok}")
+                print(f"\033[F{time.strftime('%x %X')} - No Good Measurement Over {self.Wait} Seconds. "
+                      f"Status -> IPM:{ipm_ok}, Edge:{edge_ok}, Amp:{amp_ok}, FWHM:{fwhm_ok}, Pix:{pix_ok}, Stage:{stage_ok}, Shutter:{shutter_ok} \n")
                 break
 
             if time.monotonic() - wd_t > 0.5:
@@ -178,12 +175,15 @@ class TimeTool:
             self._apply_drift_correction()
 
     def _apply_drift_correction(self):
-        mean_ps = float(np.mean(self.Time_Tool_Edges))
-        print(f'Mean of Edges = {mean_ps:.6f} ps')
-        # NEW: publish mean edge position (ps)
-        self.drift['Ave_Edge_Position'].put(mean_ps, wait=True, timeout=1.0)
-        if self.TT_Drift_EN.get(timeout=1.0) != 1:
-            return
+        mean = float(np.mean(self.Time_Tool_Edges))
+        mean_ps = mean - self.Drift_Edge_Offset
+        std_dev_ps = float(np.std(self.Time_Tool_Edges))
+        print(f'Mean of Edges = {mean:.6f}, Mean of Edges - Offset = {mean_ps:.6f} ps, Standard Deviation = {1000*std_dev_ps:.1f} fs \n')
+        self.drift['Drift_Ave_Edge_Position'].put(mean, wait=True, timeout=1.0)                # write mean edge position (ps)
+        self.drift['Drift_Std_Dev_Edge_Position'].put(std_dev_ps, wait=True, timeout=1.0)            # write std dev edge position (ps)
+        # if self.TT_Drift_EN.get(timeout=1.0) != 1:
+        if self.TT_Script_EN.get(timeout=1.0) != 1:
+                return
 
         if abs(mean_ps) > self.Drift_Adjust_Threshold:
             old_ns = self.drift['Drift Correction Value'].get(timeout=1.0)
@@ -194,9 +194,7 @@ class TimeTool:
             # error in ns (convert ps -> ns), dt from last correction
             error_ns = mean_ps / 1000.0
             now = time.monotonic()
-            dt = now - self._last_pid_t
-            if dt <= 0:
-                dt = 1e-6  # avoid div-by-zero; tiny dt
+            dt = max(now - self._last_pid_t, 1e-6) # 1e-6 avoids div-by-zero; tiny dt
 
             # PID terms
             self.integral_error += error_ns * dt          # integrate error over time (ns·s)
@@ -206,16 +204,15 @@ class TimeTool:
             delta = p_gain * error_ns + i_gain * self.integral_error + d_gain * derivative
             new_ns = old_ns - delta
 
-            print(f'PID -> P:{p_gain:.6f}, I:{i_gain:.6f}, D:{d_gain:.6f}, err(ns):{error_ns:.6f}, integ:{self.integral_error:.6f}, deriv:{derivative:.6f}')
-            print(f'Old Drift Correction = {old_ns:.6f} ns, New = {new_ns:.6f} ns, Delta = {delta:.6f} ns')
+            print(f'\033[FPID -> P:{p_gain:.4f}, I:{i_gain:.4f}, D:{d_gain:.4f}, Err(ns):{error_ns:.6f}, Integ:{self.integral_error:.6f}, Deriv:{derivative:.6f}, P*Err:{p_gain * error_ns:.8f}, I*Integ:{i_gain * self.integral_error:.8f}, D*Deriv:{d_gain * derivative:.8f}')
+            print(f'{time.strftime('%x %X')} - Old Drift Correction = {old_ns:.6f} ns, New = {new_ns:.6f} ns, Delta = {delta:.6f} ns \n')
 
             self.drift['Drift Correction Value'].put(new_ns, wait=True, timeout=1.0)
-
             self.prev_error_ns = error_ns
             self._last_pid_t = now
         else:
-            print(f'Mean of Edges ({abs(mean_ps):.4f}) < Adjustment Threshold ({self.Drift_Adjust_Threshold}). No Correction Applied.')
-            self.integral_error = 0.0           # Optional: reset integrator to avoid windup in deadband
+            print(f'\033[F{time.strftime('%x %X')} - Mean of Edges - Offset ({abs(mean_ps):.4f}) < Adjustment Threshold ({self.Drift_Adjust_Threshold}). No Correction Applied. \n')
+            self.integral_error = 0.0           # Reset integrator
 
 def run():
     system = sys.argv[1] if len(sys.argv) > 1 else 'FS14'
