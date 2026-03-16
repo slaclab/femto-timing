@@ -8,6 +8,7 @@ import sys
 import random
 import json
 import logging
+import os
 
 class PVS():
     """Initializes dictionaries for a particular locker, reads and writes to PVs from that locker."""
@@ -25,8 +26,13 @@ class PVS():
                 filemode='a',
             )
         logging.info('Hutch: %s. IOC Enabled/Rebooted.', self.name)
-        self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
-        self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
+        # This gets the directory where the current .py file is located
+        # Use realpath to resolve the directory of the current script
+        self.path = os.path.dirname(os.path.realpath(__file__)) + '/'
+        self.config = os.path.join(self.path, self.name + '_locker_config.json')
+        #self.path = '/cds/group/laser/timing/femto-timing/dev/exp-timing/'
+        #self.config = self.path+self.name+'_locker_config.json' #Sets name of hutch config file
+        print "DEBUG: Loading config from: " + str(self.config)
         namelist = set() # Checks if scripts is configured to run specified locker name
         self.pvlist = dict()  # List of all PVs
         self.PV_errs = dict() # List of PV connection errors
