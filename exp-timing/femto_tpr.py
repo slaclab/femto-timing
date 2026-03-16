@@ -436,11 +436,11 @@ class locker():
         if (self.C.range > self.instability_thresh) or (self.C.range == 1): # The latter condition catches the when self.C.range>self.C.tol
             self.P.E.write_error('Counter not stable')
         if (self.C.range == 0):  # No TIC reading
-            if (self.stale_cnt < 50):
+            if (self.stale_cnt < 150):
                 self.stale_cnt += 1
             else:
                 self.stale_cnt = 0
-                self.P.E.write_error('No counter reading')
+                self.P.E.write_error('Waiting for counter')
         else:
             self.stale_cnt = 0 # Reset the stale counter if there is new TIC data
         self.check_time = time.time()  # check current time
