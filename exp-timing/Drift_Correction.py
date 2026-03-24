@@ -163,7 +163,7 @@ class TimeTool:
 
             if time.monotonic() - last_good > self.Wait:
                 self.prev_pix_val = pix
-                print(f"\033[F{time.strftime('%x %X')} - No Good Meas >{self.Wait}s - "
+                print(f"\033[F{time.strftime('%x %X')} - No valid meas in {self.Wait}s - "
                       f"IPM:{ipm_ok}, Edge:{edge_ok}, Amp:{amp_ok}, FWHM:{fwhm_ok}, Pix:{pix_ok}, Stage:{stage_ok}, lxt_txt:{lxt_txt_ok}, Shutter:{shutter_ok} \n")
                 break
 
