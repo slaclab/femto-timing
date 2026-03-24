@@ -30,7 +30,7 @@ case $base in
       source /reg/g/pcds/setup/epicsenv-3.14.12.sh
       source /cds/group/pcds/pyps/conda/pcds_conda
       python -V
-      script=time_tool.py
+      script=Drift_Correction.py
       export MPLCONFIGDIR=/reg/d/iocData/fstiming-tt
       ;;
    py-fstiming-pcav)

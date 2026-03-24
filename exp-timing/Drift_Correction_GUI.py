@@ -1,4 +1,4 @@
-# 2602 - Drift Correction GUI for LCLS-I
+# 2603 - Drift Correction GUI for LCLS-I
 import sys, argparse
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5 import QtWebEngineWidgets
@@ -50,6 +50,9 @@ SHUTTER_PV_MAP = {
 DISPLAY_PRECISION = { "IPM":1, "FS":2, "AMP":2, "FWHM":1 }
 LIMIT_PRECISION   = { "IPM":0, "FWHM":0, "FS":2, "AMP":2 }
 LIMITS = list(DISPLAY_PRECISION.keys())
+
+DISPLAY_LABEL = {"FS": "EDGE"}
+# DISPLAY_LABEL = {"FS": "TT_EDGE", "AMP": "TT_AMP", "FWHM": "TT_FWHM"}
 
 EDITABLE = [
     ("Number of Events","matlab:19"),
@@ -285,12 +288,13 @@ class LimitsScreen(Display):
 
         # Limits grid
         grid = QtWidgets.QGridLayout()
-        grid.addWidget(lbl(""), 0, 0); grid.addWidget(lbl("Value"), 0, 1)
+        grid.addWidget(lbl(""), 0, 0); grid.addWidget(lbl("Value", True), 0, 1)
         grid.addWidget(lbl("Min", True), 0, 2); grid.addWidget(lbl("Max", True), 0, 3)
 
         self.value_widgets, self.low_widgets, self.high_widgets = {}, {}, {}
         for r, name in enumerate(LIMITS, 1):
-            grid.addWidget(lbl(name), r, 0)
+            #grid.addWidget(lbl(name, True), r, 0)
+            grid.addWidget(lbl(DISPLAY_LABEL.get(name,name),True), r,0)
             val = SlowLabel(precision=DISPLAY_PRECISION[name]); self.value_widgets[name] = val; grid.addWidget(val, r, 1)
             low = make_edit(LIMIT_PRECISION[name]); high = make_edit(LIMIT_PRECISION[name])
             self.low_widgets[name], self.high_widgets[name] = low, high
