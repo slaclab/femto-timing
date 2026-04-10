@@ -215,10 +215,6 @@ class ToggleButton(QtWidgets.QPushButton, ChannelMixin):
         epics.caput(self._pv, 0 if self.text() == "On" else 1, wait=False)
 
 class StatusButton(QtWidgets.QPushButton, ChannelMixin):
-    """
-    Read-only shutter status that looks enabled (no grey).
-    Shows 'Out' when PV==0 and 'In' otherwise. Clicks are ignored.
-    """
     def __init__(self, pv, width):
         QtWidgets.QPushButton.__init__(self, "Out"); ChannelMixin.__init__(self)
         self.setFixedWidth(width); self.setCursor(QtCore.Qt.ArrowCursor); self.setToolTip("Shutter status (read-only)")
@@ -231,6 +227,20 @@ class StatusButton(QtWidgets.QPushButton, ChannelMixin):
     def update_state(self, value):
         try: self.setText("Out" if int(value) == 0 else "In")
         except Exception: self.setText("Out")
+
+class StatusButton1(QtWidgets.QPushButton, ChannelMixin):
+    def __init__(self, pv, width):
+        QtWidgets.QPushButton.__init__(self, "OK"); ChannelMixin.__init__(self)
+        self.setFixedWidth(width); self.setCursor(QtCore.Qt.ArrowCursor); self.setToolTip("Shutter status (read-only)")
+        self.set_pv(pv)
+
+    def mousePressEvent(self, e: QtGui.QMouseEvent): e.ignore()  # ignore clicks
+
+    def set_pv(self, pv): self.set_channel(pv, self.update_state)
+
+    def update_state(self, value):
+        try: self.setText("OK" if int(value) == 0 else "Bad")
+        except Exception: self.setText("OK")
 
 # ---------------- Main Display ----------------
 class LimitsScreen(Display):
@@ -274,6 +284,10 @@ class LimitsScreen(Display):
         self.shutter_btn = StatusButton("PPS:FEH1:6:S6STPRSUM", self._button_width); drift.addWidget(self.shutter_btn, 2, 1)
         self.shutter_ind = BoolIndicator("PPS:FEH1:6:S6STPRSUM", green_when_zero=True); drift.addWidget(self.shutter_ind, 2, 2)
 
+        drift.addWidget(lbl("Stage Status", True), 3, 0)
+        self.stage_btn = StatusButton1("LAS:FS14:VIT:STAGE", self._button_width); drift.addWidget(self.stage_btn, 3, 1)
+        self.stage_ind = BoolIndicator("LAS:FS14:VIT:STAGE", green_when_zero=True); drift.addWidget(self.stage_ind, 3, 2)
+        
         vbox.addLayout(drift); vbox.addWidget(sep())
 
         # Indicators
@@ -402,6 +416,10 @@ class LimitsScreen(Display):
         driftPV, scriptPV = f"{pref}DRIFT_CORRECT_GAIN", f"{pref}matlab:31"
         self.drift_btn.set_pv(driftPV); self.drift_ind.set_pv(driftPV)
         self.script_btn.set_pv(scriptPV); self.script_ind.set_pv(scriptPV)
+
+        stage_pv = f"{pref}STAGE"
+        self.stage_btn.set_pv(stage_pv)
+        self.stage_ind.set_pv(stage_pv)
 
         shutter_pv = SHUTTER_PV_MAP.get(dev_key, "PPS:FEH1:6:S6STPRSUM")
         self.shutter_btn.set_pv(shutter_pv); self.shutter_ind.set_pv(shutter_pv)

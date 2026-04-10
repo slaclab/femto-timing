@@ -38,7 +38,7 @@ class TimeTool:
         self.cfg = cfg
         self.Delay = 0.5
         self.Wait = 60
-        version = 'v0.90'
+        version = 'v0.91'
 
         # Core PVs
         self.TTALL_PV     = PV(cfg['TTALL']); self.TTALL_PV.wait_for_connection(1.0)
@@ -66,7 +66,7 @@ class TimeTool:
             'FWHM': dev+'FWHM',
             'FWHM_LOW': dev+'FWHM.LOW',
             'FWHM_HIGH': dev+'FWHM.HIGH',
-            'Stage Moving?': dev+'STAGE',
+            'Stage Status': dev+'STAGE',
             'IPM': dev+'IPM',
             'IPM_LOW': dev+'IPM.LOW',
             'IPM_HIGH': dev+'IPM.HIGH',
@@ -132,16 +132,6 @@ class TimeTool:
 
             pix, edge_pos, amp, amp2, bkg, fwhm = map(float, (ttall[0], ttall[1], ttall[2], ttall[3], ttall[4], ttall[5]))  # Unpack TTALL
 
-            # publish raw values
-            self.drift['Pixel Pos'].put(pix, wait=True, timeout=1.0)
-            self.drift['Edge Position'].put(edge_pos, wait=True, timeout=1.0)
-            self.drift['Amplitude'].put(amp, wait=True, timeout=1.0)
-            self.drift['2nd Amplitude'].put(amp2, wait=True, timeout=1.0)
-            self.drift['Background ref'].put(bkg, wait=True, timeout=1.0)
-            self.drift['FWHM'].put(fwhm, wait=True, timeout=1.0)
-            self.drift['Stage Moving?'].put(float(stage), wait=True, timeout=1.0)
-            self.drift['IPM'].put(float(ipm), wait=True, timeout=1.0)
-
             # quality checks (exclusive bounds)
             pix_ok     = pix != self.prev_pix_val and pix != 0
             ipm_ok     = (ipm_lo   < ipm      < ipm_hi)
@@ -151,6 +141,17 @@ class TimeTool:
             lxt_txt_ok = round(lxt, 13) == -round(txt, 13) # lxt() = -txt()
             stage_ok   = not bool(stage)     # stage must be zero to be OK (not moving)
             shutter_ok = not bool(shutter)   # shutter must be zero to be OK (shutter out)
+            stage_status = 0.0 if (lxt_txt_ok and stage_ok) else 1.0
+
+            # publish raw values
+            self.drift['Pixel Pos'].put(pix, wait=True, timeout=1.0)
+            self.drift['Edge Position'].put(edge_pos, wait=True, timeout=1.0)
+            self.drift['Amplitude'].put(amp, wait=True, timeout=1.0)
+            self.drift['2nd Amplitude'].put(amp2, wait=True, timeout=1.0)
+            self.drift['Background ref'].put(bkg, wait=True, timeout=1.0)
+            self.drift['FWHM'].put(fwhm, wait=True, timeout=1.0)
+            self.drift['Stage Status'].put(stage_status, wait=True, timeout=1.0)
+            self.drift['IPM'].put(float(ipm), wait=True, timeout=1.0)
 
             good = ipm_ok and edge_ok and amp_ok and pix_ok and fwhm_ok and stage_ok and lxt_txt_ok and shutter_ok
 
