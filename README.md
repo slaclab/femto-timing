@@ -1,48 +1,44 @@
-<h1 align="center">LCLS-I fstiming scripts</h1>
+# LCLS-I Femtosecond Timing (fstiming)
 
-<div align="center">
-  <strong>LCLS-I fstiming </strong>
-</div>
+Operational scripts for LCLS-I laser timing control. Each script runs as a long-running EPICS soft-IOC loop on the LCLS controls network.
 
-<p align="center">
-  <a href="#motivation">Motivation</a> •
-  <a href="#features">Features</a> •
-  <a href="#basic-usage">Basic Usage</a> •
-  <a href="https://confluence.slac.stanford.edu/display/timing/launch+femto.py">Documentation</a>
-</p>
+## Scripts
 
-## Motivation
-Repository for all LCLS-I fstiming scripts
+| Script | Purpose | Python | EPICS Layer |
+|--------|---------|--------|-------------|
+| `femto.py` | Main locker loop (all hutches except XCS) | 2.7 | psp.Pv |
+| `femto_longdelay.py` | Main locker loop (XCS) | 2.7 | psp.Pv |
+| `time_tool.py` | Time-tool drift correction signal | 2.7 | psp.Pv |
+| `pcav2cast_hxr.py` | PCAV-to-CAST phase-shifter feedback (HXR) | 3 | pyepics |
+| `pcav2cast_sxr.py` | PCAV-to-CAST phase-shifter feedback (SXR) | 3 | pyepics |
 
-## Features
-* femto.py: **TO DO**
-* atm2las.py: **TO DO**
-* pcav2cast.py: **TO DO**
-* pcav2ttdrift.py: **TO DO**
-* time_tool.py: **TO DO**
-* watchdog.py: **TO DO**
+## Configuration
 
-## Basic Usage
-**TO DO**
+Per-hutch JSON config files (`<HUTCH>_locker_config.json`) define locker parameters: PV base prefix, laser trigger PV, drift correction direction, and feature toggles. Supported hutches: CXI, XPP, MEC, MFX, XCS.
 
-[femto resource guide](https://confluence.slac.stanford.edu/x/mYM6Gw)
+## Running
 
-Note, any changes that are done should be in the **dev** directory, not in any of the released directories. The **dev** folder is where any unmerged changes should occur. Better yet, in a fork. While making changes, please keep in mind to make periodic commits to track changes. Once an update is ready to be released, please tag it and push.
-```bash
-   # /cds/group/laser/las-dev/<user_name>/<forked_repo>
-   # or
-   # /cds/group/laser/timing/femto-timing/dev
+`st.cmd` is the IOC entry point. It derives the script and hutch from the `$IOC` environment variable (`<base>-<hutch>`, e.g. `py-fstiming-cast-sxr`) and dispatches accordingly:
+
+| IOC base | Script |
+|----------|--------|
+| `py-fstiming` | `femto.py` (or `femto_longdelay.py` for XCS) |
+| `py-fstiming-tt` | `time_tool.py` |
+| `py-fstiming-cast` | `pcav2cast_<hutch>.py` |
+
+## Deployment
+
+Edits in a working checkout do not affect running IOCs. To test:
+
+1. Develop in a fork or the `dev/` directory
+2. Commit, and push:
+   ```bash
    git commit -m "message"
-   git tag
-   git push tag
-```
-Once approved and merged, a new local repository directory needs to be created so the "IOCs" can point to it. There are two ways to go about this. Option A is a one line command. The only thing that needs chagning is the "<tag name>" variable at the beginning. Option B is the same command, only broken up. Could be helpful if there are any issues with the git checkout process that needs troubleshooting. 
-```bash
-   # /cds/group/laser/timing/femto-timing
-   # Option A
-   TAG=<tag name> bash -c 'git clone -c advice.detachedHead=false --branch $TAG --single-branch https://github.com/slaclab/femto-timing.git $TAG'
-   # Option B
-   git clone --single-branch https://github.com/slaclab/femto-timing.git <tag name>
-   cd <tag name>
-   git checkout <tag name>
-```
+   git push origin
+   ```
+3. Point the IOC at the dev directory and restart
+
+## Documentation
+
+- [Femto resource guide](https://confluence.slac.stanford.edu/x/mYM6Gw)
+- [Managing the Femto Scripts](https://confluence.slac.stanford.edu/x/F7p8F)
