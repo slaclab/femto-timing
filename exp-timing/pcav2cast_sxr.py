@@ -107,7 +107,7 @@ while True:
     CTRL_DELTA = np.multiply(LOOP_KP, cntl_temp)
     SXR_FB_EN = epics.caget(SXR_FB_PV)  # get feedback enable PV
     # don't do feedback if the error is too large or feedback is disabled
-    if (abs(TIME_ERR_DIFF) >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
+    if (TIME_ERR_DIFF == 0) or (abs(TIME_ERR_DIFF) >= TIME_ERR_THRESH) or (SXR_FB_EN == 0):
         CTRL_DELTA = 0
         print('feedback set to 0')
     # else:
