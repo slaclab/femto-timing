@@ -124,6 +124,7 @@ while True:
         set_status(4, 'Latching setpoint')
         CTRL_SETPT = latch_setpoint(PCAV_PV)
         CTRL_OUT = epics.caget(SXR_CAST_PS_PV_R)
+        TIME_ERR_AVG_PREV = 0
         PREV_USE_PV1 = USE_PV1
         print(f'{ts()} | setpoint latched: {CTRL_SETPT}, PS readback: {CTRL_OUT}')
         if CTRL_SETPT is None:
@@ -169,6 +170,7 @@ while True:
         CTRL_DELTA = 0
         STATUS = (3, 'Hold: stale PCAV') if TIME_ERR_DIFF == 0 else (2, 'Hold: error jump')
     if NAN_ALERT:
+        CTRL_DELTA = 0
         STATUS = (6, 'PCAV NaN')
     set_status(*STATUS)
     CTRL_OUT = CTRL_OUT + CTRL_DELTA

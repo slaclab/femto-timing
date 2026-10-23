@@ -48,7 +48,7 @@ if (TIME_ERR_DIFF == 0) or (abs(TIME_ERR_DIFF) >= TIME_ERR_THRESH) or (FB_EN == 
     CTRL_DELTA = 0
 ```
 
-A frozen PCAV PV returns a constant (non-`NaN`) value, so the `NaN` guard misses it and the error difference goes to 0; without the `== 0` term the loop integrates `CTRL_OUT` indefinitely and drives the phase shifter away (runaway observed 2026-06-11). It was once removed from SXR as "unused" — it does not feed the delta math but is the staleness interlock. SXR feeds back on PCAV `TIME1` and has XPP-switch follow logic; HXR uses `TIME0`.
+A frozen PCAV PV returns a constant (non-`NaN`) value, so the `NaN` guard misses it and the error difference goes to 0; without the `== 0` term the loop integrates `CTRL_OUT` indefinitely and drives the phase shifter away (runaway observed 2026-06-11). It was once removed from SXR as "unused" — it does not feed the delta math but is the staleness interlock. SXR feeds back on PCAV `TIME0` or `TIME1`, selected by `LAS:UNDS:FLOAT:95` (0 = `TIME0`, 1 = `TIME1`), re-latching the setpoint on a switch; HXR uses `TIME0`.
 
 ## Deployment
 
